@@ -1,20 +1,26 @@
+// app.js
 const express = require("express");
 const ErrorHandler = require("./middleware/error");
 const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const requestLogger = require("./middleware/requestLogger");
 
 app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }));
 
+// when the app is behind a proxy or load balancer. This helps correctly identify the client's IP address
+app.set('trust proxy', true);
+
 app.use(express.json());
 app.use(cookieParser());
-
-
 app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
+
+// Use request logging middleware
+app.use(requestLogger);
 
 // config
 if (process.env.NODE_ENV !== "PRODUCTION") {
@@ -24,12 +30,13 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 }
 
 // import routes
-const user = require("./routes/userRoutes");
+const auth = require("./routes/authRoute");
+const user = require("./routes/userRoute");
 
-
+app.use("/api/v1/auth", auth);
 app.use("/api/v1/user", user);
 
-// it's for ErrorHandling
+// Error handling middleware
 app.use(ErrorHandler);
- 
-module.exports = app; 
+
+module.exports = app;

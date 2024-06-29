@@ -1,37 +1,38 @@
+require('dotenv').config({ path: './config/.env' });
 const app = require("./app");
-const connectDatabase = require("./db/Database");
-const cloudinary = require("cloudinary");
-
-// Handling uncaught Exception
-process.on("uncaughtException", (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log(`shutting down the server for handling uncaught exception`);
-});
-
-// config
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "config/.env", 
-  }); 
-}
-
-// connect db
-connectDatabase();
+const connectDatabase = require("./config/db-connection");
+const logger = require("./utils/logger"); // Now logger can access the environment variables
 
 
-// create server
-const server = app.listen(process.env.PORT, () => {
-  console.log(
-    `Server is running on http://localhost:${process.env.PORT}`
-  );
-});
+// Connect to the database
+connectDatabase()
+  .then(() => {
+    // Start the server
+    const server = app.listen(process.env.PORT, () => {
+      logger.info(`Server is running on http://localhost:${process.env.PORT}`);
+    });
 
-// unhandled promise rejection
-process.on("unhandledRejection", (err) => {
-  console.log(`Shutting down the server for ${err.message}`);
-  console.log(`shutting down the server for unhandle promise rejection`);
+    // Handling unhandled promise rejections
+    process.on("unhandledRejection", (err) => {
+      logger.error(`Unhandled Rejection: ${err.message}`, { stack: err.stack });
+      logger.info("Shutting down the server due to unhandled promise rejection.");
 
-  server.close(() => {
-    process.exit(1);
+      server.close(() => {
+        process.exit(1);
+      });
+    });
+
+    // Handling uncaught exceptions
+    process.on("uncaughtException", (err) => {
+      logger.error(`Uncaught Exception: ${err.message}`, { stack: err.stack });
+      logger.info("Shutting down the server due to uncaught exception.");
+
+      server.close(() => {
+        process.exit(1);
+      });
+    });
+  })
+  .catch((err) => {
+    logger.error("Database connection error:", { error: err.message });
+    process.exit(1); // Exit process on database connection error
   });
-});

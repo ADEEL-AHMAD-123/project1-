@@ -1,65 +1,151 @@
 const User = require('../model/user');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const createError = require('http-errors');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
+const logger = require('../utils/logger');
+const sendToken = require('../utils/sendToken');
 
-// Register new user
-const registerUser = catchAsyncErrors(async (req, res) => {
-  const { username, password, role } = req.body;
-  const newUser = new User({ username, password, role });
+// @desc    Get current logged-in user profile
+// @route   GET /api/user/profile
+// @access  Private
+exports.getUserProfile = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
 
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  newUser.ip = ip;
-
-  await newUser.save();
-  res.status(201).send('User registered successfully');
-});
-
-// Login user
-const loginUser = catchAsyncErrors(async (req, res) => {
-  const { username, password } = req.body;
-  const user = await User.findOne({ username });
-
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).send('Incorrect username or password');
+  if (!user) {
+    throw createError(404, 'User not found');
   }
 
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  user.ip = ip;
-  await user.save();
-
-  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  res.json({ token });
+  res.status(200).json({
+    success: true,
+    user
+  });
 });
 
-// Manage SSH keys
-const manageSSHKeys = catchAsyncErrors(async (req, res) => {
-  const { action, sshKey, oldKey, newKey } = req.body;
-  const user = req.user;
+// @desc    Update current logged-in user profile
+// @route   PUT /api/user/profile
+// @access  Private
+exports.updateUserProfile = catchAsyncErrors(async (req, res, next) => {
+  const updates = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
+    // Add other fields that users can update
+  };
 
-  switch (action) {
-    case 'add':
-      user.sshKeys.push(sshKey);
-      break;
-    case 'delete':
-      user.sshKeys = user.sshKeys.filter(key => key !== sshKey);
-      break;
-    case 'update':
-      const index = user.sshKeys.findIndex(key => key === oldKey);
-      if (index > -1) user.sshKeys[index] = newKey;
-      break;
-    default:
-      return res.status(400).send('Invalid action');
+  const user = await User.findByIdAndUpdate(req.user.id, updates, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false
+  });
+
+  if (!user) {
+    throw createError(404, 'User not found');
   }
 
+  res.status(200).json({
+    success: true,
+    user
+  });
+});
+
+// @desc    Supportive staff updating client user's SSH keys
+// @route   PUT /api/user/:id/sshkeys
+// @access  Private (admin and supportiveStaff)
+exports.updateClientSSHKeys = catchAsyncErrors(async (req, res, next) => {
+  const { sshKeys } = req.body;
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    throw createError(404, 'User not found');
+  }
+
+  if (req.user.role !== 'admin' && req.user.role !== 'supportiveStaff') {
+    throw createError(403, 'You do not have permission to update this user');
+  }
+
+  if (user.role === 'admin' || user.role === 'supportiveStaff') {
+    throw createError(403, 'You cannot update the profile of an admin or another supportive staff');
+  }
+
+  user.sshKeys = sshKeys;
   await user.save();
-  res.send(`SSH key ${action}ed successfully`);
+
+  res.status(200).json({
+    success: true,
+    user
+  });
 });
 
-// Get user data
-const getUserData = catchAsyncErrors(async (req, res) => {
-  const users = await User.find({}, 'username ip sshKeys');
-  res.json(users);
+// @desc    Get all users (admin only)
+// @route   GET /api/users
+// @access  Private (admin only)
+exports.getAllUsers = catchAsyncErrors(async (req, res, next) => {
+  const users = await User.find();
+
+  res.status(200).json({
+    success: true,
+    users
+  });
 });
 
-module.exports = { registerUser, loginUser, manageSSHKeys, getUserData };
+// @desc    Get a single user by ID
+// @route   GET /api/users/:id
+// @access  Private (admin only)
+exports.getUserById = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    throw createError(404, 'User not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    user
+  });
+});
+
+// @desc    Update user by admin
+// @route   PUT /api/users/:id
+// @access  Private (admin only)
+exports.updateUserByAdmin = catchAsyncErrors(async (req, res, next) => {
+  const updates = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
+    role: req.body.role,
+    sshKeys: req.body.sshKeys
+    // Add other fields that admins can update
+  };
+
+  const user = await User.findByIdAndUpdate(req.params.id, updates, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false
+  });
+
+  if (!user) {
+    throw createError(404, 'User not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    user
+  });
+});
+
+// @desc    Delete user by admin
+// @route   DELETE /api/users/:id
+// @access  Private (admin only)
+exports.deleteUserByAdmin = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    throw createError(404, 'User not found');
+  }
+
+  await user.remove();
+
+  res.status(200).json({
+    success: true,
+    message: 'User deleted successfully'
+  });
+});
