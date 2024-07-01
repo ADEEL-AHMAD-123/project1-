@@ -8,14 +8,14 @@ const logger = require('../utils/logger');
 // @route   POST /api/auth/register
 // @access  Public
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
-  const { firstName, lastName, email, password, role } = req.body;
+  const { firstName, lastName, email, password } = req.body;
 
   const userExist = await User.findOne({ email });
   if (userExist) {
     throw createError(400, "User already exists");
   }
 
-  const user = await User.create({ firstName, lastName, email, password, role });
+  const user = await User.create({ firstName, lastName, email, password });
 
   logger.info('User registered', {
     email: user.email,
@@ -53,7 +53,6 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 
   logger.info('User logged in', {
     email: user.email,
-    ip,
     meta: {
       userId: user._id.toString(),  // Convert ObjectId to string
       email: user.email,

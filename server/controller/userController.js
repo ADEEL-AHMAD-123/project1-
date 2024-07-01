@@ -27,8 +27,8 @@ exports.updateUserProfile = catchAsyncErrors(async (req, res, next) => {
   const updates = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    email: req.body.email,
-    // Add other fields that users can update
+
+
   };
 
   const user = await User.findByIdAndUpdate(req.user.id, updates, {
@@ -43,14 +43,15 @@ exports.updateUserProfile = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+    message: 'Profile updated successfully',
     user
   });
 });
 
-// @desc    Supportive staff updating client user's SSH keys
+// @desc    Admin & Supportive staff updating client user's SSH keys
 // @route   PUT /api/user/:id/sshkeys
 // @access  Private (admin and supportiveStaff)
-exports.updateClientSSHKeys = catchAsyncErrors(async (req, res, next) => {
+exports.updateSSHKeys = catchAsyncErrors(async (req, res, next) => {
   const { sshKeys } = req.body;
   const user = await User.findById(req.params.id);
 
@@ -66,26 +67,40 @@ exports.updateClientSSHKeys = catchAsyncErrors(async (req, res, next) => {
     throw createError(403, 'You cannot update the profile of an admin or another supportive staff');
   }
 
+  const existingSSHKeys = user.sshKeys || [];
+  const isUpdated = existingSSHKeys.length > 0 && JSON.stringify(existingSSHKeys) !== JSON.stringify(sshKeys);
+
   user.sshKeys = sshKeys;
   await user.save();
 
   res.status(200).json({
     success: true,
+    message: `SSH keys for user ${user._id} ${isUpdated ? 'updated' : 'added'} successfully`,
     user
   });
 });
 
-// @desc    Get all users (admin only)
+
+// @desc    Get all users 
 // @route   GET /api/users
-// @access  Private (admin only)
+// @access  Private (admin and supportive staff)
 exports.getAllUsers = catchAsyncErrors(async (req, res, next) => {
-  const users = await User.find();
+  let users;
+
+  if (req.user.role === 'admin') {
+    users = await User.find();
+  } else if (req.user.role === 'supportiveStaff') {
+    users = await User.find({ role: 'client' });
+  } else {
+    throw createError(403, 'You do not have permission to access this resource');
+  }
 
   res.status(200).json({
     success: true,
     users
   });
 });
+
 
 // @desc    Get a single user by ID
 // @route   GET /api/users/:id

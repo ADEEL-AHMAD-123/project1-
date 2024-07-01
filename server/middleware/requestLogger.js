@@ -8,8 +8,8 @@ const requestLogger = (req, res, next) => {
   const { password, ...safeBody } = req.body; 
   
   logger.info('Incoming request', {
-    ip: req.ip,
     meta: {
+      ip,
       method: req.method,
       path: req.path,
       body: safeBody,

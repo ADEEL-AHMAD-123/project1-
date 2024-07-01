@@ -2,25 +2,25 @@ const express = require('express');
 const {
   getUserProfile,
   updateUserProfile,
-  updateClientSSHKeys,
+  updateSSHKeys,
   getAllUsers,
   getUserById,
   updateUserByAdmin,
-  deleteUserByAdmin 
+  deleteUserByAdmin,
+  verifyEmail
 } = require('../controller/userController');
-const authMiddleware = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
+const { isAuthenticatedUser, authorize } = require("../middleware/auth");
 
 const router = express.Router();
 
-router.get('/profile', authMiddleware, getUserProfile);
-router.put('/profile', authMiddleware, updateUserProfile);
+router.get('/profile', isAuthenticatedUser, getUserProfile);
+router.put('/profile', isAuthenticatedUser, updateUserProfile);
 
-router.put('/users/:id/ssh-keys', authMiddleware, authorize('admin', 'supportiveStaff'), updateClientSSHKeys);
+router.put('/:id/ssh-keys', isAuthenticatedUser, authorize('admin', 'supportiveStaff'), updateSSHKeys);
 
-router.get('/users', authMiddleware, authorize('admin'), getAllUsers);
-router.get('/users/:id', authMiddleware, authorize('admin', 'supportiveStaff'), getUserById);
-router.put('/users/:id', authMiddleware, authorize('admin'), updateUserByAdmin);
-router.delete('/users/:id', authMiddleware, authorize('admin'), deleteUserByAdmin);
+router.get('/users', isAuthenticatedUser, authorize("admin","supportiveStaff"), getAllUsers);
+router.get('/:id', isAuthenticatedUser, authorize("admin", "supportiveStaff"), getUserById);
+router.put('/:id', isAuthenticatedUser, authorize("admin"), updateUserByAdmin);
+router.delete('/users/:id', isAuthenticatedUser, authorize("admin"), deleteUserByAdmin);
 
 module.exports = router;
