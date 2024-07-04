@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import './styles/main.scss';
+import Profile from './pages/Profile';
 
 function App() {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +24,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Register />} />
                     <Route path="/" element={<Dashboard />} />
+                    <Route path="/profile" element={<Profile />} />
                 </Routes>
             </div>
         </div>

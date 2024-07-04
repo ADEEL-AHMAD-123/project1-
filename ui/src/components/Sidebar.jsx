@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FaCog, FaUsers, FaUserCircle, FaObjectGroup } from 'react-icons/fa';
+import { FaCog, FaUsers, FaUserCircle, FaObjectGroup ,FaUser} from 'react-icons/fa';
 import '../styles/Sidebar.scss';
 
 const Sidebar = ({ isSidebarOpen }) => {
@@ -13,12 +13,19 @@ const Sidebar = ({ isSidebarOpen }) => {
             <div className="sidebar-heading">ADMIN</div>
             <nav>
                 <ul>
+                <NavLink to="/profile">
+                        <li className={isActive('/profile') ? 'active' : ''}>
+                            <FaUser className="icon" />
+                            <span>profile</span>
+                        </li>
+                    </NavLink>
                     <NavLink to="/account-settings">
                         <li className={isActive('/account-settings') ? 'active' : ''}>
                             <FaCog className="icon" />
                             <span>Account Setting</span>
                         </li>
                     </NavLink>
+
                     <NavLink to="/team">
                         <li className={isActive('/team') ? 'active' : ''}>
                             <FaUsers className="icon" />

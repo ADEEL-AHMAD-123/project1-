@@ -1,0 +1,187 @@
+@import "./_variables.scss";
+
+.profile-page {
+    .tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        background-color: $secondary-color;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto 20px auto;
+color: $primary-color;
+        .tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+            border-right: 1px solid $primary-color;
+
+            &:last-child {
+                border-right: none;
+            }
+
+            &:hover {
+                background-color: $primary-color;
+                color: white;
+            }
+
+            svg {
+                margin-right: 10px;
+            }
+        }
+    }
+
+    .profile-content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+
+        .left-section {
+            .user-card {
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                .user-image {
+                    border-radius: 50%;
+                    overflow: hidden;
+                    width: 150px;
+                    height: 150px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 20px;
+                    background-color: $secondary-color;
+                }
+
+                .info {
+                    width: 100%;
+
+                    p {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        font-size: 1rem;
+                        color: $text-color;
+                        margin-bottom: 10px;
+                        padding: 10px;
+                        border-bottom: 1px solid #ddd;
+
+                        &:last-child {
+                            border-bottom: none;
+                        }
+
+                        svg {
+                            margin-right: 10px;
+                        }
+
+                        span {
+                            font-weight: bold;
+                            color: $dark-text-color;
+
+                            &.value {
+                                font-weight: normal;
+                                color: $light-text-color;
+                                margin-left: auto;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .right-section {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+
+            h3 {
+                font-size: 1.5rem;
+                color: $primary-color;
+                margin-bottom: 10px;
+            }
+
+            .about-me {
+                margin-bottom: 20px;
+
+                p {
+                    font-size: 1rem;
+                    color: $text-color;
+                }
+            }
+
+            .personal-details {
+                .detail {
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 1rem;
+                    color: $text-color;
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    border-bottom: 1px solid #ddd;
+
+                    &:last-child {
+                        border-bottom: none;
+                    }
+
+                    span {
+                        font-weight: bold;
+                        color: $dark-text-color;
+
+                        &.value {
+                            font-weight: normal;
+                            color: $light-text-color;
+                            margin-left: auto;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-page {
+        .tabs {
+            grid-template-columns: 1fr;
+            text-align: center;
+
+            .tab {
+                padding: 10px;
+                font-size: 0.9rem;
+                border-right: none;
+
+                &:hover {
+                    background-color: $primary-color;
+                    color: white;
+                }
+
+                svg {
+                    margin-right: 5px;
+                }
+            }
+        }
+
+        .profile-content {
+            grid-template-columns: 1fr;
+            width: 100%;
+
+            .left-section,
+            .right-section {
+                margin-bottom: 20px;
+            }
+        }
+    }
+}

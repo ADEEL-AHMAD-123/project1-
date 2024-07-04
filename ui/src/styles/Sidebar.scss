@@ -7,15 +7,15 @@
     padding: 20px;
     height: calc(100vh - 90px); // Adjust height to consider the top bar height
     overflow-y: auto;
-    padding-top: 20px; // Adjust top padding for heading
+    padding-top: 0px; // Adjust top padding for heading
     z-index: 1;
     top: 10px;
 
     .sidebar-heading {
-        font-size: 18px;
+        font-size: 18px; 
         font-weight: bold;
         color: black; // Use your primary color from variables
-        margin-bottom: 10px; // Adjust spacing below heading
+        margin-bottom: 30px; // Adjust spacing below heading
     }
 
     @media (max-width: 768px) {
@@ -64,9 +64,9 @@
             display: flex;
             align-items: center;
             transition: background-color 0.3s ease, color 0.3s ease; // Smooth transition
-            color: $text-color; // Use your text color from variables
+            color: $dark-text-color; // Use your text color from variables
             letter-spacing: 0.5px; // Add letter spacing
-
+font-weight: 500;
             &:hover,
             &.active {
                 background-color: $secondary-color; // Use your secondary color from variables
