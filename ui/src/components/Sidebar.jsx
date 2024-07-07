@@ -1,49 +1,44 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FaCog, FaUsers, FaUserCircle, FaObjectGroup ,FaUser} from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { tabsConfig } from '../config/tabsConfig';
 import '../styles/Sidebar.scss';
 
-const Sidebar = ({ isSidebarOpen }) => {
+const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     const location = useLocation();
+    const role = useSelector((state) => state.user.Role);
+console.log('el',role);
 
     const isActive = (path) => location.pathname === path;
 
+    const handleLinkClick = () => {
+        if (window.innerWidth <= 768) {
+            toggleSidebar(); // Hide the sidebar when a link is clicked on small devices
+        }
+    };
+
+    const renderTabs = () => {
+        return tabsConfig.map((tab) => {
+            if (tab.roles.includes(role)) {
+                return (
+                    <NavLink to={tab.path} key={tab.path} onClick={handleLinkClick}>
+                        <li className={isActive(tab.path) ? 'active' : ''}>
+                            <tab.icon className="icon" />
+                            <span>{tab.label}</span>
+                        </li>
+                    </NavLink>
+                );
+            }
+            return null;
+        });
+    };
+
     return (
         <div className={`sidebar ${isSidebarOpen ? 'active' : ''}`}>
-            <div className="sidebar-heading">ADMIN</div>
+            <div className="sidebar-heading">{role}</div>
             <nav>
                 <ul>
-                <NavLink to="/profile">
-                        <li className={isActive('/profile') ? 'active' : ''}>
-                            <FaUser className="icon" />
-                            <span>profile</span>
-                        </li>
-                    </NavLink>
-                    <NavLink to="/account-settings">
-                        <li className={isActive('/account-settings') ? 'active' : ''}>
-                            <FaCog className="icon" />
-                            <span>Account Setting</span>
-                        </li>
-                    </NavLink>
-
-                    <NavLink to="/team">
-                        <li className={isActive('/team') ? 'active' : ''}>
-                            <FaUsers className="icon" />
-                            <span>Team</span>
-                        </li>
-                    </NavLink>
-                    <NavLink to="/roles">
-                        <li className={isActive('/roles') ? 'active' : ''}>
-                            <FaUserCircle className="icon" />
-                            <span>Roles</span>
-                        </li>
-                    </NavLink>
-                    <NavLink to="/groups">
-                        <li className={isActive('/groups') ? 'active' : ''}>
-                            <FaObjectGroup className="icon" />
-                            <span>Groups</span>
-                        </li>
-                    </NavLink>
+                    {renderTabs()}
                 </ul>
             </nav>
         </div>

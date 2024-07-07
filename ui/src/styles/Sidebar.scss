@@ -10,44 +10,48 @@
     padding-top: 0px; // Adjust top padding for heading
     z-index: 1;
     top: 10px;
+    transition: transform 0.3s ease; // Smooth transition for sidebar
 
     .sidebar-heading {
-        font-size: 18px; 
+        font-size: 18px;
         font-weight: bold;
         color: black; // Use your primary color from variables
         margin-bottom: 30px; // Adjust spacing below heading
+        text-transform:uppercase;
+    }
+
+    &.active {
+        transform: translateX(0);
     }
 
     @media (max-width: 768px) {
-        display: none;
         position: fixed;
         width: 70%;
-        height: calc(100vh - 60px); // Adjust height to consider the top bar height
+        height: calc(100vh - 70px); // Adjust height to consider the top bar height
         background-color: #f8f9fa;
-        top: 60px; // Start below the top bar
+        top: 70px; // Start below the top bar
         padding: 10px; // Add padding
-        transition: transform 0.3s ease;
-        transform: translateX(-100%);
+        transform: translateX(-100%); // Initially hidden
 
         &.active {
-            display: block;
-            transform: translateX(0);
+            transform: translateX(0); // Show sidebar
         }
 
         .sidebar-heading {
             font-size: 16px;
-            padding: 0 10px;
+            padding: 20px 5px;
+            margin: 0;
         }
     }
 
     @media (max-width: 480px) {
         width: 70%; // Adjust to 70% width for smaller devices
-        height: calc(100vh - 60px); // Adjust height to consider the top bar height
+        height: calc(100vh - 70px); // Adjust height to consider the top bar height
         padding: 10px;
 
         .sidebar-heading {
             font-size: 14px;
-            padding: 30px 10px 0px 5px;
+            padding: 20px 5px;
             margin-bottom: 0;
         }
     }
@@ -66,7 +70,8 @@
             transition: background-color 0.3s ease, color 0.3s ease; // Smooth transition
             color: $dark-text-color; // Use your text color from variables
             letter-spacing: 0.5px; // Add letter spacing
-font-weight: 500;
+            font-weight: 500;
+
             &:hover,
             &.active {
                 background-color: $secondary-color; // Use your secondary color from variables

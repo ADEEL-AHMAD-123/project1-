@@ -23,6 +23,22 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     select: false,
   },
+  phone: {
+    type: String,
+
+  },
+  zipcode: {
+    type: String,
+
+  },
+  address: {
+    type: String,
+
+  },
+  avatar: {
+    public_id: { type: String },
+    url: { type: String },
+  },
   role: {
     type: String,
     enum: ['client', 'supportive staff', 'admin'],
@@ -31,11 +47,9 @@ const userSchema = new mongoose.Schema({
   sshKeys: [{
     title: {
       type: String,
-      // required: [true, 'Please provide a title for the SSH key'],
     },
     key: {
       type: String,
-      // required: [true, 'Please provide the SSH key'],
     },
   }],
   lastLoginIp: {

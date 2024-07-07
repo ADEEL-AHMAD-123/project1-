@@ -1,7 +1,7 @@
 const express = require('express');
 const {
   getUserProfile,
-  updateUserProfile,
+  updateProfile,
   updateSSHKeys,
   getAllUsers,
   getUserById,
@@ -9,18 +9,21 @@ const {
   deleteUserByAdmin,
   verifyEmail
 } = require('../controller/userController');
-const { isAuthenticatedUser, authorize } = require("../middleware/auth");
+const { isAuthenticatedUser,isAuthorized } = require("../middleware/auth");
 
-const router = express.Router();
+const upload = require('../middleware/multerConfig'); 
+
+
+const router = express.Router(); 
 
 router.get('/profile', isAuthenticatedUser, getUserProfile);
-router.put('/profile', isAuthenticatedUser, updateUserProfile);
+router.put('/profile', isAuthenticatedUser,upload.single('avatar'), updateProfile);
 
-router.put('/:id/ssh-keys', isAuthenticatedUser, authorize('admin', 'supportiveStaff'), updateSSHKeys);
+router.put('/:id/ssh-keys', isAuthenticatedUser, isAuthorized('admin', 'supportiveStaff'), updateSSHKeys);
 
-router.get('/users', isAuthenticatedUser, authorize("admin","supportiveStaff"), getAllUsers);
-router.get('/:id', isAuthenticatedUser, authorize("admin", "supportiveStaff"), getUserById);
-router.put('/:id', isAuthenticatedUser, authorize("admin"), updateUserByAdmin);
-router.delete('/users/:id', isAuthenticatedUser, authorize("admin"), deleteUserByAdmin);
+router.get('/users', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getAllUsers);
+router.get('/:id', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getUserById);
+router.put('/:id', isAuthenticatedUser, isAuthorized("admin"), updateUserByAdmin);
+router.delete('/users/:id', isAuthenticatedUser, isAuthorized("admin"), deleteUserByAdmin);
 
 module.exports = router;

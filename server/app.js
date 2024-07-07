@@ -5,14 +5,26 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const requestLogger = require("./middleware/requestLogger");
+const cloudinary = require('cloudinary').v2;
+const Multer = require('multer');
 
 app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }));
 
-// When the app is behind a proxy or load balancer. This helps correctly identify the client's IP address
 app.set('trust proxy', true);
+
+
+// Serve static files from 'uploads' directory
+app.use("/", express.static("uploads"));
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 app.use(express.json());
 app.use(cookieParser());

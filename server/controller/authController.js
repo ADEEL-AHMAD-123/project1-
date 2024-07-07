@@ -12,7 +12,7 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
   const userExist = await User.findOne({ email });
   if (userExist) {
-    throw createError(400, "User already exists");
+    throw createError(400, "User already exist");
   }
 
   const user = await User.create({ firstName, lastName, email, password });

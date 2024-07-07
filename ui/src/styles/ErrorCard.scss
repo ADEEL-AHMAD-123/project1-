@@ -1,0 +1,44 @@
+@import"./variables";
+.error-section{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 20px;
+}
+.error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 40vh;
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 20px;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+
+  background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+
+  h2 {
+    margin-bottom: 20px;
+    @media (max-width: 768px) {
+      font-size: 18px;
+    }
+  }
+
+  
+}

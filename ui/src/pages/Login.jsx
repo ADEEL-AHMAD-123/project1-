@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import '../styles/Login.scss';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importing icons from react-icons
+import '../styles/Forms.scss';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { userAsyncActions } from '../redux/slices/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Login = () => {
+    const dispatch = useDispatch();
     const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { from } = location.state || { from: { pathname: "/" } }; // Get the previous page or default to home
 
-    const initialValues = {
+    const initialValues = { 
         email: '',
         password: '',
         keepLoggedIn: false,
@@ -18,14 +25,16 @@ const Login = () => {
         password: Yup.string().required('Required'),
     });
 
-    const handleSubmit = (values) => {
-        // Handle form submission
-        console.log(values);
+    const handleSubmit = async (values) => {
+        const resultAction = await dispatch(userAsyncActions.loginUser({data: values}));
+        if (userAsyncActions.loginUser.fulfilled.match(resultAction)) {
+            navigate(from); // Redirect to the previous page
+        }
     };
 
     return (
-        <div className="login-page">
-            <div className="login-form">
+        <div className="auth-page">
+            <div className="auth-form">
                 <h1>Hi, welcome back</h1>
                 <h6>Enter your credentials to continue</h6>
                 <Formik
@@ -34,7 +43,7 @@ const Login = () => {
                     onSubmit={handleSubmit}
                 >
                     {({ isSubmitting }) => (
-                        <Form>
+                        <Form className='form'>
                             <div className="form-group">
                                 <Field type="email" name="email" required />
                                 <label htmlFor="email">Email Address</label>
@@ -63,10 +72,10 @@ const Login = () => {
                                 </label>
                                 <a href="/forgot-password">Forgot password?</a>
                             </div>
-                            <button type="submit" disabled={isSubmitting}>
+                            <button type="submit" >
                                 Log In
                             </button>
-                            <div className="signup-link">
+                            <div className="switch-link">
                                 Don’t have an account? <a href="/signup">Sign Up</a>
                             </div>
                         </Form>

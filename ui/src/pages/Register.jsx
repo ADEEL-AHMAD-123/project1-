@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useDispatch } from 'react-redux';
 import * as Yup from 'yup';
-import '../styles/Login.scss'; // Reuse the existing SCSS file
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importing icons from react-icons
+import '../styles/Forms.scss';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { userAsyncActions } from '../redux/slices/userSlice';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Register = () => {
+    const dispatch = useDispatch();
     const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { from } = location.state || { from: { pathname: "/" } }; // Get the previous page or default to home
 
     const initialValues = {
         firstName: '',
@@ -22,14 +29,16 @@ const Register = () => {
         password: Yup.string().required('Required'),
     });
 
-    const handleSubmit = (values) => {
-        // Dispatch your Redux action or API call here for registration
-        console.log(values);
+    const handleSubmit = async (values) => {
+        const resultAction = await dispatch(userAsyncActions.registerUser({ data: values }));
+        if (userAsyncActions.registerUser.fulfilled.match(resultAction)) {
+            navigate(from); // Redirect to the previous page
+        }
     };
 
     return (
-        <div className="login-page">
-            <div className="login-form">
+        <div className="auth-page">
+            <div className="auth-form">
                 <h1>Create an Account</h1>
                 <h6>Enter your details to get started</h6>
                 <Formik
@@ -76,11 +85,11 @@ const Register = () => {
                                     Keep me logged in
                                 </label>
                             </div>
-                            <button type="submit" disabled={isSubmitting}>
+                            <button type="submit">
                                 Register
                             </button>
-                            <div className="signup-link">
-                                Already have an account? <a href="/login">Log In</a>
+                            <div className="switch-link">
+                                Already have an account? <a href="/login">Login</a>
                             </div>
                         </Form>
                     )}

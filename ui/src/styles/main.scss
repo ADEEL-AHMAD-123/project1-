@@ -33,5 +33,25 @@ body {
         grid-row: 2 / 3;
         border-radius: 0;
         padding: 10px;
+        overflow-x: hidden;
     }
 }
+
+button {
+    padding: 10px 30px;
+    background-color: $primary-color;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+font-size: 14px;
+    &:hover {
+      background-color: $secondary-color;
+      border: 0.5px solid $primary-color;
+      color: $primary-color;
+    }
+    @media (max-width: 768px) {
+      padding: 10px 20px;
+      font-size: 12px;
+    }
+  }

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { FaBars, FaSearch, FaUserCircle, FaBell, FaCog, FaTimes, FaFilter } from "react-icons/fa";
 import "../styles/Topbar.scss";
 
@@ -9,10 +10,10 @@ const Topbar = ({ toggleSidebar }) => {
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
     };
-
+ 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        // Handle the search submit logic here
+
         console.log("Search Query: ", searchQuery);
     };
 
@@ -42,9 +43,12 @@ const Topbar = ({ toggleSidebar }) => {
                 </form>
             </div>
             <div className="topbar-right">
-                <FaBell className="icon" />
-                <FaCog className="icon" />
-                <FaUserCircle className="icon" />
+                <Link> <FaBell className="icon" /></Link>
+                <Link>  <FaCog className="icon" /></Link>
+                <Link to={"/profile"}>     <FaUserCircle className="icon" /></Link>
+                
+               
+            
             </div>
         </div>
     );

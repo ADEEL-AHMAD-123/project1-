@@ -2,13 +2,11 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-
-
 const BASE_URL = "http://localhost:8000/api/v1";
 
 // Async Thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
-  return createAsyncThunk(`product/${name}`, async ({ requestData, data }) => {
+  return createAsyncThunk(`user/${name}`, async ({ requestData, data }) => {
     try {
       const requestUrl = requestData
         ? `${BASE_URL}${url}${requestData}`
@@ -19,16 +17,18 @@ const createApiAsyncThunk = ({ name, method, url }) => {
         withCredentials: true,
         url: requestUrl,
         data,
+        headers: {
+          'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json',
+        },
       };
-      console.log(requestUrl);
 
       const response = await axios(requestOptions);
-      console.log(response);
       toast.success(response.data.message);
-      return response.data;
+      return response.data; 
     } catch (error) {
       toast.error(error.response.data.message);
       console.log(error);
+      throw error.response.data.message; 
     }
   });
 };
@@ -37,17 +37,17 @@ export const userAsyncActions = {
   loginUser: createApiAsyncThunk({
     name: "login",
     method: "POST",
-    url: "/login",
+    url: "/auth/login",
   }),
   registerUser: createApiAsyncThunk({
     name: "register",
     method: "POST",
-    url: "/register",
+    url: "/auth/register",
   }),
   getUserProfile: createApiAsyncThunk({
     name: "getProfile",
     method: "GET",
-    url: "/profile",
+    url: "/user/profile",
   }),
   logoutUser: createApiAsyncThunk({
     name: "logout",
@@ -64,15 +64,20 @@ export const userAsyncActions = {
     method: "POST",
     url: "/reset-password",
   }),
+  updateProfile: createApiAsyncThunk({
+    name: "updateProfile",
+    method: "PUT",
+    url: "/user/profile",
+  }),
 };
 
 // Initial State
 const initialState = {
-  user: null,
+  User: null,
+  Role: null,
   isLoading: false,
   error: null,
   logoutSuccess: false,
-  
 };
 
 // Slice
@@ -94,14 +99,20 @@ const userSlice = createSlice({
       builder.addCase(action.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.error = false;
-        if (
-          actionName === "loginUser" ||
-          actionName === "getUserProfile"
-        ) {
-          state.user = payload;
-          state.logoutSuccess=false
+        if (payload && payload.user) {
+          if (
+            actionName === "loginUser" ||
+            actionName === "getUserProfile" ||
+            actionName === "updateProfile"
+          ) {
+            state.User = payload.user;
+            state.Role = payload.user.role;
+            state.logoutSuccess = false;
+          }
         } else if (actionName === "logoutUser") {
           state.logoutSuccess = true;
+          state.User = null; // Reset user on logout
+          state.Role = null; // Reset role on logout
         }
       });
 

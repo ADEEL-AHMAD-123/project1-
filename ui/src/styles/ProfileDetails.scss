@@ -1,0 +1,232 @@
+@import "./_variables.scss";
+
+.profile-details {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 0; // Add padding to ensure content doesn't touch the edges
+
+    .left-section,
+    .right-section {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        width: 100%;
+        box-sizing: border-box; // Ensure the padding is included in the width calculation
+    }
+
+    .left-section {
+        .user-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .user-image {
+                border-radius: 50%;
+                overflow: hidden;
+                width: 200px;
+                height: 200px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 10px 0 20px 0; // Adjust spacing below image
+                background-color: $secondary-color;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+            }
+
+            .info {
+                width: 100%;
+                margin-top: 20px; // Add spacing between image and details
+
+                p {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 1rem;
+                    color: $text-color;
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    border-bottom: 1px solid #ddd;
+
+                    &:last-child {
+                        border-bottom: none;
+                    }
+
+                    svg {
+                        color: $dark-text-color;
+                        margin-right: 10px;
+                    }
+
+                    span {
+                        font-weight: bold;
+                        color: $dark-text-color;
+
+                        &.value {
+                            font-weight: normal;
+                            color: $light-text-color;
+                            margin-left: auto;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .right-section {
+        h3 {
+            font-size: 1.5rem;
+            color: $primary-color;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .about-me {
+            margin-bottom: 20px; // Add spacing between sections
+            p {
+                font-size: 1rem;
+                color: $text-color;
+                padding: 10px 5px;
+            }
+        }
+
+        .personal-details {
+            .detail {
+                display: flex;
+                align-items: center;
+                font-size: 1rem;
+                color: $text-color;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+
+                &:last-child {
+                    border-bottom: none;
+                }
+
+                .field-name {
+                    min-width: 150px;
+                    font-weight: bold;
+                    color: $dark-text-color;
+                }
+
+                .colon {
+                    margin: 0 10px;
+                    color: $dark-text-color;
+                }
+
+                .value {
+                    flex: 1;
+                    font-weight: normal;
+                    color: $light-text-color;
+                    margin-left: 10px; // Add spacing between colon and value
+                }
+            }
+        }
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        padding: 10px; // Adjust padding for smaller devices
+
+        .left-section,
+        .right-section {
+            margin-bottom: 0px;
+            padding: 15px; // Adjust padding for smaller devices
+            width: 100%; // Ensure sections take up full width
+            box-sizing: border-box; // Ensure the padding is included in the width calculation
+        }
+
+        .left-section {
+            .user-card {
+                padding: 15px; // Adjust padding for smaller devices
+
+                .user-image {
+                    width: 150px; // Adjust image size for smaller devices
+                    height: 150px; // Adjust image size for smaller devices
+                }
+
+                .info {
+                    p {
+                        font-size: 0.9rem; // Adjust font size for smaller devices
+                    }
+                }
+            }
+        }
+
+        .right-section {
+            padding: 15px; // Adjust padding for smaller devices
+
+            h3 {
+                font-size: 1.2rem; // Adjust font size for smaller devices
+            }
+
+            .about-me,
+            .personal-details {
+                p, .detail {
+                    font-size: 0.9rem; // Adjust font size for smaller devices
+                }
+
+                .detail .field-name {
+                    min-width: 120px; // Adjust min-width for smaller devices
+                }
+            }
+        }
+    }
+
+    @media (max-width: 480px) {
+        padding: 0px; //  adjust padding for very small devices
+
+        .left-section,
+        .right-section {
+            padding: 10px; // adjust padding for very small devices
+            width: 100%; // Ensure sections take up full width
+            box-sizing: border-box; // Ensure the padding is included in the width calculation
+        }
+
+        .left-section {
+            .user-card {
+                padding: 0px; //  adjust padding for very small devices
+
+                .user-image {
+                    width: 120px; //  adjust image size for very small devices
+                    height: 120px; //  adjust image size for very small devices
+                }
+
+                .info {
+                    p {
+                        font-size: 0.8rem; // adjust font size for very small devices
+                    }
+                }
+            }
+        }
+
+        .right-section {
+            padding: 20px 10px 10px 10px; //  adjust padding for very small devices
+
+            h3 {
+                font-size: 1rem; //  adjust font size for very small devices
+            }
+
+            .about-me,
+            .personal-details {
+                p, .detail {
+                    font-size: 0.8rem; //  adjust font size for very small devices
+                }
+
+                .detail .field-name {
+                    min-width: 100px; //  adjust min-width for very small devices
+                }
+            }
+        }
+    }
+}
