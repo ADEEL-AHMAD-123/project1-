@@ -25,33 +25,26 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-
   },
   zipcode: {
     type: String,
-
   },
   address: {
     type: String,
-
   },
   avatar: {
     public_id: { type: String },
-    url: { type: String },
+    url: { type: String }, 
   },
   role: {
     type: String,
     enum: ['client', 'supportive staff', 'admin'],
     default: 'client',
   },
-  sshKeys: [{
-    title: {
-      type: String,
-    },
-    key: {
-      type: String,
-    },
-  }],
+  sshKeys: {
+    publicKey: { type: String },
+    privateKey: { type: String }
+  },
   lastLoginIp: {
     type: String,
   },
