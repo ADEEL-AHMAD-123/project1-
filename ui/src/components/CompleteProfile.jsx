@@ -2,10 +2,16 @@ import '../styles/Forms.scss';
 import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useDispatch, useSelector } from 'react-redux';
+import { userAsyncActions } from '../redux/slices/userSlice';
 
 const CompleteProfile = () => {
+    const dispatch = useDispatch();
+    const user = useSelector(state => state.user.User);
+
+    const isProfileComplete = user.zipcode && user.phone;
+
     const [showPassword, setShowPassword] = useState(false);
 
     const initialValues = {
@@ -29,32 +35,15 @@ const CompleteProfile = () => {
         formData.append('zipcode', values.zipcode);
         formData.append('avatar', values.avatar);
 
-        try {
-            const response = await axios.put('http://localhost:8000/api/v1/user/profile', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                withCredentials: true,
-            });
+        dispatch(userAsyncActions.updateProfile({ data: formData }));
 
-            if (response.status === 200) {
-                toast.success('Profile updated successfully');
-            } else {
-                throw new Error('Failed to update profile');
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error('Failed to update profile');
-        } finally {
-            setSubmitting(false);
-        }
     };
 
     return (
-        <div className='update-profile-section'>
+        <div className='main-section'>
             <div className="auth-form">
-                <h1>Complete Profile</h1>
-                <h6>Enter your details to complete your profile</h6>
+                <h1>{isProfileComplete ? "Update" : "Complete"} Profile</h1>
+                <h6>Enter your details to {isProfileComplete ? "Update" : "Complete"} your profile</h6>
                 <Formik
                     initialValues={initialValues}
                     validationSchema={validationSchema}
@@ -90,7 +79,7 @@ const CompleteProfile = () => {
                                 <ErrorMessage name="avatar" component="div" className="error" />
                             </div>
                             <button type="submit" disabled={isSubmitting}>
-                                Update Profile
+                                {isProfileComplete ? "Update" : "Complete"} Profile
                             </button>
                         </Form>
                     )}

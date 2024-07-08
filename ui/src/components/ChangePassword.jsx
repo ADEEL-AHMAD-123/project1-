@@ -2,22 +2,24 @@ import '../styles/Forms.scss';
 import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importing icons from react-icons
+import { useDispatch } from 'react-redux';
+import { userAsyncActions } from '../redux/slices/userSlice';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const ChangePassword = () => {
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const dispatch = useDispatch();
+    const [showOldPassword, setShowOldPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const initialValues = {
-        currentPassword: '',
+        oldPassword: '',
         newPassword: '',
         confirmPassword: '',
     };
 
     const validationSchema = Yup.object({
-        currentPassword: Yup.string().required('Required'),
+        oldPassword: Yup.string().required('Required'),
         newPassword: Yup.string()
             .min(8, 'Password must be at least 8 characters')
             .required('Required'),
@@ -27,12 +29,11 @@ const ChangePassword = () => {
     });
 
     const handleSubmit = (values) => {
-        // Handle form submission
-        console.log(values);
+        dispatch(userAsyncActions.updatePassword({ data: values }));
     };
 
     return (
-        <div className='change-password-section'>
+        <div className='main-section password-section'>
             <div className="auth-form">
                 <h1>Change Password</h1>
                 <Formik
@@ -44,23 +45,23 @@ const ChangePassword = () => {
                         <Form>
                             <div className="form-group password-group">
                                 <Field
-                                    type={showCurrentPassword ? "text" : "password"}
-                                    name="currentPassword"
+                                    type={showOldPassword ? "text" : "password"}
+                                    name="oldPassword"
                                     required
                                 />
-                                <label htmlFor="currentPassword">Current Password</label>
-                                {showCurrentPassword ? (
+                                <label htmlFor="oldPassword">Old Password</label>
+                                {showOldPassword ? (
                                     <FaEyeSlash
                                         className="toggle-password"
-                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        onClick={() => setShowOldPassword(!showOldPassword)}
                                     />
                                 ) : (
                                     <FaEye
                                         className="toggle-password"
-                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        onClick={() => setShowOldPassword(!showOldPassword)}
                                     />
                                 )}
-                                <ErrorMessage name="currentPassword" component="div" className="error" />
+                                <ErrorMessage name="oldPassword" component="div" className="error" />
                             </div>
                             <div className="form-group password-group">
                                 <Field
@@ -102,7 +103,7 @@ const ChangePassword = () => {
                                 )}
                                 <ErrorMessage name="confirmPassword" component="div" className="error" />
                             </div>
-                            <button type="submit" disabled={isSubmitting}>
+                            <button type="submit" >
                                 Update Password
                             </button>
                         </Form>
@@ -112,7 +113,5 @@ const ChangePassword = () => {
         </div>
     );
 };
-
-
 
 export default ChangePassword;

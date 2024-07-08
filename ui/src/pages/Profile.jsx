@@ -1,42 +1,31 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
-import '../styles/Profile.scss';
+import { faUser, faEdit, faLock, faSync } from '@fortawesome/free-solid-svg-icons';
+import Tabs from '../components/Tabs';
 import ProfileDetails from '../components/ProfileDetails'; 
 import CompleteProfile from '../components/CompleteProfile';
 import ChangePassword from '../components/ChangePassword';
 
-// import ChangePassword from './ChangePassword';
-// import EditProfile from './EditProfile';
-
 const ProfilePage = () => {
-    const [activeTab, setActiveTab] = useState('profile'); // State to track active tab
+    const user = useSelector(state => state.user.User);
 
-    // Function to handle tab change
-    const handleTabChange = (tab) => {
-        setActiveTab(tab);
-    };
+    const isProfileComplete = user.zipcode && user.phone;
+
+    const tabs = [
+        { key: 'profile', label: 'Profile', icon: () => <FontAwesomeIcon icon={faUser} />, content: <ProfileDetails /> },
+        { 
+            key: 'completeProfile', 
+            label: isProfileComplete ? 'Update Profile' : 'Complete Profile', 
+            icon: () => <FontAwesomeIcon icon={isProfileComplete ? faSync : faEdit} />, 
+            content: <CompleteProfile /> 
+        },
+        { key: 'changePassword', label: 'Change Password', icon: () => <FontAwesomeIcon icon={faLock} />, content: <ChangePassword /> },
+    ];
 
     return (
-        <div className="profile-page">
-            <div className="tabs">
-                <div className={`tab ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => handleTabChange('profile')}>
-                    <FontAwesomeIcon icon={faUser} /> Profile
-                </div>
-                <div className={`tab ${activeTab === 'completeProfile' ? 'active' : ''}`} onClick={() => handleTabChange('updateProfile')}>
-                    <FontAwesomeIcon icon={faEdit} /> Complete Profile
-                </div>
-                <div className={`tab ${activeTab === 'changePassword' ? 'active' : ''}`} onClick={() => handleTabChange('changePassword')}>
-                    <FontAwesomeIcon icon={faLock} /> Change Password
-                </div>
-            </div>
-            <div className="profile-content">
-                <div className="content-section">
-                    {activeTab === 'profile' && <ProfileDetails />}
-                    {activeTab === 'updateProfile' && <CompleteProfile />}
-                    {activeTab === 'changePassword' && <ChangePassword />}
-                </div>
-            </div>
+        <div className="page">
+            <Tabs tabs={tabs} />
         </div>
     );
 };

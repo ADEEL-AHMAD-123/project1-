@@ -8,6 +8,8 @@ const {
   updateUserByAdmin,
   deleteUserByAdmin,
   updatePassword,
+  getTeamMembers,
+  logout,
   verifyEmail
 } = require('../controller/userController');
 const { isAuthenticatedUser,isAuthorized } = require("../middleware/auth");
@@ -21,10 +23,13 @@ router.put('/profile', isAuthenticatedUser,upload.single('avatar'), updateProfil
 router.put('/password', isAuthenticatedUser, updatePassword);
 
 router.put('/ssh-keys', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), updateSSHKeys);
-
+router.post('/logout', isAuthenticatedUser, logout);
 router.get('/users', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getAllUsers);
-router.get('/:id', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getUserById);
-router.put('/:id', isAuthenticatedUser, isAuthorized("admin"), updateUserByAdmin);
+
+router.get('/team', isAuthenticatedUser, isAuthorized("admin", "supportive staff"), getTeamMembers);
+router.get('users/:id', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getUserById);
 router.delete('/users/:id', isAuthenticatedUser, isAuthorized("admin"), deleteUserByAdmin);
+router.put('/:id', isAuthenticatedUser, isAuthorized("admin"), updateUserByAdmin);
+
 
 module.exports = router;

@@ -11,8 +11,6 @@ const Register = () => {
     const dispatch = useDispatch();
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
-    const { from } = location.state || { from: { pathname: "/" } }; // Get the previous page or default to home
 
     const initialValues = {
         firstName: '',
@@ -32,7 +30,7 @@ const Register = () => {
     const handleSubmit = async (values) => {
         const resultAction = await dispatch(userAsyncActions.registerUser({ data: values }));
         if (userAsyncActions.registerUser.fulfilled.match(resultAction)) {
-            navigate(from); // Redirect to the previous page
+            navigate('/login'); // Redirect to the login page
         }
     };
 
@@ -85,7 +83,7 @@ const Register = () => {
                                     Keep me logged in
                                 </label>
                             </div>
-                            <button type="submit">
+                            <button type="submit" disabled={isSubmitting}>
                                 Register
                             </button>
                             <div className="switch-link">

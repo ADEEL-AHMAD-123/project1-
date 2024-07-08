@@ -49,7 +49,8 @@
     position: relative;
     margin-bottom: 1.5rem;
 
-    input {
+    input,
+    select {
       width: 100%;
       padding: 1rem;
       border: 1px solid #ccc;
@@ -181,7 +182,8 @@
     }
 
     .form-group {
-      input {
+      input,
+      select {
         padding: 0.8rem;
         font-size: 0.8rem;
       }
@@ -224,7 +226,9 @@
 
     .form-group {
       padding: 0.2rem;
-      input {
+
+      input,
+      select {
         padding: 0.8rem;
       }
 
@@ -249,28 +253,5 @@
     .switch-link {
       font-size: 0.8rem;
     }
-  }
-}
-
-// Update profile page
-.update-profile-section,
-.change-password-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-
-  h1 {
-    padding-bottom: 30px;
-  }
-}
-
-@media (max-width: 768px) {
-  .update-profile-section,
-  .change-password-section {
-    padding: 0;
-  }
-  .change-password-section {
-    height: 70vh;
   }
 }

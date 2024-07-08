@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import './styles/main.scss';
+import AccountSettings from './pages/AccountSetting';
+import TeamPage from './pages/TeamPage';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -25,9 +27,10 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
-          <Route path="/" element={<ProtectedRoute element={< Dashboard/>}   />} />
-          <Route path="/profile" element={<ProtectedRoute element={<Profile />}  />} />
-
+          <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/team" element={<ProtectedRoute element={<TeamPage />} requiredRoles={['admin', 'supportive staff']} />} />
+          <Route path="/account-settings" element={<ProtectedRoute element={<AccountSettings />} requiredRoles={['admin', 'supportive staff']} />} />
         </Routes>
       </div>
     </div>

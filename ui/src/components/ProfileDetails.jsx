@@ -22,7 +22,7 @@ const ProfileDetails = () => {
             <div className="left-section">
                 <div className="user-card">
                     <div className="user-image">
-                        <img src={User.avatar?.url || `${process.env.PUBLIC_URL}/profile.jpg`} alt="Profile" />
+                        <img src={User.avatar?.url} alt="Profile" />
                     </div>
                     <div className="info">
                         <p><FontAwesomeIcon icon={faEnvelope} /> <span>Email:</span> <span className="value">{User.email}</span></p>

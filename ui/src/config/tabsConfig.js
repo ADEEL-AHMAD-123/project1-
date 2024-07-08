@@ -1,7 +1,13 @@
 // config/tabsConfig.js
-import { FaCog, FaUsers, FaUserCircle, FaObjectGroup, FaUser } from 'react-icons/fa';
+import { FaCog, FaUsers, FaUserCircle, FaObjectGroup, FaUser, FaChartBar } from 'react-icons/fa';
 
 export const tabsConfig = [
+  {
+    path: '/',
+    label: 'Dashboard',
+    icon: FaChartBar,
+    roles: ['admin', 'supportive staff', 'client'], // Visible to all roles
+  },
   {
     path: '/profile',
     label: 'Profile',
@@ -18,7 +24,7 @@ export const tabsConfig = [
     path: '/team',
     label: 'Team',
     icon: FaUsers,
-    roles: ['admin', 'supportive staff'],
+    roles: ['admin'],
   },
   {
     path: '/roles',

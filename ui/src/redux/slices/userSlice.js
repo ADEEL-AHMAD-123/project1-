@@ -51,29 +51,40 @@ export const userAsyncActions = {
   }),
   logoutUser: createApiAsyncThunk({
     name: "logout",
-    method: "GET",
-    url: "/logout",
+    method: "POST",
+    url: "/user/logout",
   }),
   forgotPassword: createApiAsyncThunk({
     name: "forgotPassword",
     method: "POST",
     url: "/forgot-password",
   }),
-  resetPassword: createApiAsyncThunk({
-    name: "resetPassword",
-    method: "POST",
-    url: "/reset-password",
+  updatePassword: createApiAsyncThunk({
+    name: "updatePassword",
+    method: "PUT",
+    url: "/user/password",
   }),
   updateProfile: createApiAsyncThunk({
     name: "updateProfile",
     method: "PUT",
     url: "/user/profile",
   }),
+  updateSSH: createApiAsyncThunk({
+    name: "update-SSH-Keys",
+    method: "PUT",
+    url: "/user/ssh-keys",
+  }),
+  getTeam: createApiAsyncThunk({
+    name: "get-team-members",
+    method: "GET",
+    url: "/user/team",
+  }),
 };
 
 // Initial State
 const initialState = {
   User: null,
+  Team: [],
   Role: null,
   isLoading: false,
   error: null,
@@ -103,17 +114,24 @@ const userSlice = createSlice({
           if (
             actionName === "loginUser" ||
             actionName === "getUserProfile" ||
+            actionName === "update-SSH-Keys" ||
             actionName === "updateProfile"
           ) {
             state.User = payload.user;
             state.Role = payload.user.role;
             state.logoutSuccess = false;
+
           }
         } else if (actionName === "logoutUser") {
           state.logoutSuccess = true;
-          state.User = null; // Reset user on logout
-          state.Role = null; // Reset role on logout
+          state.User = null; 
+          state.Role = null; 
         }
+          else if (actionName === "getTeam") {
+            state.Team=payload.teamMembers
+
+         }
+
       });
 
       builder.addCase(action.rejected, (state, { error }) => {

@@ -172,7 +172,7 @@ exports.getAllUsers = catchAsyncErrors(async (req, res, next) => {
 // @access  Private (admin only)
 exports.getUserById = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findById(req.params.id);
-
+console.log('hid single');
   if (!user) {
     logger.error("User not found by ID", { ip: req.ip, userId: req.params.id });
     throw createError(404, "User not found");
@@ -300,3 +300,51 @@ console.log(req.body,'kk');
     message: "Password updated successfully",
   });
 });
+
+// @desc    Logout user
+// @route   POST /api/user/logout
+// @access  Private
+exports.logout = catchAsyncErrors(async (req, res, next) => {
+  // Clear the cookie containing the token
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+
+  logger.info("User logged out", {
+    ip: req.ip,
+    userId: req.user.id,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+});
+
+// @desc    Get all team members
+// @route   GET /api/users/team
+// @access  Private (admin and supportive staff)
+exports.getTeamMembers = catchAsyncErrors(async (req, res, next) => {
+console.log('hit team');
+
+  const roles = ["admin", "supportive staff"];
+  const teamMembers = await User.find({ role: { $in: roles } });
+
+  if (!teamMembers) {
+    logger.error("No team members found", { ip: req.ip, userId: req.user.id });
+    throw createError(404, "No team members found");
+  }
+
+  logger.info("Fetched all team members", {
+    ip: req.ip,
+    requesterId: req.user.id,
+    role: req.user.role,
+  });
+
+  res.status(200).json({
+    success: true,
+    teamMembers,
+  });
+});
+

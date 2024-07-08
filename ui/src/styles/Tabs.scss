@@ -1,14 +1,12 @@
 @import "./_variables.scss";
 
-.profile-page {
+.tabs-component {
     .tabs {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
         background-color: $secondary-color;
         border-radius: 5px;
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto 20px auto;
+        margin-bottom: 20px;
         color: $primary-color;
 
         .tab {
@@ -36,32 +34,23 @@
         }
     }
 
-    .profile-content {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
+    .tab-content {
+        margin-top: 20px;
     }
 }
 
 @media (max-width: 768px) {
-    .profile-page {
+    .tabs-component {
         .tabs {
-            grid-template-columns: repeat(3, 1fr); /* Adjust the number of tabs per row as needed */
             text-align: center;
 
             .tab {
-                padding: 8px; /* Decrease padding */
-                font-size: 0.8rem; /* Decrease font size */
+                padding: 8px;
+                font-size: 0.8rem;
                 border-right: 1px solid $primary-color;
 
                 &:last-child {
                     border-right: none;
-                }
-
-                &:hover,
-                &.active {
-                    background-color: $primary-color;
-                    color: white;
                 }
 
                 svg {

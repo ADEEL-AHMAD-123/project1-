@@ -7,7 +7,7 @@ import '../styles/Sidebar.scss';
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     const location = useLocation();
     const role = useSelector((state) => state.user.Role);
-console.log('el',role);
+
 
     const isActive = (path) => location.pathname === path;
 

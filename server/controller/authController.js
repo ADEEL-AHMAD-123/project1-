@@ -26,8 +26,11 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
       ip: req.ip
     }
   });
+  res.status(201).json({
+    success: true,
+    message: "Registration successful",
+  });
 
-  sendToken(user, 201, res, "Registration successful");
 });
 
 

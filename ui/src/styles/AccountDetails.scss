@@ -1,0 +1,117 @@
+@import "./variables";
+
+.account-details {
+    padding: 20px;
+
+    .ssh-keys,
+    .ip-address {
+        margin-bottom: 30px;
+
+        h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: $primary-color;
+        }
+
+        h4 {
+            margin: 20px 0 0 0;
+        }
+
+        .key-content,
+        .ip-content {
+            display: flex;
+            align-items: center;
+
+            pre,
+            p {
+                font-size: 0.9rem;
+                padding: 10px;
+                background-color: #f0f0f0;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                flex-grow: 1;
+                margin-right: 10px;
+                white-space: pre-wrap;
+                margin: 10px 10px 10px 0px;
+                word-break: break-all; /* Break long words */
+                overflow-wrap: break-word; /* Wrap on word boundaries */
+            }
+
+            button {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+        }
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .account-details {
+        padding: 10px;
+
+        .ssh-keys,
+        .ip-address {
+            margin-bottom: 20px;
+
+            h3 {
+                font-size: 1.7rem;
+                margin-bottom: 8px;
+            }
+
+            h4 {
+                margin: 15px 0 0 0;
+            }
+
+            .key-content,
+            .ip-content {
+                pre,
+                p {
+                    font-size: 0.8rem;
+                    padding: 8px;
+                    margin-right: 10px;
+                }
+
+                button {
+                    font-size: 0.8rem;
+                    padding: 6px 10px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .account-details {
+        padding: 5px;
+
+        .ssh-keys,
+        .ip-address {
+            margin-bottom: 15px;
+
+            h3 {
+                font-size: 1.5rem;
+                margin-bottom: 6px;
+            }
+
+            h4 {
+                margin: 10px 0 0 0;
+            }
+
+            .key-content,
+            .ip-content {
+                pre,
+                p {
+                    font-size: 0.7rem;
+                    padding: 6px;
+                    margin-right: 10px;
+                }
+
+                button {
+                    font-size: 0.7rem;
+                    padding: 5px 8px;
+                }
+            }
+        }
+    }
+}
