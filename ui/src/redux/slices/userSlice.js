@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // Async Thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
@@ -10,7 +10,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
     try {
       const requestUrl = requestData
         ? `${BASE_URL}${url}${requestData}`
-        : `${BASE_URL}${url}`;
+        : `${BASE_URL}${url}`; 
 
       const requestOptions = {
         method,

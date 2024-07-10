@@ -11,7 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import './styles/main.scss';
 import AccountSettings from './pages/AccountSetting';
 import TeamPage from './pages/TeamPage';
-
+console.log(process.env.REACT_APP_API_BASE_URL,'jj');
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 

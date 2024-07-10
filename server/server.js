@@ -9,7 +9,8 @@ connectDatabase()
   .then(() => {
     // Start the server
     const server = app.listen(process.env.PORT, () => {
-      logger.info(`Server is running on http://localhost:${process.env.PORT}`);
+      logger.info(`Server is running on ${process.env.HOST}:${process.env.PORT}`);
+
     });
 
     // Handling unhandled promise rejections

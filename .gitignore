@@ -15,3 +15,4 @@ dist/
 # Ignore environment files
 .env
 server/config/.env
+ui/.env
