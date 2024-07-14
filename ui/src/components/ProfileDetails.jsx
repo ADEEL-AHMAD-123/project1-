@@ -1,4 +1,3 @@
-// ProfileDetails.js
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { userAsyncActions } from '../redux/slices/userSlice';
@@ -11,11 +10,12 @@ const ProfileDetails = () => {
     const { User, loading, error } = useSelector(state => state.user);
 
     useEffect(() => {
-        dispatch(userAsyncActions.getUserProfile({requestData:""}));
+        dispatch(userAsyncActions.getUserProfile({ requestData: "" }));
     }, [dispatch]);
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
+    if (!User) return <p>No user data available</p>;  // Add this check
 
     return (
         <div className="profile-details">

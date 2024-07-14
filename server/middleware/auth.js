@@ -11,15 +11,26 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
     return next(error);
   }
 
-  const decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  req.user = await User.findById(decodedData.id);
+  try {
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.user = await User.findById(decodedData.id);
 
-  if (!req.user) {
-    const error = createError(404, "User not found");
-    return next(error);
+    if (!req.user) {
+      const error = createError(404, "User not found");
+      return next(error);
+    }
+
+    next();
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      res.clearCookie("token"); // Clear the expired token from the cookies
+      const tokenExpiredError = createError(401, "Token has expired. Please login again.");
+      return next(tokenExpiredError);
+    } else {
+      const invalidTokenError = createError(500, "Invalid token");
+      return next(invalidTokenError);
+    }
   }
-
-  next();
 });
 
 exports.isAuthorized = (...roles) => {

@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import './styles/main.scss';
 import AccountSettings from './pages/AccountSetting';
 import TeamPage from './pages/TeamPage';
+import ErrorCard from './components/ErrorCard';
 console.log(process.env.REACT_APP_API_BASE_URL,'jj');
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -25,6 +26,7 @@ function App() {
       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       <div className="content">
         <Routes>
+        <Route path="*" element={<ErrorCard message={"404. Not Found"} buttonLabel="Go back" redirectLink="/" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />

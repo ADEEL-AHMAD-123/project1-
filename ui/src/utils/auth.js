@@ -1,21 +1,42 @@
-// utils/auth.js
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import jwtDecode from 'jwt-decode';
+import Cookies from 'js-cookie';
 import { useSelector } from 'react-redux';
+import ErrorCard from './ErrorCard';
 
-export const useIsAuthenticated = () => {
-  const user = useSelector((state) => state.user.User);
-  return !!user;
+const getTokenFromCookies = () => {
+  return Cookies.get('token'); // Adjust the key as per your token name in the cookies
 };
 
-export const useHasRole = (requiredRoles) => {
-  const userRole = useSelector((state) => state.user.Role);
-
-  if (!requiredRoles || !Array.isArray(requiredRoles)) {
-    // If requiredRoles is not defined or not an array, return false
+const isTokenValid = (token) => { 
+  if (!token) return false;
+  try {
+    const decodedToken = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+    return decodedToken.exp > currentTime;
+  } catch (error) {
     return false;
   }
-
-  // Check if userRole exists and if it matches any of the requiredRoles
-  const hasRole = requiredRoles.some(role => role === userRole);
-
-  return hasRole;
 };
+
+const ProtectedRoute = ({ element, requiredRoles }) => {
+  const user = useSelector((state) => state.user.User);
+  const userRole = useSelector((state) => state.user.Role);
+  const token = getTokenFromCookies();
+
+  const isAuthenticated = !!user && isTokenValid(token);
+  const hasRole = requiredRoles && requiredRoles.length > 0 ? requiredRoles.includes(userRole) : true;
+
+  if (!isAuthenticated) {
+    return <ErrorCard message="You must be logged in to view this page." buttonLabel="Go to Login" redirectLink="/login" />;
+  }
+
+  if (!hasRole) {
+    return <ErrorCard message="You are not authorized to view this page." buttonLabel="Go back" redirectLink="/" />;
+  }
+
+  return element;
+};
+
+export default ProtectedRoute;
