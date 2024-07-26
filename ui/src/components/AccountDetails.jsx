@@ -13,25 +13,28 @@ const AccountDetails = ({ User }) => {
     <div className="account-details">
       {hasSSHKeys && (
         <div className="ssh-keys">
-          <h3>SSH Key</h3>
+          <h3>Public SSH Key</h3>
           <div className="ssh-key">
-            <h4>Public Key</h4>
             <div className="key-content">
               <pre>{User.sshKeys.publicKey}</pre>
-              <button onClick={() => navigator.clipboard.writeText(User.sshKeys.publicKey)}>Copy</button>
+              <button onClick={() => navigator.clipboard.writeText(User.sshKeys.publicKey)} className="btn" 
+              >Copy</button>
             </div>
           </div>
         </div>
       )}
-      <div className="ip-address">
-        <h3>IP Address</h3>
-        <div className="ip-content">
-          <p>{User.lastLoginIp || "No IP address found"}</p>
-          {User.lastLoginIp && (
-            <button onClick={() => navigator.clipboard.writeText(User.lastLoginIp)}>Copy</button>
-          )}
+      {
+        <div className="ssh-keys">
+          <h3>IP Address </h3>
+          <div className="ssh-key">
+            <div className="key-content">
+              <pre>{User.lastLoginIp}</pre>
+              <button onClick={() => navigator.clipboard.writeText(User.lastLoginIp)} className="btn">Copy</button>
+            </div>
+          </div>
         </div>
-      </div>
+      }
+      
     </div>
   );
 };

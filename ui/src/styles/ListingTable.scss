@@ -1,0 +1,113 @@
+@import "./variables";
+
+.container {
+  padding: 20px;
+  background-color: $white-color;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    min-width: 600px;
+
+    th,
+    td {
+      padding: 18px 15px !important;  // Slightly increased padding for better readability
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 13px !important; // Increased font size for better readability
+
+    }
+
+    th {
+      background-color: $primary-background-color;
+      font-size: 18px; // Adjusted font size for better readability
+    }
+
+    tr:hover {
+      
+      background-color: $secondry-background-color;
+    }
+
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
+  }
+}
+
+.heading {
+  margin-bottom: 20px;
+  font-size: 28px; // Increased heading font size
+  color: #333;
+  text-align: center;
+}
+
+.loading,
+.error {
+  text-align: center;
+  font-size: 20px; // Increased loading and error message font size
+  color: #666;
+}
+.message{
+  text-align: center;
+}
+// Media queries
+@media only screen and (max-width: 768px) {
+  .table-container {
+    table {
+      th,
+      td {
+        padding: 10px;
+        font-size: 14px; // Maintain smaller font size for smaller screens
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .table-container {
+    table {
+      th,
+      td {
+        padding: 8px;
+        font-size: 12px; // Maintain smaller font size for small screens
+      }
+
+      .avatar {
+        width: 30px;
+        height: 30px;
+      }
+
+      .heading {
+        font-size: 24px; // Adjusted heading font size for small screens
+      }
+    }
+  }
+}
+
+// Media query for large screens to adjust padding and font size
+@media only screen and (min-width: 1024px) {
+  .table-container {
+    table {
+      th,
+      td {
+        padding: 10px 12px; // Adjusted padding for large screens
+        font-size: 14px;    // Slightly increased font size for large screens
+      }
+    }
+  }
+}

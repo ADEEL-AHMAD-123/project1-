@@ -12,6 +12,14 @@
 
   z-index: 1000;
   padding: 20px;
+
+  button{
+    padding: 10px;
+    width: 40%;
+    @media (max-width: 768px) {
+      width: 60%;
+    }
+  }
 }
 .error-card {
   display: flex;
@@ -19,8 +27,7 @@
   align-items: center;
   justify-content: center;
   height: 40vh;
-  background-color: #f8d7da;
-  color: black;
+  color: $black-color;
   padding: 20px;
 
   border-radius: 4px;

@@ -1,0 +1,332 @@
+@import "./variables";
+
+.server-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  .icon {
+    cursor: pointer;
+    color: $primary-color;
+    background-color: $secondary-color;
+    border-radius: 10%;
+    padding: 5px;
+  }
+
+  .server-header {
+    display: grid;
+    padding: 1rem;
+    background-color: #fff;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    position: relative;
+
+    .header-left {
+      h5 {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        font-size: 26px;
+
+        .icon {
+          margin-right: 8px;
+          font-size: 12px;
+          font-weight: 400;
+          color: green;
+          border-radius: 50%;
+        }
+      }
+
+      .address {
+        font-size: 16px;
+        font-weight: 400;
+        margin: 0.5rem 0 0 2rem;
+      }
+    }
+
+    .header-right {
+      display: flex;
+      gap: 1rem;
+
+      .icon-button {
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+
+        .icon {
+          padding: 5px;
+        }
+      }
+    }
+
+    .server-menu {
+      grid-column: span 2;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 30px 0 20px 0;
+      position: relative;
+
+      a {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        text-decoration: none;
+        color: $primary-color;
+        background-color: $secondary-color;
+        border-radius: 0.25rem;
+        font-size: 0.9rem;
+
+        &:hover {
+          background-color: $primary-color;
+          color: #fff;
+        }
+      }
+
+      &::-webkit-scrollbar {
+        height: 8px;
+      }
+      &::-webkit-scrollbar-track {
+        background: $secondary-color;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: $primary-color;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .server-specifications,
+  .server-options,
+  .server-location,
+  .server-activities {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .server-specifications {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: calc(100% / 2 - 1rem); // Default to 2 per row on small devices
+      padding: 1.5rem 0;
+
+      .spec-icon {
+        font-size: 1.5rem;
+        color: $primary-color;
+      }
+
+      .spec-value {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+      }
+
+      .spec-label {
+        font-size: 1rem;
+        color: $text-color;
+        margin-top: 0.8rem;
+      }
+    }
+  }
+
+  .server-location {
+    .location-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+      justify-content: center;
+
+      .location-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: calc(50% - 1rem); 
+        padding: 0.5rem;
+        background-color: #f9f9f9;
+        border-radius: 0.25rem;
+
+        .location-label {
+          font-weight: 600;
+          color: $black-color;
+        }
+
+        .location-value {
+          margin-top: 0.5rem;
+          font-size: 1.2rem;
+          color: $text-color;
+        }
+      }
+    }
+
+    .location-maps {
+      margin-top: 1rem;
+
+      .country-map {
+        flex: 1;
+        height: 150px; 
+        background-color: #e9e9e9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.25rem;
+      }
+    }
+  }
+
+  h2 {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+  margin-bottom: 1rem;
+    .icon {
+      margin-right: 0.5rem;
+    }
+  }
+
+  .server-options {
+    .option-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 0.5rem 0;
+      flex-direction: column;
+      padding-bottom: 1.5rem;
+
+      .option-icon-button {
+        display: flex;
+
+        .icon {
+          font-size: 1.5rem;
+          margin-right: 1rem;
+        }
+
+        .btn {
+          width: 7rem;
+          padding: 0;
+          height: 2rem;
+        }
+      }
+
+      .option-label {
+        font-size: 1.3rem;
+        color: #555;
+        margin-left: 3.4rem;
+      }
+    }
+  }
+
+  .server-activities {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e0e0e0;
+color: $text-color;
+        .activity-description {
+          font-size: 1rem;
+        }
+
+        .activity-timestamp {
+          font-size: 0.9rem;
+          color: $text-color;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+    }
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+
+    .server-header,
+    .server-specifications,
+    .server-activities {
+      grid-column: span 2;
+    }
+
+    .server-options,
+    .server-location {
+      grid-column: span 1;
+      height: auto;
+    }
+
+    .server-specifications .spec-item {
+      width: calc(100% / 3 - 1rem); 
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .server-specifications .spec-item {
+      width: calc(100% / 6 - 1rem); 
+    }
+  }
+
+  @media (max-width: 767px) {
+    .server-header {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+
+      .header-left h5 {
+        font-size: 18px;
+
+        .icon {
+          font-size: 10px;
+        }
+      }
+
+      .header-left .address {
+        font-size: 14px;
+      }
+    }
+
+    .server-menu {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .server-specifications .spec-item {
+      width: calc(100% / 2 - 1rem);
+      padding: 0.4rem 0;
+
+      .spec-value {
+        font-size: 1.2rem; // Decreased font size for mobile
+      }
+
+      .spec-label {
+        margin-top: 0.4rem; // Reduced margin for mobile
+      }
+    }
+  }
+}

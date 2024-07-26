@@ -33,7 +33,7 @@ const AddToTeam = () => {
 
     return (
         <div className='main-section'>
-            <div className="auth-form">
+            <div className="main-form">
                 <h1>Add to Team</h1>
                 <h6>Enter details to add a new team member</h6>
                 <Formik
@@ -72,7 +72,7 @@ const AddToTeam = () => {
                                 <label htmlFor="role">Role</label>
                                 <ErrorMessage name="role" component="div" className="error" />
                             </div>
-                            <button type="submit" disabled={isSubmitting}>
+                            <button type="submit" disabled={isSubmitting} className='btn'>
                                 Add to Team
                             </button>
                         </Form>

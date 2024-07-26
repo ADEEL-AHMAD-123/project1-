@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ErrorCard from '../components/ErrorCard';
 import { userAsyncActions } from '../redux/slices/userSlice';
-import "../styles/TeamMembers.scss";
+import "../styles/ListingTable.scss";
 
 const TeamMembers = () => {
   const dispatch = useDispatch();
@@ -14,17 +14,16 @@ const TeamMembers = () => {
 
   if (loading && !Team) {
     return (
-      <div className="team-members">
-        <h1>Team Members</h1>
-        <p>Loading...</p>
+      <div className="container team-members">
+        <h1 className="heading">Team Members</h1>
+        <p className="loading">Loading...</p>
       </div>
     );
   }
 
   if (error && !Team) {
     return (
-      <div className="team-members">
-        <h1>Team Members</h1>
+      <div className="container team-members">
         <ErrorCard message={error} />
       </div>
     );
@@ -32,8 +31,7 @@ const TeamMembers = () => {
 
   // Team data is available, render the table
   return (
-    <div className="team-members">
-      <h1>Team Members</h1>
+    <div className="container team-members">
       {Team && (
         <div className="table-container">
           <table>

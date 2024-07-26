@@ -5,14 +5,18 @@ import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/DashboardPage';
 import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import './styles/main.scss';
-import AccountSettings from './pages/AccountSetting';
+import AccountSettings from './pages/AccountSettingPage';
 import TeamPage from './pages/TeamPage';
+import ServerPage from './pages/ServerPage'
 import ErrorCard from './components/ErrorCard';
-console.log(process.env.REACT_APP_API_BASE_URL,'jj');
+import ServerDetails from './pages/ServerDetails';
+import AllVendors from './components/AllVendors';
+import VendorPage from './pages/VenderPage';
+
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
@@ -29,10 +33,17 @@ function App() {
         <Route path="*" element={<ErrorCard message={"404. Not Found"} buttonLabel="Go back" redirectLink="/" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
+          <Route path="/servers/:id" element={<ServerDetails />} />
+          <Route path="/vendors" element={<VendorPage />} />
+
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<ProtectedRoute element={<Profile />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
+
+
+
           <Route path="/team" element={<ProtectedRoute element={<TeamPage />} requiredRoles={['admin', 'supportive staff']} />} />
           <Route path="/account-settings" element={<ProtectedRoute element={<AccountSettings />} requiredRoles={['admin', 'supportive staff']} />} />
+          <Route path="/servers" element={<ServerPage/>}  />
         </Routes>
       </div>
     </div>

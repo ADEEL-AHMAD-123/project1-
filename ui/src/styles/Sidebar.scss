@@ -3,7 +3,7 @@
 .sidebar {
     grid-column: 1 / 2;
     grid-row: 2 / 3;
-    background-color: #FFFFFF;
+    background-color: $white-color;
     padding: 20px;
     height: calc(100vh - 90px); // Adjust height to consider the top bar height
     overflow-y: auto;
@@ -15,7 +15,7 @@
     .sidebar-heading {
         font-size: 18px;
         font-weight: bold;
-        color: black; // Use your primary color from variables
+        color: $black-color; // Use your primary color from variables
         margin-bottom: 30px; // Adjust spacing below heading
         text-transform:uppercase;
     }
@@ -28,7 +28,7 @@
         position: fixed;
         width: 70%;
         height: calc(100vh - 70px); // Adjust height to consider the top bar height
-        background-color: #f8f9fa;
+        background-color: $secondry-background-color;
         top: 70px; // Start below the top bar
         padding: 10px; // Add padding
         transform: translateX(-100%); // Initially hidden
@@ -68,14 +68,14 @@
             display: flex;
             align-items: center;
             transition: background-color 0.3s ease, color 0.3s ease; // Smooth transition
-            color: $dark-text-color; // Use your text color from variables
+            color: $black-color; // Use your text color from variables
             letter-spacing: 0.5px; // Add letter spacing
             font-weight: 500;
 
             &:hover,
             &.active {
-                background-color: $secondary-color; // Use your secondary color from variables
-                color: $primary-color; // Text and icon color on hover and active
+                background-color: $secondary-color; 
+                color: $primary-color; 
             }
 
             .icon {

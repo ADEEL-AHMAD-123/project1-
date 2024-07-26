@@ -23,8 +23,8 @@ body {
 .content {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
-  padding: 20px 40px;
-  background-color: #eef2f6;
+  padding: 20px;
+  background-color: $primary-background-color;
   border-radius: 10px 0px 0px 0px;
 
   @media (max-width: 768px) {
@@ -36,14 +36,16 @@ body {
   }
 }
 
-button {
-  padding: 10px 30px;
+.btn {
+  padding: 0.8rem 3rem;
   background-color: $primary-color;
-  color: white;
+  color: $white-color;
   border: 0.5px solid $primary-color;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  width: 100%;
+  margin-bottom: 10px;
   &:hover {
     background-color: $secondary-color;
     color: $primary-color;
@@ -52,7 +54,15 @@ button {
     padding: 10px 20px;
     font-size: 12px;
   }
+  
+  &:disabled {
+    background-color: $secondary-color;
+    color: $primary-color;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 }
+
 
 //   section class used in pages
 .main-section {
@@ -77,3 +87,4 @@ button {
 .password-section {
   height: 70vh;
 }
+

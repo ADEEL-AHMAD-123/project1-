@@ -34,7 +34,7 @@ const Login = () => {
 
     return (
         <div className="auth-page">
-            <div className="auth-form">
+            <div className="main-form">
                 <h1>Hi, welcome back</h1>
                 <h6>Enter your credentials to continue</h6>
                 <Formik
@@ -65,16 +65,13 @@ const Login = () => {
                                 )}
                                 <ErrorMessage name="password" component="div" className="error" />
                             </div>
-                            <div className="form-options">
-                                <label>
-                                    <Field type="checkbox" name="keepLoggedIn" />
-                                    Keep me logged in
-                                </label>
-                                <a href="/forgot-password">Forgot password?</a>
-                            </div>
-                            <button type="submit" >
+                           
+                            <button type="submit" className='btn' >
                                 Log In
                             </button>
+                            <div className="form-options">
+                                <a href="/forgot-password">Forgot password?</a>
+                            </div>
                             <div className="switch-link">
                                 Don’t have an account? <a href="/signup">Sign Up</a>
                             </div>

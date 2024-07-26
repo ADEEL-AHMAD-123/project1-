@@ -16,7 +16,7 @@ const ErrorCard = ({ message, buttonLabel, redirectLink }) => {
       <div className="error-card">
         <h2>{message}</h2>
         {buttonLabel && redirectLink && (
-          <button onClick={handleRedirect}>{buttonLabel}</button>
+          <button onClick={handleRedirect} className='btn'>{buttonLabel}</button>
         )}
       </div>
     </div>

@@ -6,6 +6,11 @@
   padding: 0;
 }
 
+html, body {
+  width: 100%;
+  overflow-x: hidden; // Prevent horizontal scrolling
+}
+
 .auth-page {
   position: fixed;
   top: 0;
@@ -15,14 +20,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: white;
+  background: $white-color;
   z-index: 1000;
   padding: 20px;
   overflow: hidden; // Prevent page scrolling
 }
 
-.auth-form {
-  background: white;
+.main-form {
+  background: $white-color;
   padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -32,225 +37,241 @@
   max-height: 90vh; // Set a maximum height for the form
   overflow-y: auto; // Enable vertical scrolling within the form
 
-  h1 {
-    font-size: 2rem;
-    color: $primary-color;
-    padding: 0 0 10px 0;
+  // Media query for small devices
+  @media (max-width: 600px) {
+    padding: 1.5rem 1rem;
+    max-width: 100%;
   }
+}
 
-  h6 {
-    font-size: 0.9rem;
-    color: $text-color;
-    padding-bottom: 3rem;
-  }
+.error-summary {
+  color: red;
+  padding: 1rem;
+  color: $red-color;
+  text-align: left;
+  margin-bottom: 1rem;
 
-  .form-group {
-    position: relative;
-    margin-bottom: 1.5rem;
-
-    input,
-    select {
-      width: 100%;
-      padding: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 1rem;
-      background-color: #f8f9fa;
-      transition: border-color 0.3s;
-      margin-top: 0.4rem;
-
-      &:focus {
-        border-color: $primary-color;
-      }
-
-      &:focus + label,
-      &:not(:placeholder-shown) + label {
-        top: -6px;
-        font-size: 0.9rem;
-        color: $primary-color;
-      }
-    }
-
-    label {
-      position: absolute;
-      top: 50%;
-      left: 10px;
-      transform: translateY(-50%);
-      font-size: 1rem;
-      color: $text-color;
-      pointer-events: none;
-      transition: 0.3s;
-    }
-
-    .error {
-      color: red;
-      font-size: 0.875rem;
-      margin-top: 0.5rem;
-      text-align: left; // Align error message to the left
-    }
-  }
-
-  .password-group {
-    .toggle-password {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      cursor: pointer;
-      font-size: 1.2rem;
-      color: $text-color;
-    }
-  }
-
-  .form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-
-    label {
-      display: flex;
-      align-items: center;
-
-      input {
-        margin-right: 0.5rem;
-      }
-    }
-
-    a {
-      color: $primary-color;
-      text-decoration: none;
-      transition: color 0.3s;
-
-      &:hover {
-        color: darken($primary-color, 10%);
-      }
-    }
-  }
-
-  button {
-    width: 100%;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 5px;
-    background: $primary-color;
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: box-shadow 0.3s;
+  p {
     margin-bottom: 0.5rem;
-
-    &:hover {
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    &:disabled {
-      background: #ccc;
-    }
+    font-weight: bold;
   }
 
-  .switch-link {
-    margin-top: 1rem;
-    text-align: right;
-    color: #555;
+  ul {
+    padding-left: 1.2rem;
+  }
 
-    a {
-      color: $primary-color;
-      text-decoration: none;
-      transition: color 0.3s;
-
-      &:hover {
-        color: darken($primary-color, 10%);
-      }
+  @media (max-width: 600px) {
+    font-size: 0.8rem;
+    max-width: 100%;
+    ul {
+      padding-left: 0.2rem;
     }
   }
 }
 
-@media (max-width: 768px) {
-  .auth-form {
-    padding: 2rem;
+h1 {
+  font-size: 2rem;
+  color: $primary-color;
+  padding: 0 0 10px 0;
 
-    h1 {
-      font-size: 1.8rem;
-      // margin-bottom: 0.5rem;
+  @media (max-width: 600px) {
+    font-size: 1.5rem;
+  }
+}
+
+h6 {
+  font-size: 0.9rem;
+  color: $text-color;
+  padding-bottom: 3rem;
+
+  @media (max-width: 600px) {
+    font-size: 0.75rem;
+  }
+}
+
+.form-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+
+  input,
+  select {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: $white-color;
+    transition: border-color 0.3s;
+    margin-top: 0.4rem;
+
+    &:focus {
+      border-color: $primary-color;
     }
 
-    h6 {
-      font-size: 0.8rem;
-      padding-bottom: 2.8rem;
+    &:focus + label,
+    &:not(:placeholder-shown) + label {
+      top: -6px;
+      font-size: 0.9rem;
+      color: $primary-color;
     }
 
-    .form-group {
-      input,
-      select {
-        padding: 0.8rem;
-        font-size: 0.8rem;
-      }
-
-      label {
-        font-size: 0.9rem;
-      }
-    }
-
-    .form-options {
-      a,
-      label {
-        font-size: 0.8rem;
-      }
-    }
-
-    button {
-      padding: 0.7rem;
+    @media (max-width: 600px) {
+      padding: 0.75rem;
       font-size: 0.9rem;
     }
+  }
 
-    .switch-link {
-      font-size: 0.8rem;
+  label {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: $text-color;
+    pointer-events: none;
+    transition: 0.3s;
+
+    @media (max-width: 600px) {
+      font-size: 0.9rem;
+    }
+  }
+
+  .error {
+    color: $red-color;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    text-align: left; // Align error message to the left
+
+    @media (max-width: 600px) {
+      font-size: 0.75rem;
     }
   }
 }
 
-@media (max-width: 480px) {
-  .auth-form {
-    padding: 1.5rem 0.8rem;
+.password-group {
+  .toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: $text-color;
 
-    h1 {
-      font-size: 1.6rem;
+    @media (max-width: 600px) {
+      font-size: 1rem;
+    }
+  }
+}
+
+.form-options {
+  display: flex;
+  justify-content: flex-end;
+  margin: 1rem 0;
+
+  label {
+    display: flex;
+    align-items: center;
+
+    input {
+      margin-right: 0.5rem;
     }
 
-    h6 {
-      font-size: 0.75rem;
-      padding-bottom: 2.8rem;
+    @media (max-width: 600px) {
+      font-size: 0.85rem;
+    }
+  }
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
     }
 
-    .form-group {
-      padding: 0.2rem;
-
-      input,
-      select {
-        padding: 0.8rem;
-      }
-
-      label {
-        font-size: 0.8rem !important;
-      }
+    @media (max-width: 600px) {
+      font-size: 0.85rem;
     }
+  }
 
-    .form-options {
-      a,
-      label {
-        font-size: 0.8rem;
-      }
-    }
+  .error {
+    display: block;
+    margin-top: 0.5rem;
+  }
+}
 
-    button {
-      padding: 0.6rem;
+.section-main {
+  font-size: 0.9rem;
+  color: $primary-color;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  text-align: left; // Align switch link to the left
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 600px) {
+    font-size: 0.8rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: bold;
+    background-color: $white-color;
+    padding: 0.5rem;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 1rem;
+
+    @media (max-width: 600px) {
+      padding: 0.4rem;
       font-size: 0.8rem;
-      margin-bottom: 0;
     }
 
-    .switch-link {
-      font-size: 0.8rem;
+    &.expanded {
+      color: $white-color;
+    }
+
+    &:hover {
+      // background-color: lighten($primary-color, 30%);
+    }
+  }
+
+  .section-content {
+    display: none;
+    border-radius: 5px;
+    padding: 0.5rem 0;
+
+    @media (max-width: 600px) {
+      padding: 0.7rem 0;
+    }
+
+    &.expanded {
+      display: block;
+    }
+  }
+}
+
+.switch-link {
+  margin-top: 1rem;
+  text-align: right;
+  color: #555;
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    transition: color 0.3s;
+
+    &:hover {
+      color: darken($primary-color, 10%);
+    }
+
+    @media (max-width: 600px) {
+      font-size: 0.85rem;
     }
   }
 }

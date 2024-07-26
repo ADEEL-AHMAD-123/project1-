@@ -10,7 +10,7 @@ import ChangePassword from '../components/ChangePassword';
 const ProfilePage = () => {
     const user = useSelector(state => state.user.User);
 
-    const isProfileComplete = user.zipcode && user.phone;
+    const isProfileComplete = user && user.zipcode && user.phone; // Add null check
 
     const tabs = [
         { key: 'profile', label: 'Profile', icon: () => <FontAwesomeIcon icon={faUser} />, content: <ProfileDetails /> },

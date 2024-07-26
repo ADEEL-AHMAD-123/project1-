@@ -14,6 +14,9 @@
     margin: 0;
     color: $primary-color;
   }
+  button {
+    width: 70%;
+  }
 
   .user-details {
     margin-top: 10px;
@@ -27,9 +30,7 @@
       color: black;
       font-size: 20px;
       padding: 20px 0px;
-      white-space: nowrap; /* Prevents text from wrapping */
-    //   overflow: hidden;    /* Hides overflowed content */
-    //   text-overflow: ellipsis; /* Adds ellipsis (...) for overflowed content */
+      white-space: nowrap; 
 
     }
 
@@ -42,6 +43,9 @@
     h1 {
       font-size: 24px;
     }
+    button {
+      width: 60%;
+    }
 
     .user-details {
       h4 {
@@ -51,10 +55,7 @@
 
       }
 
-      .logout-button {
-        padding: 8px;
-        font-size: 14px;
-      }
+      
     }
   }
   @media (max-width: 480px) {
@@ -63,6 +64,9 @@
        white-space: normal !important;
 
       }
+      button {
+        width: 40%;
+      }  
       }
 
 }

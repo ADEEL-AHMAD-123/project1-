@@ -1,10 +1,10 @@
 const express = require("express");
-const ErrorHandler = require("./middleware/error");
+const ErrorHandler = require("./middlewares/error");
 const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const requestLogger = require("./middleware/requestLogger");
+const requestLogger = require("./middlewares/requestLogger");
 const cloudinary = require('cloudinary').v2;
 const Multer = require('multer');
 
@@ -41,12 +41,16 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 }
 
 // Import routes
-const auth = require("./routes/authRoute");
-const user = require("./routes/userRoute");
+const auth = require("./routes/authRoutes");
+const user = require("./routes/userRoutes");
+const servers = require("./routes/serverRoutes");
+const vendor=require("./routes/vendorRoutes")
 
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/user", user);
-
+app.use("/api/v1/servers", servers);
+app.use('/api/v1/vendors', vendor); 
+ 
 // Error handling middleware
 app.use(ErrorHandler);
  

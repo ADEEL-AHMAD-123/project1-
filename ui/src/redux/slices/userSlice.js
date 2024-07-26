@@ -79,12 +79,18 @@ export const userAsyncActions = {
     method: "GET",
     url: "/user/team",
   }),
+  getAllUsers: createApiAsyncThunk({
+    name: "get-All-Users",
+    method: "GET",
+    url: "/user/users",
+  }),
 };
 
 // Initial State
 const initialState = {
   User: null,
   Team: [],
+  Users: [],
   Role: null,
   isLoading: false,
   error: null,
@@ -129,6 +135,10 @@ const userSlice = createSlice({
         }
           else if (actionName === "getTeam") {
             state.Team=payload.teamMembers
+
+         }
+          else if (actionName === "getAllUsers") {
+            state.Users=payload.users
 
          }
 

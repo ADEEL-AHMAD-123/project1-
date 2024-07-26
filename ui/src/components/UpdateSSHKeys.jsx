@@ -30,7 +30,7 @@ const UpdateSSHKeys = () => {
 
     return (
         <div className="main-section">
-            <div className="auth-form">
+            <div className="main-form">
                 <h1>{`${hasSSHKeys ? "Update " : "Add"} SSH Key`}</h1>
                 <Formik
                     initialValues={initialValues}
@@ -61,7 +61,7 @@ const UpdateSSHKeys = () => {
                                 </div>
                                 <ErrorMessage name="publicKey" component="div" className="error" />
                             </div>
-                            <button type="submit">
+                            <button type="submit" className='btn'>
                                 {hasSSHKeys ? "Update " : "Add"} SSH Key
                             </button>
                         </Form>

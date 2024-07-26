@@ -36,7 +36,7 @@ const Register = () => {
 
     return (
         <div className="auth-page">
-            <div className="auth-form">
+            <div className="main-form">
                 <h1>Create an Account</h1>
                 <h6>Enter your details to get started</h6>
                 <Formik
@@ -77,13 +77,7 @@ const Register = () => {
                                 )}
                                 <ErrorMessage name="password" component="div" className="error" />
                             </div>
-                            <div className="form-options">
-                                <label>
-                                    <Field type="checkbox" name="keepLoggedIn" />
-                                    Keep me logged in
-                                </label>
-                            </div>
-                            <button type="submit" disabled={isSubmitting}>
+                            <button type="submit" disabled={isSubmitting} className='btn'>
                                 Register
                             </button>
                             <div className="switch-link">

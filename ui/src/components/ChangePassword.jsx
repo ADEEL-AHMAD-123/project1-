@@ -34,7 +34,7 @@ const ChangePassword = () => {
 
     return (
         <div className='main-section password-section'>
-            <div className="auth-form">
+            <div className="main-form">
                 <h1>Change Password</h1>
                 <Formik
                     initialValues={initialValues}
@@ -103,7 +103,7 @@ const ChangePassword = () => {
                                 )}
                                 <ErrorMessage name="confirmPassword" component="div" className="error" />
                             </div>
-                            <button type="submit" >
+                            <button type="submit" className='btn' >
                                 Update Password
                             </button>
                         </Form>

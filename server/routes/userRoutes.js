@@ -11,10 +11,10 @@ const {
   getTeamMembers,
   logout,
   verifyEmail
-} = require('../controller/userController');
-const { isAuthenticatedUser,isAuthorized } = require("../middleware/auth");
+} = require('../controllers/userController');
+const { isAuthenticatedUser,isAuthorized } = require("../middlewares/auth");
 
-const upload = require('../middleware/multerConfig'); 
+const upload = require('../middlewares/multerConfig'); 
 
 const router = express.Router(); 
 

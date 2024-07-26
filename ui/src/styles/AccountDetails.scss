@@ -1,7 +1,7 @@
 @import "./variables";
 
 .account-details {
-    padding: 20px;
+    padding: 20px 0 0 10px;
 
     .ssh-keys,
     .ip-address {
@@ -13,33 +13,43 @@
             color: $primary-color;
         }
 
-        h4 {
-            margin: 20px 0 0 0;
-        }
+        .ssh-key {
+            .key-content,
+            .ip-content {
+                display: flex;
+                align-items: center;
+                position: relative; // Ensure relative positioning for children
 
-        .key-content,
-        .ip-content {
-            display: flex;
-            align-items: center;
+                pre{
+                    margin-right: 2px;
+                }
+                pre,
+                p {
+                    font-size: 0.9rem;
+                    padding: 10px;
+                    background-color: #f0f0f0;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    flex-grow: 1;
+                    margin-right: 10px;
+                    white-space: pre-wrap;
+                    word-break: break-all; /* Break long words */
+                    overflow-wrap: break-word; /* Wrap on word boundaries */
+                    max-width: calc(100% - 60px); /* Adjust maximum width to prevent overflow */
+                }
 
-            pre,
-            p {
-                font-size: 0.9rem;
-                padding: 10px;
-                background-color: #f0f0f0;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                flex-grow: 1;
-                margin-right: 10px;
-                white-space: pre-wrap;
-                margin: 10px 10px 10px 0px;
-                word-break: break-all; /* Break long words */
-                overflow-wrap: break-word; /* Wrap on word boundaries */
-            }
+                button {
 
-            button {
-                font-size: 0.9rem;
-                padding: 8px 12px;
+                    font-size: 0.9rem;
+                    padding: 8px 12px;
+                    width: 60px; /* Fixed width for the button */
+                    flex-shrink: 0; /* Prevent button from shrinking */
+                    position: absolute;
+                    right: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
+margin-left: -5px !important;
+                }
             }
         }
     }
@@ -59,10 +69,6 @@
                 margin-bottom: 8px;
             }
 
-            h4 {
-                margin: 15px 0 0 0;
-            }
-
             .key-content,
             .ip-content {
                 pre,
@@ -75,6 +81,7 @@
                 button {
                     font-size: 0.8rem;
                     padding: 6px 10px;
+                    width: 50px; /* Adjust button width for smaller screens */
                 }
             }
         }
@@ -94,10 +101,6 @@
                 margin-bottom: 6px;
             }
 
-            h4 {
-                margin: 10px 0 0 0;
-            }
-
             .key-content,
             .ip-content {
                 pre,
@@ -110,6 +113,7 @@
                 button {
                     font-size: 0.7rem;
                     padding: 5px 8px;
+                    width: 40px; /* Further adjust button width for smallest screens */
                 }
             }
         }

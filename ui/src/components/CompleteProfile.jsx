@@ -41,7 +41,7 @@ const CompleteProfile = () => {
 
     return (
         <div className='main-section'>
-            <div className="auth-form">
+            <div className="main-form">
                 <h1>{isProfileComplete ? "Update" : "Complete"} Profile</h1>
                 <h6>Enter your details to {isProfileComplete ? "Update" : "Complete"} your profile</h6>
                 <Formik
@@ -78,7 +78,7 @@ const CompleteProfile = () => {
                                 <label htmlFor="avatar">Profile Picture</label>
                                 <ErrorMessage name="avatar" component="div" className="error" />
                             </div>
-                            <button type="submit" disabled={isSubmitting}>
+                            <button type="submit" disabled={isSubmitting} className='btn'>
                                 {isProfileComplete ? "Update" : "Complete"} Profile
                             </button>
                         </Form>

@@ -1,0 +1,107 @@
+@import "./variables";
+
+.container.vendors {
+  h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+
+  .vendor-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .vendor-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      width: 100%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-size: 1.2em;
+      box-sizing: border-box;
+      overflow: hidden;
+
+      .vendor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+
+        h2 {
+          margin: 0;
+          font-size: 1.5em;
+          display: flex;
+          align-items: center;
+          flex: 1;
+
+          .status-indicator {
+            width: 10px;
+            height: 10px;
+            background-color: green;
+            border-radius: 50%;
+            margin-right: 10px;
+          }
+        }
+
+        button {
+        width: 6rem;
+          padding: 5px 10px;
+    
+        }
+      }
+
+      .vendor-details {
+        margin-top: 15px;
+
+        p {
+          margin: 10px 0;
+          color: $text-color;
+
+          strong {
+            color: $black-color;
+          }
+
+          a {
+            color: #007bff;
+            text-decoration: none;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .container.vendors {
+    h1 {
+      font-size: 1.5em;
+    }
+
+    .vendor-cards {
+      .vendor-card {
+        font-size: 1em;
+        padding: 15px;
+
+        .vendor-header {
+          h2 {
+            font-size: 1.2em;
+          }
+
+          
+        }
+
+        .vendor-details {
+          p {
+            font-size: 0.9em;
+            margin: 1rem 0;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,18 +1,17 @@
-// config/tabsConfig.js
-import { FaCog, FaUsers, FaUserCircle, FaObjectGroup, FaUser, FaChartBar } from 'react-icons/fa';
+import { FaCog, FaUsers, FaUserCircle, FaObjectGroup, FaUser, FaChartBar, FaServer, FaStore } from 'react-icons/fa'; // Import the FaStore icon
 
 export const tabsConfig = [
   {
     path: '/',
     label: 'Dashboard',
     icon: FaChartBar,
-    roles: ['admin', 'supportive staff', 'client'], // Visible to all roles
+    roles: ['admin', 'supportive staff', 'client'], 
   },
   {
     path: '/profile',
     label: 'Profile',
     icon: FaUser,
-    roles: ['admin', 'supportive staff', 'client'], // Visible to all roles
+    roles: ['admin', 'supportive staff', 'client'], 
   },
   {
     path: '/account-settings',
@@ -38,5 +37,16 @@ export const tabsConfig = [
     icon: FaObjectGroup,
     roles: ['admin'],
   },
-  // Add more tabs here as needed
+  {
+    path: '/servers',
+    label: 'Servers',
+    icon: FaServer,
+    roles: ['admin', 'supportive staff', 'client'], 
+  },
+  {
+    path: '/vendors', // Add this entry
+    label: 'Vendors',
+    icon: FaStore, // Use the FaStore icon
+    roles: ['admin', 'supportive staff'], // Visible to admin and supportive staff
+  },
 ];

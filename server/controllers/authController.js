@@ -1,6 +1,6 @@
-const User = require('../model/user');
+const User = require('../models/user');
 const sendToken = require('../utils/sendToken');
-const catchAsyncErrors = require('../middleware/catchAsyncErrors');
+const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const createError = require("http-errors");
 const logger = require('../utils/logger');
 

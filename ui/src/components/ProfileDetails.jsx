@@ -15,7 +15,7 @@ const ProfileDetails = () => {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
-    if (!User) return <p>No user data available</p>;  // Add this check
+    if (!User) return <p>No user data available</p>; // Add this check
 
     return (
         <div className="profile-details">
@@ -41,8 +41,12 @@ const ProfileDetails = () => {
                     <div className="detail"><span className="field-name">First Name:</span> <span className="colon">:</span> <span className="value">{User.firstName}</span></div>
                     <div className="detail"><span className="field-name">Last Name:</span> <span className="colon">:</span> <span className="value">{User.lastName}</span></div>
                     <div className="detail"><span className="field-name">Email:</span> <span className="colon">:</span> <span className="value">{User.email}</span></div>
-                    <div className="detail"><span className="field-name">Phone:</span> <span className="colon">:</span> <span className="value">{User.phone}</span></div>
-                    <div className="detail"><span className="field-name">Zipcode:</span> <span className="colon">:</span> <span className="value">{User.zipcode}</span></div>
+                    {User && User.zipcode && (
+                        <div className="detail"><span className="field-name">Zipcode:</span> <span className="colon">:</span> <span className="value">{User.zipcode}</span></div>
+                    )}
+                    {User && User.phone && (
+                        <div className="detail"><span className="field-name">Phone:</span> <span className="colon">:</span> <span className="value">{User.phone}</span></div>
+                    )}
                 </div>
             </div>
         </div>

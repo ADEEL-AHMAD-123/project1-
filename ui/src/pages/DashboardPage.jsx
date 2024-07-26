@@ -28,7 +28,7 @@ const Dashboard = () => {
       <h1>{`${getGreeting()}, ${user.firstName} ${user.lastName}`}</h1>
       <div className="user-details">
         <h4>You are logged in as a {user.role.toUpperCase()}</h4>
-        <button onClick={handleLogout} className="logout-button">Logout</button>
+        <button onClick={handleLogout} className="btn">Logout</button>
       </div>
     </div>
   );

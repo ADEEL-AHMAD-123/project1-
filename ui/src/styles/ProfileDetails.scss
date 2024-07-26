@@ -18,7 +18,7 @@
         width: 100%;
         box-sizing: border-box; // Ensure the padding is included in the width calculation
     }
-
+ 
     .left-section {
         .user-card {
             display: flex;
@@ -62,13 +62,13 @@
                     }
 
                     svg {
-                        color: $dark-text-color;
+                        color: $black-color;
                         margin-right: 10px;
                     }
 
                     span {
                         font-weight: bold;
-                        color: $dark-text-color;
+                        color: $black-color;
 
                         &.value {
                             font-weight: normal;
@@ -116,12 +116,12 @@
                 .field-name {
                     min-width: 150px;
                     font-weight: bold;
-                    color: $dark-text-color;
+                    color: $black-color;
                 }
 
                 .colon {
                     margin: 0 10px;
-                    color: $dark-text-color;
+                    color: $black-color;
                 }
 
                 .value {
