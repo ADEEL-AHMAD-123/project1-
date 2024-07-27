@@ -45,9 +45,8 @@
         }
 
         button {
-        width: 6rem;
+          width: 6rem;
           padding: 5px 10px;
-    
         }
       }
 
@@ -57,6 +56,8 @@
         p {
           margin: 10px 0;
           color: $text-color;
+          word-break: break-word; // Add this
+          overflow-wrap: break-word; // Add this
 
           strong {
             color: $black-color;
@@ -91,8 +92,6 @@
           h2 {
             font-size: 1.2em;
           }
-
-          
         }
 
         .vendor-details {

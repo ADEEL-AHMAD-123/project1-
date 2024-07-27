@@ -1,7 +1,7 @@
 require('dotenv').config({ path: './config/.env' });
 const app = require("./app");
 const connectDatabase = require("./config/db-connection");
-const logger = require("./utils/logger"); // Now logger can access the environment variables
+const logger = require("./utils/logger"); 
 
 
 // Connect to the database

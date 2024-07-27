@@ -16,6 +16,7 @@ import ErrorCard from './components/ErrorCard';
 import ServerDetails from './pages/ServerDetails';
 import AllVendors from './components/AllVendors';
 import VendorPage from './pages/VenderPage';
+import LogsPage from './pages/LogsPage';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -35,6 +36,7 @@ function App() {
           <Route path="/signup" element={<Register />} />
           <Route path="/servers/:id" element={<ServerDetails />} />
           <Route path="/vendors" element={<VendorPage />} />
+          <Route path="/logs" element={<LogsPage />} />
 
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
           <Route path="/profile" element={<ProtectedRoute element={<Profile />} requiredRoles={['admin', 'supportive staff', 'client']} />} />

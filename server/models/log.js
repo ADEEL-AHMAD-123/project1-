@@ -21,6 +21,10 @@ const logSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  archived: {
+    type: Boolean,
+    default: false, 
+  }
 });
 
 const Log = mongoose.model('Log', logSchema);

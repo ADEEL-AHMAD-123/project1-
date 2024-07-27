@@ -50,14 +50,19 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     throw createError(401, "Invalid email or password");
   }
 
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  // Normalize IPv6 to IPv4 if necessary
+  if (ip.includes('::ffff:')) {
+    ip = ip.split('::ffff:')[1];
+  }
+  
   user.lastLoginIp = ip;
   await user.save();
 
   logger.info('User logged in', {
     email: user.email,
     meta: {
-      userId: user._id.toString(),  // Convert ObjectId to string
+      userId: user._id.toString(),  
       email: user.email,
       ip
     }

@@ -1,10 +1,14 @@
-
 const logger = require('../utils/logger');
 
 const requestLogger = (req, res, next) => {
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  
+  // Normalize IPv6 to IPv4 if necessary
+  if (ip.includes('::ffff:')) {
+    ip = ip.split('::ffff:')[1];
+  }
 
- // Exclude password from the request body for safe logging
+  // Exclude password from the request body for safe logging
   const { password, ...safeBody } = req.body; 
   
   logger.info('Incoming request', {

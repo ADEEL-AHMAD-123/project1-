@@ -7,8 +7,10 @@ const cors = require("cors");
 const requestLogger = require("./middlewares/requestLogger");
 const cloudinary = require('cloudinary').v2;
 const Multer = require('multer');
+require('./utils/logScheduler');
 
-app.use(cors({
+
+app.use(cors({ 
   origin: process.env.FRONTEND_URL,
   credentials: true
 }));
@@ -45,11 +47,13 @@ const auth = require("./routes/authRoutes");
 const user = require("./routes/userRoutes");
 const servers = require("./routes/serverRoutes");
 const vendor=require("./routes/vendorRoutes")
+const log =require("./routes/logRoutes")
 
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/user", user);
 app.use("/api/v1/servers", servers);
 app.use('/api/v1/vendors', vendor); 
+app.use('/api/v1/log' ,log) 
  
 // Error handling middleware
 app.use(ErrorHandler);

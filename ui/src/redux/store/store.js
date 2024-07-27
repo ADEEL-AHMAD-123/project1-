@@ -6,18 +6,20 @@ import storage from 'redux-persist/lib/storage';
 import userReducer from '../slices/userSlice';
 import serverReducer from '../slices/serverSlice';
 import vendorReduce from '../slices/vendorSlice'
+import logReduce from '../slices/logSlice'
 
 
 const rootReducer = combineReducers({
   user: userReducer,
   servers: serverReducer,
-  vendors:vendorReduce
+  vendors:vendorReduce,
+  log:logReduce
 });
 
 const persistConfig = {
   key: 'root', // Key for the persistor
   storage, // Selected storage
-  whitelist: [ 'user','servers','vendors'], // Array of reducer slices to persist
+  whitelist: [ 'user','servers','vendors','log'], // Array of reducer slices to persist
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

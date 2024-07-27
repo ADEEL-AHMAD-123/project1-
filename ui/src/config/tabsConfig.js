@@ -1,4 +1,4 @@
-import { FaCog, FaUsers, FaUserCircle, FaObjectGroup, FaUser, FaChartBar, FaServer, FaStore } from 'react-icons/fa'; // Import the FaStore icon
+import { FaCog, FaUsers, FaUserCircle, FaObjectGroup, FaUser, FaChartBar, FaServer, FaStore, FaClipboardList } from 'react-icons/fa'; // Import the FaClipboardList icon for logs
 
 export const tabsConfig = [
   {
@@ -44,9 +44,15 @@ export const tabsConfig = [
     roles: ['admin', 'supportive staff', 'client'], 
   },
   {
-    path: '/vendors', // Add this entry
+    path: '/vendors',
     label: 'Vendors',
-    icon: FaStore, // Use the FaStore icon
+    icon: FaStore,
+    roles: ['admin', 'supportive staff'],
+  },
+  {
+    path: '/logs', // Add this entry for logs
+    label: 'Logs',
+    icon: FaClipboardList, // Use the FaClipboardList icon for logs
     roles: ['admin', 'supportive staff'], // Visible to admin and supportive staff
   },
 ];
