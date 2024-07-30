@@ -1,68 +1,158 @@
-.logs-page {
-  padding: 20px;
+@import "./variables";
 
-  h1 {
-    margin-bottom: 20px;
-  }
+.heading{
+  margin-bottom: 20px;
+}
+.container {
+  height: 85vh; // Ensure container takes full viewport height
+  display: flex;
+  flex-direction: column;
+}
 
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 20px;
 
-    input,
-    button {
+  .date-filter {
+    position: relative;
+    flex: 1 1 auto;
+
+    input[type="date"] {
       padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
       font-size: 14px;
-      flex: 1;
-      min-width: 150px;
-    }
-
-    button {
-      cursor: pointer;
-      flex: none;
-    }
-  }
-
-  .logs-table-container {
-    overflow-x: auto;
-
-    .logs-table {
       width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
+    }
 
-      th,
-      td {
-        padding: 10px;
-        border: 1px solid #ddd;
-        text-align: left;
-      }
+    .placeholder {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      color: #aaa;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
 
-      th {
-        background-color: #f4f4f4;
-      }
-
-      tbody tr:nth-child(odd) {
-        background-color: #f9f9f9;
-      }
+    input[type="date"]:focus + .placeholder,
+    input[type="date"]:not(:placeholder-shown) + .placeholder {
+      top: -10px;
+      left: 10px;
+      background: white;
+      font-size: 12px;
+      color: #333;
+      padding: 0 5px;
     }
   }
 
-  .pagination {
+  input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    flex: 1 1 auto;
+  }
+
+  button {
+    padding: 10px 20px;
+    background-color: $primary-color;
+    color: $white-color;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: $white-color;
+      border: 1px solid $primary-color;
+      color: $primary-color;
+    }
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+
+  .pagination-button {
+    padding: 10px 20px;
+    background-color: $primary-color;
+    color: $white-color;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: background-color 0.3s ease;
+    width: 80px; // Fixed width for consistent button size
+    height: 40px; // Fixed height for consistent button size
     display: flex;
-    gap: 5px;
+    align-items: center;
     justify-content: center;
 
-    button {
-      padding: 10px;
-      cursor: pointer;
-
-      &.active {
-        background-color: #007bff;
-        color: white;
-      }
+    &:hover {
+      background-color: $white-color;
+      border: 1px solid $primary-color;
+      color: $primary-color;
     }
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: bold;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    .date-filter,
+    input[type="text"] {
+      grid-column: span 1;
+    }
+
+    button {
+      grid-column: span 2;
+      margin-top: 10px;
+    }
+  }
+
+  .date-filter .placeholder {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters {
+    display: none;
+
+    .date-filter,
+    input[type="text"],
+    button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    button {
+      margin-top: 0;
+    }
+  }
+
+  .date-filter .placeholder {
+    font-size: 12px;
+    top: -10px;
+    left: 10px;
+    padding: 0 5px;
+    background: white;
   }
 }

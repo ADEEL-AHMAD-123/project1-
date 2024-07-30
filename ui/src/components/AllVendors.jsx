@@ -39,7 +39,7 @@ const AllVendors = () => {
 
   return (
     <div className="container vendors">
-      {userRole === '!admin' && <h1>All Vendors</h1>}
+      {userRole != 'admin' && <h1>All Vendors</h1>}
       {Vendors && Vendors.length === 0 ? (
         <h1 className="message">No vendors available.</h1>
       ) : (

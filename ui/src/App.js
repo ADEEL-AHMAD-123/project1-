@@ -13,10 +13,9 @@ import AccountSettings from './pages/AccountSettingPage';
 import TeamPage from './pages/TeamPage';
 import ServerPage from './pages/ServerPage'
 import ErrorCard from './components/ErrorCard';
-import ServerDetails from './pages/ServerDetails';
-import AllVendors from './components/AllVendors';
 import VendorPage from './pages/VenderPage';
 import LogsPage from './pages/LogsPage';
+import ServerDetails from './pages/ServerDetails';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -34,18 +33,24 @@ function App() {
         <Route path="*" element={<ErrorCard message={"404. Not Found"} buttonLabel="Go back" redirectLink="/" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
-          <Route path="/servers/:id" element={<ServerDetails />} />
-          <Route path="/vendors" element={<VendorPage />} />
-          <Route path="/logs" element={<LogsPage />} />
+
+          <Route path="/servers/:id" element={<ProtectedRoute element={<ServerDetails />} requiredRoles={['admin', 'supportive staff', 'client']} />}  />
+
+          <Route path="/vendors" element={<ProtectedRoute element={<VendorPage />} requiredRoles={['admin', 'supportive staff']} />} />
+
+          <Route path="/logs" element={<ProtectedRoute element={<LogsPage />} requiredRoles={['admin', 'supportive staff']} />}  />
 
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
+
           <Route path="/profile" element={<ProtectedRoute element={<Profile />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
 
 
 
           <Route path="/team" element={<ProtectedRoute element={<TeamPage />} requiredRoles={['admin', 'supportive staff']} />} />
+
           <Route path="/account-settings" element={<ProtectedRoute element={<AccountSettings />} requiredRoles={['admin', 'supportive staff']} />} />
-          <Route path="/servers" element={<ServerPage/>}  />
+
+          <Route path="/servers" element={<ProtectedRoute element={<ServerPage />} requiredRoles={['admin', 'supportive staff', 'client']} />}   />
         </Routes>
       </div>
     </div>

@@ -64,26 +64,38 @@ const LogsPage = () => {
   };
 
   return (
-    <div className="logs-page">
-      <h1>Logs</h1>
+    <div className="container logs-page">
+      <h1 className="heading">Logs</h1>
       <div className="filters">
+        <div className="date-filter">
+          <input
+            type="date"
+            name="startDate"
+            value={filters.startDate}
+            onChange={handleFilterChange}
+            placeholder="Start Date"
+          />
+          <label htmlFor="startDate" className="placeholder">
+            Start Date
+          </label>
+        </div>
+        <div className="date-filter">
+          <input
+            type="date"
+            name="endDate"
+            value={filters.endDate}
+            onChange={handleFilterChange}
+            placeholder="End Date"
+          />
+          <label htmlFor="endDate" className="placeholder">
+            End Date
+          </label>
+        </div>
         <input
           type="text"
           name="level"
           placeholder="Level"
           value={filters.level}
-          onChange={handleFilterChange}
-        />
-        <input
-          type="date"
-          name="startDate"
-          value={filters.startDate}
-          onChange={handleFilterChange}
-        />
-        <input
-          type="date"
-          name="endDate"
-          value={filters.endDate}
           onChange={handleFilterChange}
         />
         <input
@@ -97,12 +109,12 @@ const LogsPage = () => {
       </div>
 
       {loading ? (
-        <p>Loading logs...</p>
+        <p className="loading">Loading logs...</p>
       ) : error ? (
-        <p>{error}</p>
+        <p className="error">{error}</p>
       ) : (
         <>
-          <div className="logs-table-container">
+          <div className="table-container logs-table-container">
             <table className="logs-table">
               <thead>
                 <tr>
@@ -125,15 +137,13 @@ const LogsPage = () => {
             </table>
           </div>
           <div className="pagination">
-            {[...Array(pagination.totalPages).keys()].map((num) => (
-              <button
-                key={num}
-                className={num + 1 === filters.page ? 'active' : ''}
-                onClick={() => handlePageChange(num + 1)}
-              >
-                {num + 1}
-              </button>
-            ))}
+            {filters.page > 1 && (
+              <button className="pagination-button btn" onClick={() => handlePageChange(filters.page - 1)} >Previous</button>
+            )}
+            <span>Page {filters.page} of {pagination.totalPages}</span>
+            {filters.page < pagination.totalPages && (
+              <button className="pagination-button" onClick={() => handlePageChange(filters.page + 1)}>Next</button>
+            )}
           </div>
         </>
       )}

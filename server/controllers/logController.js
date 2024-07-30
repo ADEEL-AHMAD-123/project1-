@@ -11,11 +11,15 @@ exports.getAllLogs = catchAsyncErrors(async (req, res, next) => {
   const query = {};
 
   if (level) query.level = level;
-  if (ip) query.ip = ip;
+
   if (startDate || endDate) {
     query.timestamp = {};
     if (startDate) query.timestamp.$gte = new Date(startDate);
     if (endDate) query.timestamp.$lte = new Date(endDate);
+  }
+
+  if (ip) {
+    query['meta.ip'] = { $regex: new RegExp(ip, 'i') }; // Case-insensitive regex match
   }
 
   const skip = (page - 1) * limit;

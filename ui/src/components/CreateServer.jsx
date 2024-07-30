@@ -5,11 +5,15 @@ import * as Yup from 'yup';
 import { FaAngleDown, FaAngleUp } from 'react-icons/fa';
 import { userAsyncActions } from '../redux/slices/userSlice';
 import { serverAsyncActions } from '../redux/slices/serverSlice';
+import { vendorAsyncActions } from '../redux/slices/vendorSlice';
 import '../styles/Forms.scss';
+
 
 const CreateServer = () => {
     const dispatch = useDispatch();
     const { Users, Role } = useSelector((state) => state.user);
+    const { Vendors} = useSelector((state) => state.vendors);
+
     const [expandedSection, setExpandedSection] = useState(null);
     const [usersLoaded, setUsersLoaded] = useState(false);
     const [isSubmitDisabled, setSubmitDisabled] = useState(false);
@@ -18,7 +22,8 @@ const CreateServer = () => {
 
     useEffect(() => {
         if (Role !== 'client' && !usersLoaded) {
-            dispatch(userAsyncActions.getAllUsers());
+            dispatch(userAsyncActions.getAllUsers({requestData:""}));
+            dispatch(vendorAsyncActions.getVendors({requestData:""}));
             setUsersLoaded(true);
         }
     }, [Role, dispatch, usersLoaded]);
@@ -53,6 +58,7 @@ const CreateServer = () => {
         firewallUsername: '',
         firewallPassword: '',
         creatingFor: '',
+        vendor: '',
     };
 
     const validationSchema = Yup.object().shape({
@@ -85,6 +91,7 @@ const CreateServer = () => {
         firewallUsername: Yup.string().required('Firewall username is required'),
         firewallPassword: Yup.string().required('Firewall password is required'),
         creatingFor: Yup.string().required('User selection is required'),
+        vendor: Yup.string().required('Vendor selection is required'),
     });
 
     const handleSubmit = async (values, { setSubmitting }) => {
@@ -95,7 +102,7 @@ const CreateServer = () => {
             usage: values.usage,
         };
 
-        const priceDetails = {
+        const price = {
             buyPriceMonthly: values.buyPriceMonthly,
             sellPriceMonthly: values.sellPriceMonthly,
         };
@@ -132,24 +139,26 @@ const CreateServer = () => {
         };
 
         const creatingFor = values.creatingFor;
+        const vendor = values.vendor;
 
         try {
             const resultAction = await dispatch(
                 serverAsyncActions.createServer({
                     data: {
                         dialerSpecifications,
-                        priceDetails,
+                        price,
                         dialerLocation,
                         agentCredentials,
                         adminCredentials,
                         creatingFor,
+                        vendor
                     },
                 })
             );
 
             if (serverAsyncActions.createServer.fulfilled.match(resultAction)) {
-                setSubmitDisabled(true);
-                window.location.reload();
+                // setSubmitDisabled(true);
+                // window.location.reload();
             }
         } catch (error) {
             console.error('Failed to create server:', error);
@@ -195,6 +204,29 @@ const CreateServer = () => {
                         ))}
                     </Field>
                     <ErrorMessage name="creatingFor" component="div" className="error" />
+                </div>
+            </div>
+        </div>
+    );
+
+
+
+    const renderSelectVendorSection = () => ( // Added new section
+        <div className={`section-main ${expandedSection === 'Select Vendor' ? 'expanded' : ''}`}>
+            <span onClick={() => toggleExpand('Select Vendor')} className="section-header">
+                Select Vendor {expandedSection === 'Select Vendor' ? <FaAngleUp /> : <FaAngleDown />}
+            </span>
+            <div className={`section-content ${expandedSection === 'Select Vendor' ? 'expanded' : ''}`}>
+                <div className="form-group">
+                    <Field as="select" name="vendor">
+                        <option value="">Select a vendor</option>
+                        {Vendors && Vendors.map((vendor) => (
+                            <option key={vendor.id} value={vendor._id}>
+                                {vendor.providerName}
+                            </option>
+                        ))}
+                    </Field>
+                    <ErrorMessage name="vendor" component="div" className="error" />
                 </div>
             </div>
         </div>
@@ -255,6 +287,7 @@ const CreateServer = () => {
                                     <ErrorMessage name="firewallUsername" component="div" className="error-summary-item" />
                                     <ErrorMessage name="firewallPassword" component="div" className="error-summary-item" />
                                     <ErrorMessage name="creatingFor" component="div" className="error-summary-item" />
+                                    <ErrorMessage name="vendor" component="div" className="error-summary-item" />
                                 </div>
                             )}
 
@@ -302,6 +335,7 @@ const CreateServer = () => {
                             ])}
 
                             {renderCreatingForSection()}
+                            {renderSelectVendorSection()} 
 
                             <button
                                 type="button"

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faLock,
@@ -13,22 +15,30 @@ import {
   faEuroSign,
   faMapMarkerAlt,
   faDatabase,
-  faUsers,
-  faCloudDownloadAlt,
   faLayerGroup,
   faNetworkWired as faPublicNetwork,
   faCogs,
   faTasks
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'; 
 import MapComponent from '../components/MapComponent';
+import { serverAsyncActions } from '../redux/slices/serverSlice';
 import '../styles/ServerDetails.scss';
 
 const ServerDetails = () => {
+  const dispatch = useDispatch();
+  const { id } = useParams();
+  const server = useSelector((state) => state.servers.ServerDetails);
   const [isToggled, setIsToggled] = useState(true);
 
-  const handleToggle = () => {
-    setIsToggled(!isToggled);
-  };
+  useEffect(() => {
+    dispatch(serverAsyncActions.getServerDetails({ requestData: id }));
+  }, [dispatch, id]);
+
+  if (!server) {
+    return <div>Loading...</div>; // or a spinner/loading component
+  }
+
+  const { dialerLocation, dialerSpecifications, price, trafficOut } = server;
 
   const activities = [
     { description: 'Server created', timestamp: '2024-07-25 14:35:00' },
@@ -41,12 +51,12 @@ const ServerDetails = () => {
       <header className="server-header">
         <div className="header-left">
           <h5 className="server-name">
-            <FontAwesomeIcon icon={faCircle} className="icon-active icon" /> Server Name
+            <FontAwesomeIcon icon={faCircle} className="icon-active icon" /> {server.serverName || 'Server Name'}
           </h5>
-          <h5 className="address">5.75.254.208</h5>
+          <h5 className="address">{server.agentCredentials?.sipIpAddress || '5.75.254.208'}</h5>
         </div>
         <div className="header-right">
-          <button className="icon-button" onClick={handleToggle}>
+          <button className="icon-button" onClick={() => setIsToggled(!isToggled)}>
             <FontAwesomeIcon icon={isToggled ? faToggleOn : faToggleOff} className="icon" />
           </button>
           <button className="icon-button">
@@ -70,42 +80,42 @@ const ServerDetails = () => {
         <div className="spec-item">
           <div className="spec-icon-value">
             <FontAwesomeIcon icon={faMicrochip} className="spec-icon" />
-            <span className="spec-value">2</span>
+            <span className="spec-value">{dialerSpecifications?.cpu || 'Not Available'}</span>
           </div>
           <div className="spec-label">VCPU</div>
         </div>
         <div className="spec-item">
           <div className="spec-icon-value">
             <FontAwesomeIcon icon={faMemory} className="spec-icon" />
-            <span className="spec-value">4 GB</span>
+            <span className="spec-value">{dialerSpecifications?.ram || 'Not Available'}</span>
           </div>
           <div className="spec-label">RAM</div>
         </div>
         <div className="spec-item">
           <div className="spec-icon-value">
             <FontAwesomeIcon icon={faHdd} className="spec-icon" />
-            <span className="spec-value">40 GB</span>
+            <span className="spec-value">{dialerSpecifications?.diskSpace || 'Not Available'}</span>
           </div>
           <div className="spec-label">DISK LOCAL</div>
         </div>
         <div className="spec-item">
           <div className="spec-icon-value">
             <FontAwesomeIcon icon={faChartLine} className="spec-icon" />
-            <span className="spec-value">0.35</span>
+            <span className="spec-value">{dialerSpecifications?.usage || 'Not Available'}</span>
           </div>
           <div className="spec-label">USAGE</div>
         </div>
         <div className="spec-item">
           <div className="spec-icon-value">
             <FontAwesomeIcon icon={faNetworkWired} className="spec-icon" />
-            <span className="spec-value">0/20 TB</span>
+            <span className="spec-value">{trafficOut || 'Not Available'}</span>
           </div>
           <div className="spec-label">TRAFFIC OUT</div>
         </div>
         <div className="spec-item">
           <div className="spec-icon-value">
             <FontAwesomeIcon icon={faEuroSign} className="spec-icon" />
-            <span className="spec-value">3.29/mo</span>
+            <span className="spec-value">{price?.sellPriceMonthly || 'Not Available'}</span>
           </div>
           <div className="spec-label">PRICE</div>
         </div>
@@ -117,29 +127,30 @@ const ServerDetails = () => {
         <div className="location-details">
           <div className="location-item">
             <div className="location-label">DATACENTER</div>
-            <div className="location-value">fsn1-dc14</div>
+            <div className="location-value">{dialerLocation?.dataCenterName || 'Not Available'}</div>
           </div>
           <div className="location-item">
             <div className="location-label">CITY</div>
-            <div className="location-value">Falkenstein</div>
+            <div className="location-value">{dialerLocation?.city || 'Not Available'}</div>
           </div>
           <div className="location-item">
             <div className="location-label">COUNTRY</div>
-            <div className="location-value">Germany</div>
+            <div className="location-value">{dialerLocation?.country || 'Not Available'}</div>
           </div>
           <div className="location-item">
             <div className="location-label">NETWORK ZONE</div>
-            <div className="location-value">eu-central</div>
+            <div className="location-value">{dialerLocation?.networkZone || 'Not Available'}</div>
           </div>
         </div>
         <div className="location-maps">
-          <MapComponent
-            center={[50.477, 12.3705]}
-            zoom={13}
-            markerPosition={[50.477, 12.3705]}
-            popupText="Server Location: Falkenstein, Germany"
-          />
-        </div>
+        <MapComponent
+          city={dialerLocation?.city}
+          country={dialerLocation?.country}
+          zoom={13}
+          markerPosition={[parseFloat(dialerLocation?.latitude || '0'), parseFloat(dialerLocation?.longitude || '0')]}
+          popupText={`City: ${dialerLocation?.city}, Country: ${dialerLocation?.country}`}
+        />
+        </div>  
       </section>
       <section className="server-options">
         <h2>

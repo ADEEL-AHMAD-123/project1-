@@ -48,6 +48,10 @@ const serverSchema = new Schema({
     lastName: { type: String },
     email: { type: String },
   },
+  vendor: {
+    providerName: { type: String },
+    _id: { type: Schema.Types.ObjectId },
+  },
   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   status: {
     type: String,

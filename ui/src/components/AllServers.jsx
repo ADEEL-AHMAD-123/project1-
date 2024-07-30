@@ -24,6 +24,19 @@ const AllServers = () => {
     navigate(`${serverId}`); // Navigate to the server detail page
   };
 
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'initializing':
+        return 'active';
+      case 'inactive':
+        return 'inactive';
+      case 'pending':
+        return 'pending';
+      default:
+        return 'unknown';
+    }
+  };
+
   if (loading && !Servers) {
     return (
       <div className="container servers">
@@ -49,7 +62,6 @@ const AllServers = () => {
           <table>
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Server Name</th>
                 <th>IP Address</th>
                 <th>Location</th>
@@ -61,7 +73,6 @@ const AllServers = () => {
             <tbody>
               {Servers.map(server => (
                 <tr key={server._id} onClick={() => handleRowClick(server._id)}>
-                  <td>{server._id}</td>
                   <td>{server.serverName}</td>
                   <td>{server.agentCredentials.sipIpAddress}</td>
                   <td>
@@ -69,7 +80,7 @@ const AllServers = () => {
                   </td>
                   <td>{server.companyUser.firstName} {server.companyUser.lastName}</td>
                   <td>{formatDate(server.createdAt)}</td>
-                  <td>{server.status}</td>
+                  <td className={`status ${getStatusClass(server.status)}`}>{server.status}</td>
                 </tr>
               ))}
             </tbody>

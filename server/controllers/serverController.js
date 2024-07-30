@@ -1,5 +1,7 @@
 const Server = require('../models/server');
 const User = require('../models/user');
+const Vendor = require('../models/vendor'); // Adjust the path as needed
+
 const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const createError = require('http-errors');
 const logger = require('../utils/logger');
@@ -7,6 +9,7 @@ const logger = require('../utils/logger');
 // @desc    Create a new server
 // @route   POST /api/v1/servers/create
 // @access  Private
+
 exports.createServer = catchAsyncErrors(async (req, res, next) => {
   const {
     dialerSpecifications,
@@ -16,10 +19,12 @@ exports.createServer = catchAsyncErrors(async (req, res, next) => {
     agentCredentials,
     adminCredentials,
     creatingFor,
+    vendor, // This will contain the vendor ID
   } = req.body;
   const userId = req.user._id;
 
   let companyUser;
+  let vendorDetails;
 
   // Check if 'creatingFor' is provided, else set it to the current user
   if (creatingFor) {
@@ -34,6 +39,14 @@ exports.createServer = catchAsyncErrors(async (req, res, next) => {
   // Validate request body
   if (!agentCredentials.numberOfAgents || !agentCredentials.locationOfAgents) {
     throw createError(400, 'Number of agents and location of agents are required');
+  }
+
+  // Retrieve vendor information if vendor is provided
+  if (vendor) {
+    vendorDetails = await Vendor.findById(vendor).select('providerName');
+    if (!vendorDetails) {
+      throw createError(404, 'Vendor not found');
+    }
   }
 
   // Get the count of servers created by the companyUser
@@ -55,6 +68,10 @@ exports.createServer = catchAsyncErrors(async (req, res, next) => {
       lastName: companyUser.lastName,
       email: companyUser.email,
     },
+    vendor: vendorDetails ? {
+      providerName: vendorDetails.providerName,
+      _id: vendorDetails._id,
+    } : undefined, // Include vendor info if available
     createdBy: userId,
     status: 'initializing', // Initial status
   });
@@ -83,6 +100,10 @@ exports.createServer = catchAsyncErrors(async (req, res, next) => {
       firstName: companyUser.firstName,
       lastName: companyUser.lastName,
     },
+    vendor: vendorDetails ? {
+      _id: vendorDetails._id.toString(),
+      providerName: vendorDetails.providerName,
+    } : undefined,
     meta: {
       serverName: newServer.serverName,
       status: newServer.status,
@@ -98,7 +119,6 @@ exports.createServer = catchAsyncErrors(async (req, res, next) => {
     message: responseMessage,
     server: newServer,
   });
-
 });
 
 
@@ -138,7 +158,8 @@ exports.getAllServersForUser = catchAsyncErrors(async (req, res, next) => {
 
   const userId = req.user.id; 
 
-  const servers = await Server.find({ companyUser: userId });
+
+  const servers = await Server.find({ 'companyUser._id': userId });
 
   if (!servers) {
     logger.error('No servers found for user', {

@@ -16,23 +16,28 @@
     border-collapse: collapse;
     margin-bottom: 20px;
     min-width: 600px;
+    position: relative; // Add relative positioning to the table
+
+    thead {
+      position: sticky;
+      top: 0;
+      background-color: $primary-background-color; // Ensure the header background is solid
+      z-index: 1; // Ensure the header stays above the table body
+    }
 
     th,
     td {
-      padding: 18px 15px !important;  // Slightly increased padding for better readability
+      padding: 12px 15px !important;  // Slightly increased padding for better readability
       text-align: left;
       border-bottom: 1px solid #ddd;
-      font-size: 13px !important; // Increased font size for better readability
-
+      font-size: clamp(13px, 2vw, 16px) !important; // Responsive font size between 13px and 18px
     }
 
     th {
-      background-color: $primary-background-color;
       font-size: 18px; // Adjusted font size for better readability
     }
 
     tr:hover {
-      
       background-color: $secondry-background-color;
     }
 
@@ -40,6 +45,30 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
+    }
+
+    .status {
+      &.active {
+        // color: green;
+        background-color: rgba(153, 224, 153, 0.277);
+        color: green;
+        font-weight: bold;
+      }
+
+      &.inactive {
+        color: red;
+        font-weight: bold;
+      }
+
+      &.pending {
+        color: orange;
+        font-weight: bold;
+      }
+
+      &.unknown {
+        color: grey;
+        font-weight: bold;
+      }
     }
   }
 }
@@ -57,9 +86,11 @@
   font-size: 20px; // Increased loading and error message font size
   color: #666;
 }
-.message{
+
+.message {
   text-align: center;
 }
+
 // Media queries
 @media only screen and (max-width: 768px) {
   .table-container {
@@ -67,7 +98,7 @@
       th,
       td {
         padding: 10px;
-        font-size: 14px; // Maintain smaller font size for smaller screens
+        font-size: clamp(14px, 2vw, 16px) !important; // Responsive font size between 12px and 14px for smaller screens
       }
 
       .avatar {
@@ -84,7 +115,7 @@
       th,
       td {
         padding: 8px;
-        font-size: 12px; // Maintain smaller font size for small screens
+        font-size: clamp(12px, 2vw, 14px) !important; 
       }
 
       .avatar {
@@ -94,19 +125,6 @@
 
       .heading {
         font-size: 24px; // Adjusted heading font size for small screens
-      }
-    }
-  }
-}
-
-// Media query for large screens to adjust padding and font size
-@media only screen and (min-width: 1024px) {
-  .table-container {
-    table {
-      th,
-      td {
-        padding: 10px 12px; // Adjusted padding for large screens
-        font-size: 14px;    // Slightly increased font size for large screens
       }
     }
   }
