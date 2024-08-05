@@ -26,6 +26,8 @@ body {
   padding: 20px;
   background-color: $primary-background-color;
   border-radius: 10px 0px 0px 0px;
+  overflow-y: auto;
+
 
   @media (max-width: 768px) {
     grid-column: 1 / 2;

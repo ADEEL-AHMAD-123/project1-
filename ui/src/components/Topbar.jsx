@@ -24,7 +24,10 @@ const Topbar = ({ toggleSidebar }) => {
     return (
         <div className="topbar">
             <div className="topbar-left">
-                <div className="logo">LOGO</div>
+                <div className="logo">
+                    <h2>$20.03</h2>
+                    <p>available balance</p>
+                </div>
                 <FaBars className="icon hamburger-icon" onClick={toggleSidebar} />
                 <FaSearch className="icon mobile-search" onClick={handleSearchClick} />
             </div>

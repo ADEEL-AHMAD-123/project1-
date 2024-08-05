@@ -48,12 +48,14 @@ const user = require("./routes/userRoutes");
 const servers = require("./routes/serverRoutes");
 const vendor=require("./routes/vendorRoutes")
 const log =require("./routes/logRoutes")
+const billing =require("./routes/billingRoutes")
 
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/user", user);
 app.use("/api/v1/servers", servers);
 app.use('/api/v1/vendors', vendor); 
 app.use('/api/v1/log' ,log) 
+app.use('/api/v1/billing' ,billing) 
  
 // Error handling middleware
 app.use(ErrorHandler);

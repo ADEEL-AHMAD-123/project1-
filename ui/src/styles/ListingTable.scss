@@ -9,14 +9,13 @@
 
 .table-container {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: auto; // Ensure horizontal scroll if necessary
 
   table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
-    min-width: 600px;
-    position: relative; // Add relative positioning to the table
+    min-width: 100%; // Ensure table width does not shrink below 100%
 
     thead {
       position: sticky;
@@ -30,7 +29,6 @@
       padding: 12px 15px !important;  // Slightly increased padding for better readability
       text-align: left;
       border-bottom: 1px solid #ddd;
-      font-size: clamp(13px, 2vw, 16px) !important; // Responsive font size between 13px and 18px
     }
 
     th {
@@ -49,7 +47,6 @@
 
     .status {
       &.active {
-        // color: green;
         background-color: rgba(153, 224, 153, 0.277);
         color: green;
         font-weight: bold;
@@ -69,6 +66,16 @@
         color: grey;
         font-weight: bold;
       }
+    }
+  }
+}
+
+.usage-summary {
+  // Apply specific font size settings for usage-summary
+  table {
+    th,
+    td {
+      font-size: clamp(12px, 2vw, 12px) !important; // Font size between 10px and 12px
     }
   }
 }
@@ -98,7 +105,7 @@
       th,
       td {
         padding: 10px;
-        font-size: clamp(14px, 2vw, 16px) !important; // Responsive font size between 12px and 14px for smaller screens
+        font-size: clamp(10px, 2vw, 12px) !important; // Responsive font size for medium screens
       }
 
       .avatar {
@@ -115,7 +122,7 @@
       th,
       td {
         padding: 8px;
-        font-size: clamp(12px, 2vw, 14px) !important; 
+        font-size: clamp(10px, 2vw, 12px) !important; // Responsive font size for small screens
       }
 
       .avatar {

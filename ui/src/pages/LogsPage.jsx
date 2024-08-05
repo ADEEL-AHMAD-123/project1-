@@ -1,5 +1,8 @@
+// src/pages/LogsPage.jsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import FilterComponent from '../components/FilterComponent';
 import '../styles/LogsPage.scss';
 
 const LogsPage = () => {
@@ -65,48 +68,11 @@ const LogsPage = () => {
 
   return (
     <div className="container logs-page">
-      <h1 className="heading">Logs</h1>
-      <div className="filters">
-        <div className="date-filter">
-          <input
-            type="date"
-            name="startDate"
-            value={filters.startDate}
-            onChange={handleFilterChange}
-            placeholder="Start Date"
-          />
-          <label htmlFor="startDate" className="placeholder">
-            Start Date
-          </label>
-        </div>
-        <div className="date-filter">
-          <input
-            type="date"
-            name="endDate"
-            value={filters.endDate}
-            onChange={handleFilterChange}
-            placeholder="End Date"
-          />
-          <label htmlFor="endDate" className="placeholder">
-            End Date
-          </label>
-        </div>
-        <input
-          type="text"
-          name="level"
-          placeholder="Level"
-          value={filters.level}
-          onChange={handleFilterChange}
-        />
-        <input
-          type="text"
-          name="ip"
-          placeholder="IP Address"
-          value={filters.ip}
-          onChange={handleFilterChange}
-        />
-        <button onClick={handleApplyFilters}>Apply Filters</button>
-      </div>
+      <FilterComponent
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onApplyFilters={handleApplyFilters}
+      />
 
       {loading ? (
         <p className="loading">Loading logs...</p>
@@ -138,7 +104,7 @@ const LogsPage = () => {
           </div>
           <div className="pagination">
             {filters.page > 1 && (
-              <button className="pagination-button btn" onClick={() => handlePageChange(filters.page - 1)} >Previous</button>
+              <button className="pagination-button btn" onClick={() => handlePageChange(filters.page - 1)}>Previous</button>
             )}
             <span>Page {filters.page} of {pagination.totalPages}</span>
             {filters.page < pagination.totalPages && (
