@@ -54,24 +54,27 @@ exports.getAllResources = catchAsyncErrors(async (req, res, next) => {
 // @route   GET /api/v1/billing/resources/:id
 // @access  Private
 exports.getResourceById = catchAsyncErrors(async (req, res, next) => {
-    const { module } = req.query;
-    if (!module) {
-      throw createError(400, 'Module is required');
-    }
-  
-    const result = await billingSwitchServer.read(module, 1, 'read', {}, req.params.id);
-  
-    if (!result) {
-      return next(createError(404, `Resource not found with id of ${req.params.id}`));
-    }
-    
-    console.log(result, 'jhj');
-    res.status(200).json({
-      success: true,
-      result,
-    });
+  const { module } = req.query;
+
+  if (!module) {
+    throw createError(400, 'Module is required');
+  }
+
+  billingSwitchServer.setFilter('id', req.params.id, 'eq', 'numeric');
+  const result = await billingSwitchServer.read(module, 1);
+  billingSwitchServer.clearFilter();
+
+  if (!result.rows || result.rows.length === 0) {
+    return next(createError(404, `Resource not found with id of ${req.params.id}`));
+  }
+
+  res.status(200).json({
+    success: true,
+    result: result.rows[0],
   });
-  
+});
+
+
 
 // @desc    Update a resource by ID
 // @route   PUT /api/v1/billing/resources/:id
@@ -141,3 +144,71 @@ exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
     result
   });
 });
+
+
+
+// @desc    Get all months records
+// @route   GET /api/v1/summary/month
+// @access  Private
+exports.getAllMonths = catchAsyncErrors(async (req, res, next) => {
+  const { page = 1, id_user, month } = req.query;
+
+  if (id_user) {
+    billingSwitchServer.setFilter('id_user', id_user, 'eq', 'numeric');
+  }
+
+  if (month) {
+    billingSwitchServer.setFilter('month', month, 'eq', 'date');
+  }
+
+  let result;
+  if (page === "all") {
+    result = await fetchAllPages('callSummaryMonthUser');
+  } else {
+    result = await billingSwitchServer.read('callSummaryMonthUser', page);
+  }
+
+  billingSwitchServer.clearFilter();
+
+  res.status(200).json({
+    success: true,
+    result,
+  });
+});
+
+
+// @desc    Get all days records
+// @route   GET /api/v1/summary/days
+// @access  Private
+exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
+  const { page = 1, id_user, day } = req.query;
+
+  if (id_user) {
+    billingSwitchServer.setFilter('id_user', id_user, 'eq', 'numeric');
+  }
+
+  if (day) {
+    billingSwitchServer.setFilter('day', day, 'eq', 'date');
+  }
+
+  let result;
+  if (page === "all") {
+    result = await fetchAllPages('callSummaryDayUser');
+  } else {
+    result = await billingSwitchServer.read('callSummaryDayUser', page);
+  }
+
+  billingSwitchServer.clearFilter();
+
+  res.status(200).json({
+    success: true,
+    result,
+  });
+});
+
+
+
+
+
+
+

@@ -1,5 +1,3 @@
-// services/BillingSwitchServer.js
-
 const axios = require('axios');
 const crypto = require('crypto');
 
@@ -8,6 +6,7 @@ class BillingSwitchServer {
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
     this.publicUrl = 'http://65.108.146.238/mbilling'; // Adjust this URL as needed
+    this.filter = []; // Initialize filter array
   }
 
   generateNonce() {
@@ -32,19 +31,23 @@ class BillingSwitchServer {
       
       // Generate the headers
       const headers = {
-        'Key': this.apiKey,
-        'Sign': sign
+        'key': this.apiKey,
+        'sign': sign
       };
       
       const url = `${this.publicUrl}/index.php/${req.module}/${req.action}`;
       
-      // Make the request
+
       const response = await axios.post(url, postData, { headers });
       
-      console.log('generated url : ',url);
+      console.log(response);
       return response.data;
     } catch (error) {
-    return error
+      console.log();
+
+      console.error('Error in BillingSwitchServer query:', error.message);
+      return error
+
     }
   }
 
@@ -77,9 +80,41 @@ class BillingSwitchServer {
       page: page,
       start: page === 1 ? 0 : (page - 1) * 25,
       limit: 25,
-      filter: JSON.stringify(this.filter) 
-    }); 
+      filter: JSON.stringify(this.filter)
+    });
+  }
+
+  clearFilter() {
+    this.filter = [];
+  }
+
+  setFilter(field, value, comparison = 'st', type = 'string') {
+    this.filter.push({
+      type,
+      field,
+      value,
+      comparison
+    });
+  }
+
+  async getId(module, field, value) {
+    this.setFilter(field, value, 'eq');
+    const query = await this.query({
+      module,
+      action: 'read',
+      page: 1,
+      start: 0,
+      limit: 1,
+      filter: JSON.stringify(this.filter)
+    });
+
+    this.clearFilter();
+
+    if (query.rows && query.rows[0]) {
+      return query.rows[0].id;
+    }
+    return null;
   }
 }
 
-module.exports = BillingSwitchServer; 
+module.exports = BillingSwitchServer;

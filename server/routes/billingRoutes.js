@@ -5,7 +5,9 @@ const {
   getAllResources,
   getResourceById,
   updateResource,
-  deleteResource
+  deleteResource,
+  getAllDays,
+  getAllMonths
 } = require('../controllers/billingController');
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 
@@ -19,6 +21,9 @@ router.get('/resources/:id', isAuthenticatedUser, isAuthorized('admin', 'support
 // Route to get all resources
 router.get('/resources', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllResources);
 
+// Route to get all resources
+router.get('/resources', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllResources);
+
 
 
 // Route to update a resource by ID
@@ -26,5 +31,13 @@ router.put('/resources/:id', isAuthenticatedUser, isAuthorized('admin'), updateR
 
 // Route to delete a resource by ID
 router.delete('/resources/:id', isAuthenticatedUser, isAuthorized('admin'), deleteResource);
+
+
+// Route to get record of a user for a day
+router.get('/summary/days', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllDays);
+
+// Route to get record of a user for a day
+router.get('/summary/month', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllMonths);
+
 
 module.exports = router;

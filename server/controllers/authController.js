@@ -8,14 +8,14 @@ const logger = require('../utils/logger');
 // @route   POST /api/auth/register
 // @access  Public
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password ,role} = req.body;
 
   const userExist = await User.findOne({ email });
   if (userExist) {
     throw createError(400, "User already exist");
   }
 
-  const user = await User.create({ firstName, lastName, email, password });
+  const user = await User.create({ firstName, lastName, email, password ,role});
 
   logger.info('User registered', {
     email: user.email,

@@ -27,7 +27,8 @@ router.post('/logout', isAuthenticatedUser, logout);
 router.get('/users', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getAllUsers);
 
 router.get('/team', isAuthenticatedUser, isAuthorized("admin", "supportive staff"), getTeamMembers);
-router.get('users/:id', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getUserById);
+router.get('/users/:id', isAuthenticatedUser, isAuthorized("admin", "supportiveStaff"), getUserById);
+
 router.delete('/users/:id', isAuthenticatedUser, isAuthorized("admin"), deleteUserByAdmin);
 router.put('/:id', isAuthenticatedUser, isAuthorized("admin"), updateUserByAdmin);
 

@@ -66,7 +66,7 @@ const AddToTeam = () => {
                             <div className="form-group">
                                 <Field as="select" name="role">
                                     <option value="client">Client</option>
-                                    <option value="supportiveStaff">Supportive Staff</option>
+                                    <option value="supportive staff">Supportive Staff</option>
                                     <option value="admin">Admin</option>
                                 </Field>
                                 <label htmlFor="role">Role</label>
