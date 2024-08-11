@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChartLine, faDownload, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import Tabs from '../components/Tabs';
-import UsageSummary from '../components/UsageSummary';
+import UsageSummary from '../components/CallSummary';
 import InboundUsage from '../components/InboundUsage';
 import OutboundUsage from '../components/OutboundUsage';
 

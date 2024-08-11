@@ -12,7 +12,7 @@ import './styles/main.scss';
 import AccountSettings from './pages/AccountSettingPage';
 import TeamPage from './pages/TeamPage';
 import ServerPage from './pages/ServerPage'
-import UsagePage from './pages/UsagePage'
+import Summary from './pages/CallSummaryPage'
 import ErrorCard from './components/ErrorCard';
 import VendorPage from './pages/VenderPage';
 import LogsPage from './pages/LogsPage';
@@ -41,7 +41,7 @@ function App() {
 
           <Route path="/logs" element={<ProtectedRoute element={<LogsPage />} requiredRoles={['admin', 'supportive staff']} />}  />
 
-          <Route path="/usage" element={<ProtectedRoute element={<UsagePage />} requiredRoles={['admin', 'supportive staff','client']} />}  />
+          <Route path="/usage" element={<ProtectedRoute element={<Summary />} requiredRoles={['admin', 'supportive staff','client']} />}  />
 
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
 

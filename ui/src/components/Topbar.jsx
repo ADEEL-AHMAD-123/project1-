@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaBars, FaSearch, FaUserCircle, FaBell, FaCog, FaTimes, FaFilter } from "react-icons/fa";
 import "../styles/Topbar.scss";
+import { useSelector } from "react-redux";
 
 const Topbar = ({ toggleSidebar }) => {
+    const { Role } = useSelector(state => state.user);
+
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -25,8 +28,14 @@ const Topbar = ({ toggleSidebar }) => {
         <div className="topbar">
             <div className="topbar-left">
                 <div className="logo">
-                    <h2>$20.03</h2>
-                    <p>available balance</p>
+                    {Role === "client" ? (
+                        <>
+                            <h2>$20.03</h2>
+                            <p>available balance</p>
+                        </>
+                    ) : (
+                        <h2>Logo</h2>
+                    )}
                 </div>
                 <FaBars className="icon hamburger-icon" onClick={toggleSidebar} />
                 <FaSearch className="icon mobile-search" onClick={handleSearchClick} />
@@ -48,10 +57,7 @@ const Topbar = ({ toggleSidebar }) => {
             <div className="topbar-right">
                 <Link> <FaBell className="icon" /></Link>
                 <Link>  <FaCog className="icon" /></Link>
-                <Link to={"/profile"}>     <FaUserCircle className="icon" /></Link>
-                
-               
-            
+                <Link to={"/profile"}> <FaUserCircle className="icon" /></Link>
             </div>
         </div>
     );

@@ -34,7 +34,7 @@ router.delete('/resources/:id', isAuthenticatedUser, isAuthorized('admin'), dele
 
 
 // Route to get record of a user for a day
-router.get('/summary/days', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllDays);
+router.get('/summary/days', isAuthenticatedUser, isAuthorized('admin', 'supportive staff','client'), getAllDays);
 
 // Route to get record of a user for a day
 router.get('/summary/month', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllMonths);
