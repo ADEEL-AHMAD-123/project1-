@@ -12,7 +12,7 @@ const {
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 
 // Route to create a new resource
-router.post('/create', isAuthenticatedUser, isAuthorized('admin'), createResource);
+router.post('/create', isAuthenticatedUser, isAuthorized('admin','client','supportive staff'), createResource);
 
 
 // Route to get a resource by ID

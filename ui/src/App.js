@@ -12,7 +12,7 @@ import './styles/main.scss';
 import AccountSettings from './pages/AccountSettingPage';
 import TeamPage from './pages/TeamPage';
 import ServerPage from './pages/ServerPage'
-import Summary from './pages/CallSummaryPage'
+import Summary from './pages/UsagePage'
 import ErrorCard from './components/ErrorCard';
 import VendorPage from './pages/VenderPage';
 import LogsPage from './pages/LogsPage';

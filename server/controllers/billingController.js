@@ -5,22 +5,33 @@ const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const User = require('../models/user');
 const SIPDetails = require('../models/SIPDetails');
 const BillingAccount = require('../models/BillingAccount');
-const apiKey = process.env.SWITCH_BILLING_API_KEY;
-const apiSecret = process.env.SWITCH_BILLING_API_SECRET;
-const { fetchAllPages, fetchDataFromMongoDB, storeDataInMongoDB,generateRandomPin } = require('../utils/helperFunctions');
 const moment = require('moment');
-const CallSummary = require('../models/CallSummary'); 
+const apiKeyInbound = process.env.SWITCH_BILLING_INBOUND_API_KEY;
+const apiSecretInbound = process.env.SWITCH_BILLING_INBOUND_API_SECRET;
+const apiKeyOutbound = process.env.SWITCH_BILLING_OUTBOUND_API_KEY;
+const apiSecretOutbound = process.env.SWITCH_BILLING_OUTBOUND_API_SECRET;
+const { generateRandomPin } = require('../utils/helperFunctions');
+const { fetchAllPages, storeDataInMongoDB, fetchDataFromMongoDB } = require('../utils/helperFunctions');
+ 
 
+// Initialize servers for inbound and outbound
+const inboundServer = new BillingSwitchServer(apiKeyInbound, apiSecretInbound);
+const outboundServer = new BillingSwitchServer(apiKeyOutbound, apiSecretOutbound);
 
-const billingSwitchServer = new BillingSwitchServer(apiKey, apiSecret);
-
-
+// Function to select the appropriate server based on the query type
+function getBillingServer(type) {
+  if (type === 'outbound') {
+    return outboundServer;
+  }
+  // Default to inbound server if type is not specified or is 'inbound'
+  return inboundServer;
+}
 
 // @desc    Create a new resource
 // @route   POST /api/v1/billing/create
 // @access  Private
 exports.createResource = catchAsyncErrors(async (req, res, next) => {
-  const { module } = req.query; // Get the module from query
+  const { module, type } = req.query; // Get the module and type from query
 
   if (!module) {
     return next(createError(400, 'Module is required'));
@@ -40,15 +51,17 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
   // Prepare data for API call
   const username = `${user.firstName}-${user.lastName}`; // Construct username from first name and last name
   const apiData = {
-    username: 'aadeiii1',
+    username: username,
     password: '11111111', // Static password
     id_group: 3, // Assuming this is a default or static value
     callingcard_pin: generateRandomPin() // Generate or get a calling card pin
   };
 
+  const server = getBillingServer(type);
+
   try {
     // Make API call
-    const result = await billingSwitchServer.create(module, apiData);
+    const result = await server.create(module, apiData);
     console.log('API result:', result); // Log the result for debugging
 
     // Check for API call success
@@ -113,15 +126,15 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-
 // @desc    Get all resources
 // @route   GET /api/v1/billing/resources
 // @access  Private
 exports.getAllResources = catchAsyncErrors(async (req, res, next) => {
-  const { module, page = 1, limit = 10 } = req.query;
+  const { module, type, page = 1, limit = 10 } = req.query;
+  const server = getBillingServer(type);
 
   if (!module) {
-    throw createError(400, 'Module is required');
+    return next(createError(400, 'Module is required'));
   }
 
   // Set up pagination
@@ -136,37 +149,45 @@ exports.getAllResources = catchAsyncErrors(async (req, res, next) => {
       break;
     // Add more cases for other modules/collections if necessary
     default:
-      throw createError(400, 'Invalid module');
+      return next(createError(400, 'Invalid module'));
   }
 
-  // Get the total count of documents
-  const totalCount = await collection.countDocuments();
+  try {
+    // Get the total count of documents
+    const totalCount = await collection.countDocuments();
 
-  // Fetch the data from the MongoDB collection
-  const result = await collection.find().skip(skip).limit(limitNumber);
+    // Fetch the data from the MongoDB collection
+    const result = await collection.find().skip(skip).limit(limitNumber);
 
-  // Calculate total pages
-  const totalPages = Math.ceil(totalCount / limitNumber);
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / limitNumber);
 
-  res.status(200).json({
-    success: true,
-    data: result,
-    pagination: {
-      total: totalCount,
-      page: parseInt(page),
-      limit: limitNumber,
-      totalPages: totalPages,
-    },
-  });
+    res.status(200).json({
+      success: true,
+      data: result,
+      pagination: {
+        total: totalCount,
+        page: parseInt(page),
+        limit: limitNumber,
+        totalPages: totalPages,
+      },
+    });
+  } catch (err) {
+    logger.error('Error fetching resources', {
+      module,
+      error: err.message
+    });
+    return next(createError(500, 'Internal Server Error'));
+  }
 });
-
 
 // @desc    Get a single resource by ID
 // @route   GET /api/v1/billing/resources/:id
 // @access  Private
 exports.getResourceById = catchAsyncErrors(async (req, res, next) => {
-  const { module } = req.query;
+  const { module, type } = req.query;
   const { id } = req.params;
+  const server = getBillingServer(type);
 
   if (!module) {
     return next(createError(400, 'Module is required'));
@@ -187,25 +208,35 @@ exports.getResourceById = catchAsyncErrors(async (req, res, next) => {
       return next(createError(400, 'Invalid module'));
   }
 
-  // Fetch the data by ID from the MongoDB collection
-  const resource = await collection.findById(id);
+  try {
+    // Fetch the data by ID from the MongoDB collection
+    const resource = await collection.findById(id);
 
-  if (!resource) {
-    return next(createError(404, `Resource not found with id of ${id}`));
+    if (!resource) {
+      return next(createError(404, `Resource not found with id of ${id}`));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: resource,
+    });
+  } catch (err) {
+    logger.error('Error fetching resource by ID', {
+      module,
+      id,
+      error: err.message
+    });
+    return next(createError(500, 'Internal Server Error'));
   }
-
-  res.status(200).json({
-    success: true,
-    data: resource,
-  });
 });
 
 // @desc    Update a resource by ID
 // @route   PUT /api/v1/billing/resources/:id
 // @access  Private
 exports.updateResource = catchAsyncErrors(async (req, res, next) => {
-  const { module, data } = req.body;
+  const { module, data, type } = req.body;
   const { id } = req.params;
+  const server = getBillingServer(type);
 
   if (!module || !data || !id) {
     return next(createError(400, 'Module, data, and ID are required'));
@@ -243,31 +274,14 @@ exports.updateResource = catchAsyncErrors(async (req, res, next) => {
     }
 
     // Update the resource on the third-party server
-    const apiResult = await billingSwitchServer.update(module, thirdPartyId, data);
+    const apiResult = await server.update(module, thirdPartyId, data);
 
     if (!apiResult || !apiResult.success) {
-      const errorMessage = apiResult.errors ? Object.values(apiResult.errors).flat().join(', ') : 'Failed to update resource on third-party server';
-      logger.error('Third-party server update failed', {
-        module,
-        thirdPartyId,
-        error: errorMessage
-      });
-      return next(createError(400, errorMessage));
+      return next(createError(400, `Failed to update resource on third-party server`));
     }
 
     // Update the resource in MongoDB
     const updatedResource = await collection.findByIdAndUpdate(id, data, { new: true });
-
-    if (!updatedResource) {
-      return next(createError(404, `Resource not found with id of ${id}`));
-    }
-
-    // Log the resource update
-    logger.info('Resource updated successfully', {
-      module,
-      id,
-      result: updatedResource
-    });
 
     res.status(200).json({
       success: true,
@@ -275,55 +289,12 @@ exports.updateResource = catchAsyncErrors(async (req, res, next) => {
       data: updatedResource,
     });
   } catch (err) {
-    // Handle other errors
     logger.error('Error updating resource', {
       module,
-      id,
       error: err.message
     });
-    return next(createError(500, 'Internal Server Error'));
+    next(createError(500, 'Failed to update resource'));
   }
-});
-
-
-// @desc    Delete a resource by ID
-// @route   DELETE /api/v1/billing/resources/:id
-// @access  Private
-exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
-  const { module } = req.query;
-  if (!module) {
-    throw createError(400, 'Module is required');
-  }
-
-  const result = await billingSwitchServer.destroy(module, req.params.id);
-
-  if (!result) {
-    return next(createError(404, `Resource not found with id of ${req.params.id}`));
-  }
-
- if(result.success != true){
-  logger.error('Resource deletion failed', {
-    module,
-    result,
-  });
-  return res.status(500).json({
-    success: false,
-    message: 'Resource deletion failed',
-    result 
-  });
-}
-
-
-  logger.info('Resource deleted', {
-    module,
-    result,
-  });
-
-  res.status(200).json({
-    success: true, 
-    message: 'Resource deleted successfully',
-    result
-  });
 });
 
 
@@ -332,7 +303,8 @@ exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
 // @route   GET /api/v1/summary/days
 // @access  Private
 exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
-  const { id, startDate: startDateParam, endDate: endDateParam, page = 1 } = req.query;
+  const { id, startDate: startDateParam, endDate: endDateParam, page = 1, type } = req.query;
+  const server = getBillingServer(type); // Get the correct server based on the type
 
   const today = moment().startOf('day').format('YYYY-MM-DD'); // Format as string
   const yesterday = moment().subtract(1, 'day').startOf('day').format('YYYY-MM-DD'); // Yesterday's date
@@ -377,18 +349,19 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     let result;
 
     if (includesToday) {
-      result = await fetchAllPages('callSummaryDayUser'); // Fetch all pages
+      result = await server.fetchAllPages('callSummaryDayUser'); // Fetch all pages using the selected server
       logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
 
       await storeDataInMongoDB(result);
-      result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page }); // Re-fetch from MongoDB
+      result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page }); 
     } else {
       result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page });
     }
 
     return res.status(200).json({
       success: true,
-      result
+      data:result.data,
+      pagination:result.pagination
     });
 
   } catch (err) {
@@ -405,11 +378,13 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+
 // @desc    Get all months records
 // @route   GET /api/v1/summary/month
 // @access  Private
 exports.getAllMonths = catchAsyncErrors(async (req, res, next) => {
-  const { page = 1, id_user, month } = req.query;
+  const { page = 1, id_user, month, type } = req.query;
+  const billingSwitchServer = getBillingServer(type); // Get the correct server based on the type
 
   if (id_user) {
     billingSwitchServer.setFilter('id_user', id_user, 'eq', 'numeric');
@@ -420,16 +395,84 @@ exports.getAllMonths = catchAsyncErrors(async (req, res, next) => {
   }
 
   let result;
-  if (page === "all") {
-    result = await fetchAllPages('callSummaryMonthUser');
-  } else {
-    result = await billingSwitchServer.read('callSummaryMonthUser', page);
+  try {
+    if (page === "all") {
+      result = await fetchAllPages('callSummaryMonthUser', billingSwitchServer);
+    } else {
+      result = await billingSwitchServer.read('callSummaryMonthUser', page);
+    }
+
+    billingSwitchServer.clearFilter();
+
+    res.status(200).json({
+      success: true,
+      result,
+    });
+  } catch (err) {
+    logger.error(`Internal Server Error: ${err.message}`, {
+      error: err,
+      request: {
+        ip: req.ip,
+        method: req.method,
+        path: req.path,
+        query: req.query
+      }
+    });
+    return next(createError(500, `Internal Server Error: ${err.message}`));
+  }
+});
+
+
+// @desc    Delete a resource by ID
+// @route   DELETE /api/v1/billing/resources/:id
+// @access  Private
+exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
+  const { module, type } = req.query;
+  if (!module) {
+    return next(createError(400, 'Module is required'));
   }
 
-  billingSwitchServer.clearFilter();
+  const billingSwitchServer = getBillingServer(type); // Get the correct server based on the type
 
-  res.status(200).json({
-    success: true,
-    result,
-  });
+  try {
+    const result = await billingSwitchServer.destroy(module, req.params.id);
+
+    if (!result) {
+      return next(createError(404, `Resource not found with id of ${req.params.id}`));
+    }
+
+    if (result.success !== true) {
+      logger.error('Resource deletion failed', {
+        module,
+        result,
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'Resource deletion failed',
+        result 
+      });
+    }
+
+    logger.info('Resource deleted', {
+      module,
+      result,
+    });
+
+    res.status(200).json({
+      success: true, 
+      message: 'Resource deleted successfully',
+      result
+    });
+  } catch (err) {
+    logger.error(`Internal Server Error: ${err.message}`, {
+      error: err,
+      request: {
+        ip: req.ip,
+        method: req.method,
+        path: req.path,
+        query: req.query
+      }
+    });
+    return next(createError(500, `Internal Server Error: ${err.message}`));
+  }
 });

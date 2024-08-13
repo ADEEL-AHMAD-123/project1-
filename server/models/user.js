@@ -48,6 +48,14 @@ const userSchema = new mongoose.Schema({
   lastLoginIp: {
     type: String,
   },
+  hasBillingAccount: {
+    type: Boolean,
+    default: false,
+  },
+  hasSipAccount: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Encrypt password using bcrypt

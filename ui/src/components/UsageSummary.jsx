@@ -7,7 +7,7 @@ import '../styles/FilterComponent.scss';
 
 const UsageSummary = () => {
   const dispatch = useDispatch();
-  const { callSummary = [], loading, error, pagination = {}, account = {} } = useSelector((state) => state.billing);
+  const { InBoundUsage = [], loading, error, pagination = {}, account = {} } = useSelector((state) => state.billing);
   const { Role } = useSelector((state) => state.user);
 
   const [filters, setFilters] = useState({
@@ -18,6 +18,7 @@ const UsageSummary = () => {
     startDate: '', 
     endDate: '',
     username: '',
+    type: 'inbound', // Add type filter here
   });
 
   useEffect(() => {
@@ -46,9 +47,11 @@ const UsageSummary = () => {
   };
 
   const applyFilters = () => {
-    const queryString = new URLSearchParams(filters).toString();
+    // Add type to filters
+    const updatedFilters = { ...filters, type: 'inbound' };
+    const queryString = new URLSearchParams(updatedFilters).toString();
     console.log('Applying filters with query:', queryString); // Debugging line
-    dispatch(billingAsyncActions.getCallSummary({ requestData: `?${queryString}` }));
+    dispatch(billingAsyncActions.getOutboundUsage({ requestData: `?${queryString}` }));
   };
 
   const formatDate = (date) => {
@@ -144,8 +147,8 @@ const UsageSummary = () => {
             </tr>
           </thead>
           <tbody>
-            {callSummary.length ? (
-              callSummary.map((data) => (
+            {InBoundUsage.length ? (
+              InBoundUsage.map((data) => (
                 <tr key={data._id}>
                   <td>{data.day}</td>
                   <td>{data.username}</td>

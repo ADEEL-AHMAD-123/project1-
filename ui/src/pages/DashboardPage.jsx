@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { userAsyncActions } from '../redux/slices/userSlice';
+import { billingAsyncActions } from '../redux/slices/billingSlice';
 import "../styles/Dashboard.scss";
 
 const Dashboard = () => {
@@ -17,6 +18,9 @@ const Dashboard = () => {
   const handleLogout = () => {
     dispatch(userAsyncActions.logoutUser({requestData:""}));
   };
+  const handleActivation = () => {
+    dispatch(billingAsyncActions.createBillingAccount({requestData:"?module=user"}));
+  };
 
   // Check if user is available before rendering
   if (!user) {
@@ -29,6 +33,7 @@ const Dashboard = () => {
       <div className="user-details">
         <h4>You are logged in as a {user.role.toUpperCase()}</h4>
         <button onClick={handleLogout} className="btn">Logout</button>
+        <button onClick={handleActivation} className="btn">Activate Billing Account</button>
       </div>
     </div>
   );

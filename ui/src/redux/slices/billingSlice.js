@@ -14,34 +14,44 @@ const createApiAsyncThunk = ({ name, method, url }) => {
 
       const requestOptions = {
         method,
-        withCredentials: true,
         url: requestUrl,
         data,
         headers: {
           'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json',
         },
+        withCredentials: true, 
       };
 
       const response = await axios(requestOptions);
       toast.success(response.data.message);
-      console.log(response,'hh');
-      return response.data.result;
+      console.log(response, 'hh');
+      return response.data;
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || 'An error occurred');
       console.log(error);
-      throw error.response.data.message;
+      throw error.response?.data?.message || 'An error occurred';
     }
   });
 };
 
 export const billingAsyncActions = {
-  createResource: createApiAsyncThunk({
-    name: "create-resource",
+  createBillingAccount: createApiAsyncThunk({
+    name: "create-billing-account",
     method: "POST",
     url: "/billing/create",
   }),
-  getCallSummary: createApiAsyncThunk({
-    name: "get-billing-summary",
+  createSIPAccount: createApiAsyncThunk({
+    name: "create-SIP-account",
+    method: "POST",
+    url: "/billing/create",
+  }),
+  getInboundUsage: createApiAsyncThunk({
+    name: "get-inbound-usage",
+    method: "GET",
+    url: "/billing/summary/days",
+  }),
+  getOutboundUsage: createApiAsyncThunk({
+    name: "get-outbound-usage",
     method: "GET",
     url: "/billing/summary/days",
   }),
@@ -53,14 +63,14 @@ export const billingAsyncActions = {
 };
 
 const initialState = {
-  callSummary: [],
+  InBoundUsage: [],
+  OutBoundUsage: [],
   balance: null,
   isLoading: false,
   error: null,
-  pagination:null,
-  account:{
-    "id":1
-  }
+  pagination: null,
+  account: null,
+  SIPDetails: null,
 };
 
 const billingSlice = createSlice({
@@ -81,12 +91,20 @@ const billingSlice = createSlice({
       builder.addCase(action.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.error = null;
+
         if (payload) {
-          if (actionName === "getCallSummary") {
-            state.callSummary = payload.data;
-            state.pagination=payload.pagination
+          if (actionName === "getInboundUsage") {
+            state.InBoundUsage = payload.data;
+            state.pagination = payload.pagination;
+          } else if (actionName === "getOutboundUsage") {
+            state.OutBoundUsage = payload.data;
+            state.pagination = payload.pagination;
           } else if (actionName === "getBalance") {
             state.balance = payload.balance;
+          } else if (actionName === "createBillingAccount") {
+            state.account = payload.data;
+          } else if (actionName === "createSIPAccount") {
+            state.SIPDetails = payload.data;
           }
         }
       });
