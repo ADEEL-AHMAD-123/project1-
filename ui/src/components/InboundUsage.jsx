@@ -7,24 +7,24 @@ import '../styles/FilterComponent.scss';
 
 const InboundUsage = () => {
   const dispatch = useDispatch();
-  const { InBoundUsage = [], loading, error, pagination = {}, account = {} } = useSelector((state) => state.billing);
-  const { Role } = useSelector((state) => state.user);
+  const { InBoundUsage = [], loading, error, pagination = {} } = useSelector((state) => state.billing);
+  const { Role, BillingAccount } = useSelector((state) => state.user);
 
   const [filters, setFilters] = useState({
-    id: account.id || '', // Default to empty string if account.id is undefined
+    id: Role === 'client' ? BillingAccount?.id || '' : '', // Default to BillingAccount.id if Role is client
     period: 'daily', // Default period
     page: 1,
     limit: 10,
     startDate: '', 
     endDate: '',
     username: '',
-    type: 'inbound', // Add type filter here
+    type: 'inbound', // Include type filter with 'inbound'
   });
 
   useEffect(() => {
     // Fetch initial data with default filters when component mounts
     applyFilters();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   useEffect(() => {
     // Fetch data whenever filters change
@@ -47,8 +47,13 @@ const InboundUsage = () => {
   };
 
   const applyFilters = () => {
-    // Add type to filters
-    const updatedFilters = { ...filters, type: 'inbound' };
+    if (Role === 'client' && !BillingAccount?.id) {
+      // If the role is client and there's no BillingAccount id, render a message and do not dispatch
+      return;
+    }
+
+    // Ensure the account ID is included in filters if Role is client
+    const updatedFilters = Role === 'client' ? { ...filters, id: BillingAccount?.id } : filters;
     const queryString = new URLSearchParams(updatedFilters).toString();
     console.log('Applying filters with query:', queryString); // Debugging line
     dispatch(billingAsyncActions.getInboundUsage({ requestData: `?${queryString}` }));
@@ -69,6 +74,10 @@ const InboundUsage = () => {
 
   if (error) {
     return <ErrorCard message={error} />;
+  }
+
+  if (Role === 'client' && !BillingAccount?.id) {
+    return <div className="container usage-summary"><h1 className="message">No billing account available</h1></div>;
   }
 
   // Ensure pagination has valid values

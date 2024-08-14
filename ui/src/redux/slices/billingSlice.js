@@ -1,12 +1,15 @@
+// src/redux/slices/billingSlice.js
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { userAsyncActions } from './userSlice'; // Import userAsyncActions
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // Helper function to create async thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
-  return createAsyncThunk(`billing/${name}`, async ({ requestData, data }) => {
+  return createAsyncThunk(`billing/${name}`, async ({ requestData, data }, { dispatch }) => {
     try {
       const requestUrl = requestData
         ? `${BASE_URL}${url}${requestData}`
@@ -19,12 +22,17 @@ const createApiAsyncThunk = ({ name, method, url }) => {
         headers: {
           'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json',
         },
-        withCredentials: true, 
+        withCredentials: true,
       };
 
       const response = await axios(requestOptions);
       toast.success(response.data.message);
-      console.log(response, 'hh');
+      
+      // Dispatch user profile update on successful billing account creation
+      if (name === "create-billing-account") {
+        dispatch(userAsyncActions.getUserProfile({ requestData: "" }))
+      }
+
       return response.data;
     } catch (error) {
       toast.error(error.response?.data?.message || 'An error occurred');

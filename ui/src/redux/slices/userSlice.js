@@ -23,6 +23,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
       };
 
       const response = await axios(requestOptions);
+      console.log(response);
       toast.success(response.data.message);
       return response.data; 
     } catch (error) {
@@ -89,6 +90,7 @@ export const userAsyncActions = {
 // Initial State
 const initialState = {
   User: null,
+  BillingAccount: null, // Add BillingAccount to initial state
   Team: [],
   Users: [],
   Role: null,
@@ -115,7 +117,7 @@ const userSlice = createSlice({
 
       builder.addCase(action.fulfilled, (state, { payload }) => {
         state.isLoading = false;
-        state.error = false;
+        state.error = null;
         if (payload && payload.user) {
           if (
             actionName === "loginUser" ||
@@ -125,23 +127,20 @@ const userSlice = createSlice({
           ) {
             state.User = payload.user;
             state.Role = payload.user.role;
+            state.BillingAccount = payload.billingAccount || null;
             state.logoutSuccess = false;
 
           }
         } else if (actionName === "logoutUser") {
           state.logoutSuccess = true;
           state.User = null; 
+          state.BillingAccount = null; // Clear BillingAccount on logout
           state.Role = null; 
+        } else if (actionName === "getTeam") {
+          state.Team = payload.teamMembers;
+        } else if (actionName === "getAllUsers") {
+          state.Users = payload.users;
         }
-          else if (actionName === "getTeam") {
-            state.Team=payload.teamMembers
-
-         }
-          else if (actionName === "getAllUsers") {
-            state.Users=payload.users
-
-         }
-
       });
 
       builder.addCase(action.rejected, (state, { error }) => {

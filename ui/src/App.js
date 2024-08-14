@@ -31,7 +31,12 @@ function App() {
       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       <div className="content">
         <Routes>
-        <Route path="*" element={<ErrorCard message={"404. Not Found"} buttonLabel="Go back" redirectLink="/" />} />
+        <Route path="*" element={<ErrorCard
+  message="Some custom logic needed here."
+  buttonLabel="Perform Action"
+
+/>
+} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
 

@@ -7,11 +7,11 @@ import '../styles/FilterComponent.scss';
 
 const OutBoundUsage = () => {
   const dispatch = useDispatch();
-  const { OutBoundUsage = [], loading, error, pagination = {}, account = {} } = useSelector((state) => state.billing);
-  const { Role } = useSelector((state) => state.user);
+  const { OutBoundUsage = [], loading, error, pagination = {} } = useSelector((state) => state.billing);
+  const { Role, BillingAccount } = useSelector((state) => state.user); // Fetching BillingAccount from state.user
 
   const [filters, setFilters] = useState({
-    id: Role === 'client' ? account.id || '' : '', // Default to account.id if Role is client
+    id: '', // Will be updated based on the Role
     period: 'daily', // Default period
     page: 1,
     limit: 10,
@@ -22,9 +22,16 @@ const OutBoundUsage = () => {
   });
 
   useEffect(() => {
-    // Fetch initial data with default filters when component mounts
+    // If role is client and there's a valid BillingAccount, set the account id in filters
+    if (Role === 'client' && BillingAccount?.id) {
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        id: BillingAccount.id,
+      }));
+    }
+    // Fetch initial data with updated filters
     applyFilters();
-  }, []);
+  }, [Role, BillingAccount]); // Depend on Role and BillingAccount to re-fetch data if they change
 
   useEffect(() => {
     // Fetch data whenever filters change
@@ -47,15 +54,14 @@ const OutBoundUsage = () => {
   };
 
   const applyFilters = () => {
-    // Ensure account ID is included in filters if Role is client
-    if (Role === 'client' && account.id) {
-      setFilters(prevFilters => ({
-        ...prevFilters,
-        id: account.id,
-      }));
+    if (Role === 'client' && !BillingAccount?.id) {
+      // If the role is client and there's no BillingAccount id, do not dispatch any action
+      return;
     }
 
-    const queryString = new URLSearchParams(filters).toString();
+    // Ensure BillingAccount ID is included in filters if Role is client
+    const updatedFilters = Role === 'client' ? { ...filters, id: BillingAccount.id } : filters;
+    const queryString = new URLSearchParams(updatedFilters).toString();
     console.log('Applying filters with query:', queryString); // Debugging line
     dispatch(billingAsyncActions.getOutboundUsage({ requestData: `?${queryString}` }));
   };
@@ -75,6 +81,15 @@ const OutBoundUsage = () => {
 
   if (error) {
     return <ErrorCard message={error} />;
+  }
+
+  // If the role is client and there's no BillingAccount or no data in BillingAccount, show a message
+  if (Role === 'client' && (!BillingAccount || !BillingAccount.id)) {
+    return (
+      <div className="container usage-summary">
+        <h1 className="message">No billing account found.</h1>
+      </div>
+    );
   }
 
   // Ensure pagination has valid values

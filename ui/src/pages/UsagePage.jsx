@@ -18,11 +18,9 @@ const UsagePage = () => {
 
     return (
         <div className="page">
-            {userRole === 'admin' ? (
+
                 <Tabs tabs={tabs} />
-            ) : (
-                <UsageSummary /> 
-            )}
+           
         </div>
     ); 
 };

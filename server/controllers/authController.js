@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const BillingAccount = require('../models/BillingAccount');
 const sendToken = require('../utils/sendToken');
 const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const createError = require("http-errors");
@@ -68,5 +69,11 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     }
   });
 
-  sendToken(user, 200, res, "Logged in successfully");
+  // Check if the user has a billing account and fetch the billing account details
+  let billingAccount = null;
+  if (user.hasBillingAccount) {
+    billingAccount = await BillingAccount.findOne({ user_id: user._id });
+  }
+
+  sendToken(user, 200, res, "Logged in successfully", billingAccount);
 });

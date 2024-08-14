@@ -7,6 +7,7 @@ import "../styles/Dashboard.scss";
 const Dashboard = () => {
   const dispatch = useDispatch();
   const user = useSelector(state => state.user.User);
+  const billingAccount = useSelector(state => state.user.BillingAccount); // Get BillingAccount from state
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const handleLogout = () => {
     dispatch(userAsyncActions.logoutUser({requestData:""}));
   };
+
   const handleActivation = () => {
     dispatch(billingAsyncActions.createBillingAccount({requestData:"?module=user"}));
   };
@@ -33,7 +35,10 @@ const Dashboard = () => {
       <div className="user-details">
         <h4>You are logged in as a {user.role.toUpperCase()}</h4>
         <button onClick={handleLogout} className="btn">Logout</button>
-        <button onClick={handleActivation} className="btn">Activate Billing Account</button>
+        {/* Render activation button only if role is 'client' and billing account is not present */}
+        {user.role === 'client' && !user.hasBillingAccount && (
+          <button onClick={handleActivation} className="btn">Activate Billing Account</button>
+        )}
       </div>
     </div>
   );

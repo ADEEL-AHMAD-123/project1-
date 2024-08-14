@@ -27,6 +27,7 @@ function getBillingServer(type) {
   return inboundServer;
 }
 
+
 // @desc    Create a new resource
 // @route   POST /api/v1/billing/create
 // @access  Private
@@ -83,6 +84,9 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
             ...apiDataToStore, // Store all fields from the API response
             user_id: user._id
           });
+
+          // Update user document to set hasBillingAccount to true
+          await User.findByIdAndUpdate(user._id, { hasBillingAccount: true });
         }
       } catch (dbError) {
         console.error('Error storing data in DB:', dbError);

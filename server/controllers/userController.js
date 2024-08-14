@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const BillingAccount = require('../models/BillingAccount'); 
 const createError = require("http-errors");
 const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
 const logger = require("../utils/logger");
@@ -6,6 +7,9 @@ const sendToken = require("../utils/sendToken");
 const cloudinary = require("cloudinary").v2;
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() }); // Memory storage for multer
+
+
+
 
 // @desc    Get current logged-in user profile
 // @route   GET /api/user/profile
@@ -18,6 +22,11 @@ exports.getUserProfile = catchAsyncErrors(async (req, res, next) => {
     throw createError(404, "User not found");
   }
 
+  let billingAccount = null;
+  if (user.hasBillingAccount) {
+    billingAccount = await BillingAccount.findOne({ userId: user._id });
+  }
+
   logger.info("Fetched user profile", {
     ip: req.ip,
     userId: user._id.toString(),
@@ -27,8 +36,10 @@ exports.getUserProfile = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     user,
+    billingAccount,
   });
 });
+
 
 // @desc    Update current logged-in user profile
 // @route   PUT /api/user/profile
