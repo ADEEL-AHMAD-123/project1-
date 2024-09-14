@@ -1,0 +1,30 @@
+// src/styles/components/_BuyDIDs.scss
+
+.buy-dids {
+    padding: 1rem;
+
+    .did-list {
+        list-style: none;
+        padding: 0;
+
+        li {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+
+            .buy-btn {
+                background-color: #28a745;
+                color: white;
+                padding: 0.5rem;
+                border: none;
+                cursor: pointer;
+                border-radius: 4px;
+
+                &:hover {
+                    background-color: #218838;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+// src/styles/components/_AddDIDs.scss
+
+.add-dids {
+    padding: 1rem;
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 0.5rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+
+            &:hover {
+                background-color: #218838;
+            }
+        }
+    }
+}

@@ -7,6 +7,7 @@ const cors = require("cors");
 const requestLogger = require("./middlewares/requestLogger");
 const cloudinary = require('cloudinary').v2;
 const Multer = require('multer');
+const { scheduleJobs } = require('./jobs/jobScheduler');
 require('./utils/logScheduler');
 
 
@@ -32,6 +33,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
 
+// Schedule background jobs
+scheduleJobs(); // Initialize all scheduled jobs
+
 // Use request logging middleware
 app.use(requestLogger);
 
@@ -49,6 +53,9 @@ const servers = require("./routes/serverRoutes");
 const vendor=require("./routes/vendorRoutes")
 const log =require("./routes/logRoutes")
 const billing =require("./routes/billingRoutes")
+const did =require("./routes/didRoutes")
+const order =require("./routes/orderRoutes")
+const payment =require("./routes/paymentRoutes")
 
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/user", user);
@@ -56,6 +63,9 @@ app.use("/api/v1/servers", servers);
 app.use('/api/v1/vendors', vendor); 
 app.use('/api/v1/log' ,log) 
 app.use('/api/v1/billing' ,billing) 
+app.use('/api/v1/dids' ,did) 
+app.use('/api/v1/order' ,order) 
+app.use('/api/v1/payment' ,payment) 
  
 // Error handling middleware
 app.use(ErrorHandler);

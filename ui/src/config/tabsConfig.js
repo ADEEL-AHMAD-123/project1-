@@ -1,5 +1,5 @@
-import React from 'react';
-import { FaChartBar, FaUser, FaCog, FaUsers, FaObjectGroup, FaServer, FaStore, FaClipboardList, FaUserCircle } from 'react-icons/fa';
+
+import { FaChartBar, FaUser, FaCog, FaUsers, FaObjectGroup, FaServer, FaStore, FaClipboardList, FaUserCircle, FaPhoneAlt } from 'react-icons/fa'; // Added FaPhoneAlt for DIDs tab
 import { HiTrendingUp } from 'react-icons/hi'; // Import Heroicons
 
 export const tabsConfig = [
@@ -62,5 +62,11 @@ export const tabsConfig = [
     label: 'Usage',
     icon: HiTrendingUp, // Heroicons icon for usage
     roles: ['admin', 'supportive staff', 'client'], // Adjust roles as needed
+  },
+  {
+    path: '/dids', // Added path for DIDs
+    label: 'DIDs', // Added label for DIDs
+    icon: FaPhoneAlt, // Icon for DIDs (phone-related icon)
+    roles: ['admin', 'supportive staff', 'client'], // Adjust roles based on who can access DIDs
   },
 ];

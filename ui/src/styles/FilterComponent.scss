@@ -2,160 +2,122 @@
 @import "./variables";
 
 .filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
   margin-bottom: 20px;
   margin-top: 5px;
 
+  /* Filter fields */
+  .text-filter,
   .date-filter,
   .select-container {
-    position: relative;
-    flex: 1 1 auto;
-  }
-
-  .date-filter {
-    input[type="date"] {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-      width: 100%;
-    }
-
-    .placeholder {
-      position: absolute;
-      top: 50%;
-      left: 10px;
-      transform: translateY(-50%);
-      color: #aaa;
-      pointer-events: none;
-      transition: all 0.2s ease;
-    }
-
-    input[type="date"]:focus + .placeholder,
-    input[type="date"]:not(:placeholder-shown) + .placeholder {
-      top: -10px;
-      left: 10px;
-      background: white;
-      font-size: 12px;
-      color: #333;
-      padding: 0 5px;
-    }
-  }
-
-  input[type="text"] {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    flex: 1 1 auto;
-  }
-
-  .select-container {
+    display: flex;
+    flex-direction: column;
     position: relative;
 
+    /* Make sure the input fields have the same height */
+    input[type="text"],
+    input[type="date"],
     select {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 14px;
       width: 100%;
-      appearance: none;
-      background: white;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M5 7l-3-3h6z" fill="gray"/></svg>');
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 12px;
+      box-sizing: border-box;
     }
 
-    .placeholder {
-      position: absolute;
-      top: 50%;
-      left: 10px;
-      transform: translateY(-50%);
-      color: #aaa;
-      pointer-events: none;
-      transition: all 0.2s ease;
+    label {
+      font-size: 14px;
+      margin-bottom: 5px;
     }
 
-    select:focus + .placeholder {
-      top: -10px;
-      left: 10px;
-      background: white;
-      font-size: 12px;
-      color: #333;
-      padding: 0 5px;
-    }
   }
 
-  button {
-    padding: 10px 20px;
-    background-color: $primary-color;
-    color: $white-color;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  /* Buttons */
+  .filter-buttons {
+    grid-column: span 4; /* Take the entire row for the buttons */
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
 
-    &:hover {
-      background-color: $white-color;
+    button {
+      padding: 10px 20px;
+      background-color: $primary-color;
+      color: $white-color;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
       border: 1px solid $primary-color;
-      color: $primary-color;
+
+      &:hover {
+        background-color: $white-color;
+        border: 1px solid $primary-color;
+        color: $primary-color;
+      }
+
+      &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
+  .filters {
+    grid-template-columns: repeat(2, 1fr); /* Break into 2 columns */
+    grid-gap: 10px;
+
+    .text-filter,
+    .date-filter,
+    .select-container {
+      grid-column: span 1;
+    }
+
+    .filter-buttons {
+      grid-column: span 2; /* Take up two columns */
+      justify-content: flex-start;
     }
   }
 }
 
 @media (max-width: 768px) {
   .filters {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr); /* Break into 2 columns */
+    grid-gap: 10px;
 
+    .text-filter,
     .date-filter,
-    .select-container,
-    input[type="text"] {
+    .select-container {
       grid-column: span 1;
     }
 
-    button {
-      grid-column: span 2;
-      margin-top: 10px;
+    .filter-buttons {
+      grid-column: span 2; /* Take up the entire width */
+      justify-content: center;
     }
-  }
-
-  .date-filter .placeholder,
-  .select-container .placeholder {
-    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .filters {
-    display: none;
+    grid-template-columns: 1fr; /* Single column on mobile */
+    grid-gap: 10px;
 
+    .text-filter,
     .date-filter,
-    .select-container,
-    input[type="text"],
-    button {
-      width: 100%;
-      margin-bottom: 10px;
+    .select-container {
+      grid-column: span 1;
     }
 
-    button {
-      margin-top: 0;
+    .filter-buttons {
+      grid-column: span 1; /* Single column for buttons */
+      justify-content: center;
     }
-  }
-
-  .date-filter .placeholder,
-
-  .select-container .placeholder {
-    font-size: 12px;
-    top: -10px;
-    left: 10px;
-    padding: 0 5px;
-    background: white;
   }
 }

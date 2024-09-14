@@ -1,4 +1,3 @@
-// App.js
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
@@ -11,12 +10,17 @@ import ProtectedRoute from './components/ProtectedRoute';
 import './styles/main.scss';
 import AccountSettings from './pages/AccountSettingPage';
 import TeamPage from './pages/TeamPage';
-import ServerPage from './pages/ServerPage'
-import Summary from './pages/UsagePage'
+import ServerPage from './pages/ServerPage';
+import Summary from './pages/UsagePage';
 import ErrorCard from './components/ErrorCard';
-import VendorPage from './pages/VenderPage';
+import VendorPage from './pages/VenderPage.jsx';
 import LogsPage from './pages/LogsPage';
 import ServerDetails from './pages/ServerDetails';
+
+// New Imports for DIDs, Orders, and Payment
+import DIDPage from './pages/DIDsPage';
+import OrderSummaryPage from './pages/OrderSummaryPage';
+import DIDManagementPage from './pages/DIDManagementPage';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -31,34 +35,45 @@ function App() {
       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       <div className="content">
         <Routes>
-        <Route path="*" element={<ErrorCard
-  message="Some custom logic needed here."
-  buttonLabel="Perform Action"
+          {/* Default error route */}
+          <Route 
+            path="*" 
+            element={
+              <ErrorCard
+                message="Some custom logic needed here."
+                buttonLabel="Perform Action"
+              />
+            } 
+          />
 
-/>
-} />
+          {/* Authentication routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
 
-          <Route path="/servers/:id" element={<ProtectedRoute element={<ServerDetails />} requiredRoles={['admin', 'supportive staff', 'client']} />}  />
+          {/* DID Selection, Order, and Payment routes */}
+          <Route path="/dids" element={<ProtectedRoute element={<DIDPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
+          <Route path="/orders/:orderId" element={<ProtectedRoute element={<OrderSummaryPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
+          <Route path="/manage-dids" element={<ProtectedRoute element={<DIDManagementPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
 
+          {/* Server routes */}
+          <Route path="/servers/:id" element={<ProtectedRoute element={<ServerDetails />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
+
+          <Route path="/servers" element={<ProtectedRoute element={<ServerPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
+
+          {/* Vendor and Log routes */}
           <Route path="/vendors" element={<ProtectedRoute element={<VendorPage />} requiredRoles={['admin', 'supportive staff']} />} />
+          <Route path="/logs" element={<ProtectedRoute element={<LogsPage />} requiredRoles={['admin', 'supportive staff']} />} />
 
-          <Route path="/logs" element={<ProtectedRoute element={<LogsPage />} requiredRoles={['admin', 'supportive staff']} />}  />
+          {/* Usage routes */}
+          <Route path="/usage" element={<ProtectedRoute element={<Summary />} requiredRoles={['admin', 'supportive staff','client']} />} />
 
-          <Route path="/usage" element={<ProtectedRoute element={<Summary />} requiredRoles={['admin', 'supportive staff','client']} />}  />
-
-          <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
-
+          {/* Profile, Team, Account Settings */}
           <Route path="/profile" element={<ProtectedRoute element={<Profile />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
-
-
-
           <Route path="/team" element={<ProtectedRoute element={<TeamPage />} requiredRoles={['admin', 'supportive staff']} />} />
-
           <Route path="/account-settings" element={<ProtectedRoute element={<AccountSettings />} requiredRoles={['admin', 'supportive staff']} />} />
 
-          <Route path="/servers" element={<ProtectedRoute element={<ServerPage />} requiredRoles={['admin', 'supportive staff', 'client']} />}   />
+          {/* Dashboard */}
+          <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
         </Routes>
       </div>
     </div>

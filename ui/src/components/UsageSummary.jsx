@@ -1,72 +1,114 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { billingAsyncActions } from '../redux/slices/billingSlice'; 
+import { billingAsyncActions } from '../redux/slices/billingSlice';
 import ErrorCard from './ErrorCard';
-import '../styles/ListingTable.scss'; 
-import '../styles/FilterComponent.scss'; 
+import '../styles/ListingTable.scss';
+import '../styles/FilterComponent.scss';
 
 const UsageSummary = () => {
   const dispatch = useDispatch();
-  const { InBoundUsage = [], loading, error, pagination = {} } = useSelector((state) => state.billing);
+  const { loading, error, InBoundUsage, pagination = {} } = useSelector((state) => state.billing);
   const { Role, BillingAccount } = useSelector((state) => state.user);
 
-  const [filters, setFilters] = useState({
-    id: Role === 'client' ? BillingAccount?.id || '' : '', // Default to BillingAccount.id if Role is client
-    period: 'daily', // Default period
+  const initialFilters = {
+    id: Role === 'client' ? BillingAccount?.id || '' : '',
+    period: 'daily',
     page: 1,
     limit: 10,
-    startDate: '', 
+    startDate: '',
     endDate: '',
-    username: '',
-    type: 'inbound', // Include type filter with 'inbound'
-  });
+    type: 'inbound'
+  };
+
+  // Unique key for storing filter data specific to UsageSummary
+  const storageKey = 'usageSummaryFilters';
+
+  // Load filters from localStorage or use the initial ones
+  const [filters, setFilters] = useState(() => JSON.parse(localStorage.getItem(storageKey)) || initialFilters);
+  const [localFilters, setLocalFilters] = useState(filters);
+
+  // Track if filters have been modified
+  const [isModified, setIsModified] = useState(false);
+
+  // Track if filters are applied
+  const [isApplied, setIsApplied] = useState(false);
+
+  // Button states
+  const [isApplyButtonDisabled, setIsApplyButtonDisabled] = useState(true);
+  const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Effect to check for changes in filters and handle button enabling/disabling
+  useEffect(() => {
+    const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
+    setIsModified(isFilterModified);
+
+    if (isFilterModified) {
+      setIsApplyButtonDisabled(false);  // Enable the "Apply Filters" button when changes are detected
+    } else {
+      setIsApplyButtonDisabled(true);   // Disable if no changes
+    }
+
+    // Enable "Reset Filters" if local filters are different from the initial state or applied filters
+    setIsResetButtonDisabled(!isApplied && JSON.stringify(localFilters) === JSON.stringify(initialFilters));
+  }, [localFilters, filters, isApplied]);
 
   useEffect(() => {
-    // Fetch initial data with default filters when component mounts
-    applyFilters();
-  }, []); // Empty dependency array ensures this runs only once on mount
-
-  useEffect(() => {
-    // Fetch data whenever filters change
-    applyFilters();
-  }, [filters]);
+    if (Role === 'client' && !BillingAccount?.id) return;
+    applyFilters(filters);
+    setIsApplied(true);
+    setIsResetButtonDisabled(false); // Enable reset if filters are applied
+  }, [Role, BillingAccount?.id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prevFilters => ({
-      ...prevFilters,
+    setLocalFilters((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
 
-  const handlePageChange = (newPage) => {
-    setFilters(prevFilters => ({
-      ...prevFilters,
-      page: newPage,
-    }));
+  const handleApplyFilters = () => {
+    setFilters(localFilters); // Update filters state
+    localStorage.setItem(storageKey, JSON.stringify(localFilters));
+    setIsApplied(true);
+    setIsApplyButtonDisabled(true);  // Disable the button after applying filters
+
+    // Fetch data with the updated filters
+    applyFilters(localFilters);
   };
 
-  const applyFilters = () => {
-    if (Role === 'client' && !BillingAccount?.id) {
-      // If the role is client and there's no BillingAccount id, render a message and do not dispatch
-      return;
-    }
+  const handleResetFilters = () => {
+    setLocalFilters(initialFilters);
+    setFilters(initialFilters);
+    localStorage.removeItem(storageKey);
+    setIsApplied(false);
+    setIsModified(false);
+    setIsApplyButtonDisabled(true); // Disable apply button after reset
+    setIsResetButtonDisabled(true); // Disable reset button after reset
+    applyFilters(initialFilters);
+  };
 
-    // Ensure the account ID is included in filters if Role is client
-    const updatedFilters = Role === 'client' ? { ...filters, id: BillingAccount?.id } : filters;
+  const applyFilters = (currentFilters) => {
+    if (Role === 'client' && !BillingAccount?.id) return;
+
+    const updatedFilters = Role === 'client'
+      ? { ...currentFilters, id: BillingAccount?.id }
+      : currentFilters;
+
     const queryString = new URLSearchParams(updatedFilters).toString();
-    console.log('Applying filters with query:', queryString); // Debugging line
     dispatch(billingAsyncActions.getInboundUsage({ requestData: `?${queryString}` }));
   };
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    const [year, month, day] = date.split('-');
-    return `${year}-${month}-${day}`;
+  const handlePageChange = (newPage) => {
+    const updatedFilters = {
+      ...localFilters,
+      page: newPage,
+    };
+    setLocalFilters(updatedFilters);
+    applyFilters(updatedFilters);
   };
-
-  const formattedStartDate = formatDate(filters.startDate);
-  const formattedEndDate = formatDate(filters.endDate);
 
   if (loading) {
     return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
@@ -77,57 +119,57 @@ const UsageSummary = () => {
   }
 
   if (Role === 'client' && !BillingAccount?.id) {
-    return <div className="container usage-summary"><h1 className="message">No billing account available</h1></div>;
+    return <div className="container usage-summary"><h1 className="message">No billing account found.</h1></div>;
   }
 
-  // Ensure pagination has valid values
   const totalPages = pagination?.totalPages || 1;
-  const currentPage = filters.page || 1;
+  const currentPage = localFilters.page || 1;
 
   return (
     <div className="container usage-summary">
       <div className="filters">
         <div className="date-filter">
+          <label htmlFor="startDate" className="filter-label">Start Date</label>
           <input
             type="date"
             name="startDate"
-            value={filters.startDate || ''}
+            value={localFilters.startDate || ''}
             onChange={handleChange}
             className="filter-input"
+            max={today}
+            placeholder="Select start date"
           />
-          <label htmlFor="startDate" className="placeholder">
-            Start Date
-          </label>
         </div>
         <div className="date-filter">
+          <label htmlFor="endDate" className="filter-label">End Date</label>
           <input
             type="date"
             name="endDate"
-            value={filters.endDate || ''}
+            value={localFilters.endDate || ''}
             onChange={handleChange}
             className="filter-input"
+            max={today}
+            placeholder="Select end date"
           />
-          <label htmlFor="endDate" className="placeholder">
-            End Date
-          </label>
         </div>
-    
         {Role !== 'client' && (
           <div className="text-filter">
+            <label htmlFor="id" className="filter-label">User ID</label>
             <input
               type="text"
               name="id"
-              value={filters.id || ''}
+              value={localFilters.id || ''}
               onChange={handleChange}
               className="filter-input"
-              placeholder='User ID'
+              placeholder="Enter user ID"
             />
           </div>
         )}
         <div className="select-container">
+          <label htmlFor="period" className="filter-label">Period</label>
           <select
             name="period"
-            value={filters.period || 'daily'}
+            value={localFilters.period || 'daily'}
             onChange={handleChange}
             className="select-field"
           >
@@ -135,7 +177,22 @@ const UsageSummary = () => {
             <option value="daily">Daily</option>
           </select>
         </div>
-        <button onClick={applyFilters} className="apply-filters-button">Apply Filters</button>
+        <div className="filter-buttons">
+          <button
+            onClick={handleApplyFilters}
+            className="apply-filters-button"
+            disabled={isApplyButtonDisabled}
+          >
+            Apply Filters
+          </button>
+          <button
+            onClick={handleResetFilters}
+            className="reset-filters-button"
+            disabled={isResetButtonDisabled}
+          >
+            Reset Filters
+          </button>
+        </div>
       </div>
 
       <div className="table-container">
@@ -182,21 +239,15 @@ const UsageSummary = () => {
       </div>
 
       <div className="pagination">
-        <button 
-          onClick={() => handlePageChange(currentPage - 1)} 
-          disabled={currentPage <= 1}
-          className="pagination-button"
-        >
-          Previous
-        </button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <button 
-          onClick={() => handlePageChange(currentPage + 1)} 
-          disabled={currentPage >= totalPages}
-          className="pagination-button"
-        >
-          Next
-        </button>
+        {totalPages > 1 && Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index}
+            className={`pagination-button ${currentPage === index + 1 ? 'active' : ''}`}
+            onClick={() => handlePageChange(index + 1)}
+          >
+            {index + 1}
+          </button>
+        ))}
       </div>
     </div>
   );

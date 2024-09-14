@@ -1,0 +1,53 @@
+// src/styles/pages/_DIDManagementPage.scss
+
+.did-management {
+    padding: 1rem;
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+    }
+  
+    .did-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+  
+      .did-item {
+        flex: 1 1 100%;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+  
+        .did-details {
+          margin-bottom: 0.5rem;
+        }
+  
+        .did-actions {
+          display: flex;
+          gap: 0.5rem;
+  
+          button {
+            flex: 1;
+            padding: 0.5rem;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  
+    @media (min-width: 768px) {
+      .did-list .did-item {
+        flex: 1 1 48%;
+      }
+    }
+  
+    @media (min-width: 1024px) {
+      .did-list .did-item {
+        flex: 1 1 30%;
+      }
+    }
+  }
+  

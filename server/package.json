@@ -32,6 +32,7 @@
     "pino": "^9.3.2",
     "pino-mongodb": "^4.3.0",
     "ssh-keygen": "^0.5.0",
+    "stripe": "^16.10.0",
     "winston": "^3.13.0",
     "winston-mongodb": "^5.1.1"
   }

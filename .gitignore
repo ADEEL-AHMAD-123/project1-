@@ -16,3 +16,7 @@ dist/
 .env
 server/config/.env
 ui/.env
+
+
+
+# also there is a issue in all the three components. and the issue is that when i am making changes in the date or other fields so its applying that in filter directly. i mean its dispatching the action on the spot. but i donnot want that i want the filters should be only applied and include in querystring when a apply filter button is clicked. and the second issue is that . if the total pages is 1 it still showing pagination i want to show pagination when total pages is more than 1. so modify all the thre components
