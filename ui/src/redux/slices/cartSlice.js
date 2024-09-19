@@ -1,9 +1,7 @@
-// src/redux/slices/cartSlice.js
-
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  items: [], // List of DIDs in the cart
+  items: [], // List of items in the cart (can be DIDs, products, etc.)
 };
 
 const cartSlice = createSlice({
@@ -11,21 +9,25 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action) => {
-      // Check if DID already exists in the cart
-      const existingItem = state.items.find(item => item._id === action.payload._id);
+      const { _id, type } = action.payload;
+
+      // Check if the item of the same type and ID already exists in the cart
+      const existingItem = state.items.find(item => item._id === _id && item.type === type);
+
       if (!existingItem) {
         state.items.push(action.payload);
       }
     },
     removeFromCart: (state, action) => {
-      // Remove DID from the cart by its _id
-      state.items = state.items.filter(item => item._id !== action.payload);
+      const { _id, type } = action.payload;
+
+      // Remove the item by ID and type from the cart
+      state.items = state.items.filter(item => !(item._id === _id && item.type === type));
     },
     resetCart: (state) => {
-      // Clear the cart
-      state.items = [];
-    }
-  }
+      state.items = []; // Clear the entire cart
+    },
+  },
 });
 
 export const cartAsyncActions = {

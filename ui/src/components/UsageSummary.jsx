@@ -126,7 +126,7 @@ const UsageSummary = () => {
   const currentPage = localFilters.page || 1;
 
   return (
-    <div className="container usage-summary">
+    <div className="container component">
       <div className="filters">
         <div className="date-filter">
           <label htmlFor="startDate" className="filter-label">Start Date</label>

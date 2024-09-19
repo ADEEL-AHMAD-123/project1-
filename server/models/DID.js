@@ -10,7 +10,6 @@ const didSchema = new mongoose.Schema({
   state: { type: String, required: true },
   areaCode: { type: String, required: true },
   destination: { type: String, required: false },
-  price: { type: Number, required: true },
   status: {
     type: String,
     enum: ["available", "reserved", "purchased", "scheduled_deletion"],

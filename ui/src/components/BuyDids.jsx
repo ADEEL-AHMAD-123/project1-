@@ -1,22 +1,28 @@
-// src/components/dids/BuyDIDs.jsx
-
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { didAsyncActions } from '../redux/slices/didSlice';
 import { cartAsyncActions } from '../redux/slices/cartSlice'; // Import the cart actions
+import '../styles/ListingTable.scss';
+import '../styles/FilterComponent.scss';
 
 const BuyDIDs = () => {
   const dispatch = useDispatch();
   const { availableDIDs, isLoading, error, pagination = {} } = useSelector((state) => state.did);
   const { items: cartItems } = useSelector((state) => state.cart); // Get cart items from Redux
 
-  const [filters, setFilters] = useState({
-    country: '',
-    state: '',
-    areaCode: '',
-    number: '',
-    page: 1,
-    limit: 10,
+  // Initialize filters from localStorage or default to empty filters
+  const [filters, setFilters] = useState(() => {
+    const storedFilters = localStorage.getItem('didFilters');
+    return storedFilters
+      ? JSON.parse(storedFilters)
+      : {
+          country: '',
+          state: '',
+          areaCode: '',
+          number: '',
+          page: 1,
+          limit: 10,
+        };
   });
 
   const [appliedFilters, setAppliedFilters] = useState(filters); // Track applied filters
@@ -24,8 +30,13 @@ const BuyDIDs = () => {
   const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true); // Track if reset button should be disabled
 
   useEffect(() => {
-    applyFilters(); // Fetch DIDs with default filters on mount
+    applyFilters(); // Fetch DIDs with default or stored filters on mount
   }, []);
+
+  useEffect(() => {
+    // Persist the filters in localStorage
+    localStorage.setItem('didFilters', JSON.stringify(filters));
+  }, [filters]);
 
   useEffect(() => {
     // Enable the "Apply Filters" and "Reset Filters" buttons based on changes in filters
@@ -52,6 +63,7 @@ const BuyDIDs = () => {
   };
 
   const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return; // Prevent invalid page numbers
     setFilters((prevFilters) => ({
       ...prevFilters,
       page: newPage,
@@ -110,7 +122,7 @@ const BuyDIDs = () => {
   const currentPage = filters.page || 1;
 
   return (
-    <div className="container usage-summary">
+    <div className="container component">
       {/* Filters */}
       <div className="filters">
         <div className="text-filter">
@@ -197,7 +209,7 @@ const BuyDIDs = () => {
                   <td>{did.callerIdUsage || 'N/A'}</td>
                   <td>
                     <button
-                      className="add-to-cart-btn"
+                      className={`add-to-cart-btn ${isInCart(did) ? 'in-cart' : ''}`} // Add class if in cart
                       onClick={() => handleAddToCart(did)}
                     >
                       {isInCart(did) ? 'Remove from Cart' : 'Add to Cart'}
@@ -215,23 +227,25 @@ const BuyDIDs = () => {
       </div>
 
       {/* Pagination */}
-      <div className="pagination">
-        <button 
-          onClick={() => handlePageChange(currentPage - 1)} 
-          disabled={currentPage <= 1}
-          className="pagination-button"
-        >
-          Previous
-        </button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <button 
-          onClick={() => handlePageChange(currentPage + 1)} 
-          disabled={currentPage >= totalPages}
-          className="pagination-button"
-        >
-          Next
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            onClick={() => handlePageChange(currentPage - 1)} 
+            disabled={currentPage <= 1}
+            className="pagination-button"
+          >
+            Previous
+          </button>
+          <span>Page {currentPage} of {totalPages}</span>
+          <button 
+            onClick={() => handlePageChange(currentPage + 1)} 
+            disabled={currentPage >= totalPages}
+            className="pagination-button"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

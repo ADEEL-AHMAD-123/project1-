@@ -1,8 +1,86 @@
 const DID = require('../models/DID');
-const Pricing = require('../models/Pricing');
+const Pricing = require('../models/DIDPricing');
 const logger = require('../utils/logger');
 const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const createError = require('http-errors');
+
+
+// @desc    Add a new DID
+// @route   POST /api/v1/dids
+// @access  Private
+exports.addDID = catchAsyncErrors(async (req, res, next) => {
+  const { didNumber, country, state, areaCode, destination } = req.body;
+
+  // Validate required fields
+  if (!didNumber || !country || !state || !areaCode) {
+    logger.error('Failed to add DID: Missing required fields', { userId: req.user.id });
+    return next(createError(400, 'Missing required fields'));
+  }
+
+  // Check if the DID number already exists
+  const existingDID = await DID.findOne({ didNumber });
+  if (existingDID) {
+    logger.error('DID already exists', { userId: req.user.id, didNumber });
+    return next(createError(400, 'DID number already exists'));
+  }
+
+  // Create new DID
+  const newDID = new DID({
+    didNumber,
+    country,
+    state,
+    areaCode,
+    destination
+  });
+
+  await newDID.save();
+
+  logger.info('DID added successfully', { userId: req.user.id, didNumber });
+
+  res.status(201).json({
+    success: true,
+    message: 'DID added successfully',
+    did: newDID
+  });
+});
+
+
+
+// @desc    Add multiple DIDs in bulk
+// @route   POST /api/v1/dids/bulk
+// @access  Private
+exports.addDIDsInBulk = catchAsyncErrors(async (req, res, next) => {
+  const dids = req.body;
+
+  // Validate input
+  if (!Array.isArray(dids) || dids.length === 0) {
+    logger.error('Failed to add DIDs in bulk: Invalid input', { userId: req.user.id });
+    return next(createError(400, 'Invalid input'));
+  }
+
+  // Collect existing DID numbers
+  const didNumbers = dids.map(did => did.didNumber);
+  const existingDIDs = await DID.find({ didNumber: { $in: didNumbers } }).select('didNumber');
+  const existingNumbers = existingDIDs.map(did => did.didNumber);
+
+  // If any DID numbers already exist
+  if (existingNumbers.length > 0) {
+    logger.error('DID numbers already exist', { userId: req.user.id, existingNumbers });
+    return next(createError(400, `DID numbers already exist: ${existingNumbers.join(', ')}`));
+  }
+
+  // Insert new DIDs
+  await DID.insertMany(dids);
+
+  logger.info('DIDs added in bulk successfully', { userId: req.user.id, count: dids.length });
+
+  res.status(201).json({
+    success: true,
+    message: 'DIDs added in bulk successfully',
+    count: dids.length
+  });
+});
+
 
 // @desc    Get available DIDs for purchase with filtering, searching, and pagination
 // @route   GET /api/v1/dids/available
@@ -35,27 +113,6 @@ exports.getAvailableDIDs = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// @desc    Get global pricing for DIDs
-// @route   GET /api/v1/dids/pricing
-// @access  Public
-exports.getGlobalPricing = catchAsyncErrors(async (req, res, next) => {
-  const pricing = await Pricing.findOne(); // Assuming only one pricing document
-
-  if (!pricing) {
-    logger.error('No pricing data found', { ip: req.ip });
-    return next(createError(404, 'No pricing data found'));
-  }
-
-  logger.info('Fetched global pricing', { ip: req.ip });
-
-  res.status(200).json({
-    success: true,
-    globalPricing: {
-      bulkPrice: pricing.bulkPrice,
-      individualPrice: pricing.individualPrice,
-    },
-  });
-});
 
 // @desc    Edit technical configuration of a purchased DID
 // @route   PUT /api/v1/dids/:id/config
@@ -109,3 +166,68 @@ exports.deleteDID = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({ success: true, message: 'DID scheduled for deletion', did });
 });
+
+
+// @desc    Get global pricing for DIDs
+// @route   GET /api/v1/dids/pricing
+// @access  Public
+exports.getGlobalPricing = catchAsyncErrors(async (req, res, next) => {
+  const pricing = await Pricing.findOne();
+
+  if (!pricing) {
+    logger.error('Global pricing fetch failed: No pricing data found', { ip: req.ip });
+    return next(createError(404, 'No pricing data found'));
+  }
+
+  logger.info('Fetched global pricing', { ip: req.ip });
+
+  res.status(200).json({
+    success: true,
+    pricing: {
+      individualPrice: pricing.individualPrice,
+      bulkPrice: pricing.bulkPrice,
+      lastModified: pricing.lastModified,
+    },
+  });
+});
+ 
+
+
+
+// @desc    Add or update global pricing for DIDs
+// @route   POST /api/v1/dids/pricing
+// @access  Private
+exports.addOrUpdateGlobalPricing = catchAsyncErrors(async (req, res, next) => {
+  const { individualPrice, bulkPrice } = req.body;
+
+  if (!individualPrice || !bulkPrice) {
+    logger.error('Failed pricing update: Missing individual or bulk price', { userId: req.user.id });
+    return next(createError(400, 'Both individual and bulk prices are required'));
+  }
+
+  let pricing = await Pricing.findOne();
+
+  if (pricing) {
+    // Update the existing global pricing
+    pricing.individualPrice = individualPrice;
+    pricing.bulkPrice = bulkPrice;
+    pricing.lastModified = Date.now();
+    logger.info('Global pricing updated', { userId: req.user.id, individualPrice, bulkPrice });
+  } else {
+    // Create new global pricing if none exists
+    pricing = new Pricing({
+      individualPrice,
+      bulkPrice
+    });
+    logger.info('Global pricing created', { userId: req.user.id, individualPrice, bulkPrice });
+  }
+
+  await pricing.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Global pricing updated successfully',
+    pricing,
+  });
+});
+

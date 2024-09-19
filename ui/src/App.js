@@ -16,6 +16,7 @@ import ErrorCard from './components/ErrorCard';
 import VendorPage from './pages/VenderPage.jsx';
 import LogsPage from './pages/LogsPage';
 import ServerDetails from './pages/ServerDetails';
+import CartPage from './pages/CartPage';  // Import CartPage
 
 // New Imports for DIDs, Orders, and Payment
 import DIDPage from './pages/DIDsPage';
@@ -71,6 +72,9 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute element={<Profile />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
           <Route path="/team" element={<ProtectedRoute element={<TeamPage />} requiredRoles={['admin', 'supportive staff']} />} />
           <Route path="/account-settings" element={<ProtectedRoute element={<AccountSettings />} requiredRoles={['admin', 'supportive staff']} />} />
+
+          {/* Cart Page Route */}
+          <Route path="/cart" element={<ProtectedRoute element={<CartPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />  
 
           {/* Dashboard */}
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />

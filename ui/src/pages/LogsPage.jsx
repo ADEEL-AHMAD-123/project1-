@@ -1,26 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/LogsPage.scss'; // SCSS for logs page
+import '../styles/ListingTable.scss';
+import '../styles/FilterComponent.scss';
 
 const LogsPage = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({
+  
+  // Initial filter state
+  const initialFilters = {
     page: 1,
     limit: 10,
     level: '',
     startDate: '',
     endDate: '',
     ip: '',
+  };
+
+  // Fetch saved filters from localStorage or use initial filters
+  const [filters, setFilters] = useState(() => {
+    const savedFilters = localStorage.getItem('logs-filters');
+    return savedFilters ? JSON.parse(savedFilters) : initialFilters;
   });
+
+  // Pagination state
   const [pagination, setPagination] = useState({
     totalLogs: 0,
     totalPages: 1,
   });
+  
+  // Button states, persisted in localStorage
+  const [isApplyActive, setIsApplyActive] = useState(() => {
+    return localStorage.getItem('isApplyActive') === 'true';
+  });
+  
+  const [isResetActive, setIsResetActive] = useState(() => {
+    return localStorage.getItem('isResetActive') === 'true';
+  });
 
   const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
+  // Fetch logs whenever filters change
   useEffect(() => {
     fetchLogs();
   }, [filters.page]);
@@ -46,27 +67,47 @@ const LogsPage = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prevFilters) => ({
-      ...prevFilters,
+    
+    const updatedFilters = {
+      ...filters,
       [name]: value,
-    }));
+    };
+
+    setFilters(updatedFilters);
+
+    // Enable the "Apply Filters" button when any field is modified
+    setIsApplyActive(true);
+
+    // Persist changes in localStorage
+    localStorage.setItem('logs-filters', JSON.stringify(updatedFilters));
+    localStorage.setItem('isApplyActive', 'true');
   };
 
   const handleApplyFilters = () => {
     setFilters({ ...filters, page: 1 });
     fetchLogs();
+
+    // After applying filters, enable the "Reset Filters" button and disable "Apply Filters"
+    setIsApplyActive(false);
+    setIsResetActive(true);
+
+    // Persist button states
+    localStorage.setItem('isApplyActive', 'false');
+    localStorage.setItem('isResetActive', 'true');
   };
 
   const handleResetFilters = () => {
-    setFilters({
-      page: 1,
-      limit: 10,
-      level: '',
-      startDate: '',
-      endDate: '',
-      ip: '',
-    });
+    setFilters(initialFilters);
     fetchLogs();
+
+    // After resetting filters, disable both buttons
+    setIsApplyActive(false);
+    setIsResetActive(false);
+
+    // Clear localStorage
+    localStorage.removeItem('logs-filters');
+    localStorage.setItem('isApplyActive', 'false');
+    localStorage.setItem('isResetActive', 'false');
   };
 
   const handlePageChange = (newPage) => {
@@ -76,9 +117,15 @@ const LogsPage = () => {
     });
   };
 
+  // Get today's date for the date inputs
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0]; // Format to YYYY-MM-DD
+  };
+
   return (
-    <div className="container logs-page">
-      {/* Filters */}
+    <div className="container component">
+      {/* Filters Section */}
       <div className="filters">
         <div className="date-filter">
           <label htmlFor="startDate" className="filter-label">
@@ -90,6 +137,7 @@ const LogsPage = () => {
             value={filters.startDate}
             onChange={handleFilterChange}
             className="filter-input"
+            max={getTodayDate()}  // Restrict to today's date
           />
         </div>
         <div className="date-filter">
@@ -102,6 +150,7 @@ const LogsPage = () => {
             value={filters.endDate}
             onChange={handleFilterChange}
             className="filter-input"
+            max={getTodayDate()}  // Restrict to today's date
           />
         </div>
         <div className="text-filter">
@@ -135,13 +184,15 @@ const LogsPage = () => {
         <div className="filter-buttons">
           <button
             onClick={handleApplyFilters}
-            className="apply-filters-button"
+            className={`apply-filters-button ${isApplyActive ? 'active' : 'disabled'}`}
+            disabled={!isApplyActive}  // Disabled until changes are made
           >
             Apply Filters
           </button>
           <button
             onClick={handleResetFilters}
-            className="reset-filters-button"
+            className={`reset-filters-button ${isResetActive ? 'active' : 'disabled'}`}
+            disabled={!isResetActive}  // Disabled until filters are applied
           >
             Reset Filters
           </button>
