@@ -1,45 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { didAsyncActions } from '../redux/slices/didSlice';
-import { cartAsyncActions } from '../redux/slices/cartSlice'; // Import the cart actions
+import { cartAsyncActions } from '../redux/slices/cartSlice'; 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCartPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons'; // Add icons
 import '../styles/ListingTable.scss';
 import '../styles/FilterComponent.scss';
 
 const BuyDIDs = () => {
   const dispatch = useDispatch();
   const { availableDIDs, isLoading, error, pagination = {} } = useSelector((state) => state.did);
-  const { items: cartItems } = useSelector((state) => state.cart); // Get cart items from Redux
+  const { items: cartItems } = useSelector((state) => state.cart);
 
-  // Initialize filters from localStorage or default to empty filters
   const [filters, setFilters] = useState(() => {
     const storedFilters = localStorage.getItem('didFilters');
-    return storedFilters
-      ? JSON.parse(storedFilters)
-      : {
-          country: '',
-          state: '',
-          areaCode: '',
-          number: '',
-          page: 1,
-          limit: 10,
-        };
+    return storedFilters ? JSON.parse(storedFilters) : {
+      country: '',
+      state: '',
+      areaCode: '',
+      number: '',
+      page: 1,
+      limit: 10,
+    };
   });
 
-  const [appliedFilters, setAppliedFilters] = useState(filters); // Track applied filters
-  const [isApplyButtonDisabled, setIsApplyButtonDisabled] = useState(true); // Track if button should be disabled
-  const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true); // Track if reset button should be disabled
+  const [appliedFilters, setAppliedFilters] = useState(filters);
+  const [isApplyButtonDisabled, setIsApplyButtonDisabled] = useState(true);
+  const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true);
 
   useEffect(() => {
-    applyFilters(); // Fetch DIDs with default or stored filters on mount
+    applyFilters();
   }, []);
 
   useEffect(() => {
-    // Persist the filters in localStorage
     localStorage.setItem('didFilters', JSON.stringify(filters));
   }, [filters]);
 
   useEffect(() => {
-    // Enable the "Apply Filters" and "Reset Filters" buttons based on changes in filters
     const isUnchanged = JSON.stringify(filters) === JSON.stringify(appliedFilters);
     const isDefault = JSON.stringify(filters) === JSON.stringify({
       country: '',
@@ -50,8 +47,8 @@ const BuyDIDs = () => {
       limit: 10,
     });
 
-    setIsApplyButtonDisabled(isUnchanged || isDefault); // Disable if unchanged or no filters applied
-    setIsResetButtonDisabled(isDefault); // Disable if no filters applied
+    setIsApplyButtonDisabled(isUnchanged || isDefault);
+    setIsResetButtonDisabled(isDefault);
   }, [filters, appliedFilters]);
 
   const handleChange = (e) => {
@@ -63,7 +60,7 @@ const BuyDIDs = () => {
   };
 
   const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > pagination.totalPages) return; // Prevent invalid page numbers
+    if (newPage < 1 || newPage > pagination.totalPages) return;
     setFilters((prevFilters) => ({
       ...prevFilters,
       page: newPage,
@@ -71,13 +68,12 @@ const BuyDIDs = () => {
   };
 
   const applyFilters = () => {
-    setAppliedFilters(filters); // Update applied filters
+    setAppliedFilters(filters);
     const queryString = new URLSearchParams(filters).toString();
     dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
   };
 
   const resetFilters = () => {
-    // Reset filters to default state
     const defaultFilters = {
       country: '',
       state: '',
@@ -86,28 +82,23 @@ const BuyDIDs = () => {
       page: 1,
       limit: 10,
     };
-    setFilters(defaultFilters); // Reset filters state
-
-    // Immediately fetch DIDs without any filters
-    setAppliedFilters(defaultFilters); // Ensure applied filters are updated
-    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' })); // Fetch DIDs without filters
+    setFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
+    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' }));
   };
 
-  const handleAddToCart = (did) => {
-    // Check if DID is already in cart
+  const toggleCartItem = (did) => {
     const isInCart = cartItems.some(item => item._id === did._id);
     
     if (isInCart) {
-      // Remove from cart
-      dispatch(cartAsyncActions.removeFromCart(did._id));
+      dispatch(cartAsyncActions.removeFromCart({ _id: did._id, type: did.type })); // Ensure 'type' is part of the did object
     } else {
-      // Add to cart
-      dispatch(cartAsyncActions.addToCart(did));
+      dispatch(cartAsyncActions.addToCart({ ...did, type: did.type })); // Include 'type' when adding
     }
   };
 
   const isInCart = (did) => {
-    return cartItems.some(item => item._id === did._id); // Check if the DID is in the cart
+    return cartItems.some(item => item._id === did._id);
   };
 
   if (isLoading) {
@@ -208,12 +199,12 @@ const BuyDIDs = () => {
                   <td>{did.destination || 'N/A'}</td>
                   <td>{did.callerIdUsage || 'N/A'}</td>
                   <td>
-                    <button
-                      className={`add-to-cart-btn ${isInCart(did) ? 'in-cart' : ''}`} // Add class if in cart
-                      onClick={() => handleAddToCart(did)}
-                    >
-                      {isInCart(did) ? 'Remove from Cart' : 'Add to Cart'}
-                    </button>
+                    <FontAwesomeIcon
+                      icon={isInCart(did) ? faTrashAlt : faCartPlus}
+                      className={isInCart(did) ? 'cart-remove-icon' : 'cart-add-icon'}
+                      onClick={() => toggleCartItem(did)} // Use the updated function
+                      style={{ cursor: 'pointer', fontSize: '18px' }}
+                    />
                   </td>
                 </tr>
               ))
@@ -229,21 +220,9 @@ const BuyDIDs = () => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination">
-          <button 
-            onClick={() => handlePageChange(currentPage - 1)} 
-            disabled={currentPage <= 1}
-            className="pagination-button"
-          >
-            Previous
-          </button>
+          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="pagination-button">Previous</button>
           <span>Page {currentPage} of {totalPages}</span>
-          <button 
-            onClick={() => handlePageChange(currentPage + 1)} 
-            disabled={currentPage >= totalPages}
-            className="pagination-button"
-          >
-            Next
-          </button>
+          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} className="pagination-button">Next</button>
         </div>
       )}
     </div>

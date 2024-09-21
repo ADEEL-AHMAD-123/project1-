@@ -28,6 +28,11 @@
                 background-color: $primary-color;
                 color: $white-color;
             }
+
+            &.active {
+                background-color: $primary-color;
+                color: $white-color;
+            }
         }
 
         .logo {

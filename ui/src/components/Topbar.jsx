@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { FaBars, FaSearch, FaUserCircle, FaBell, FaCog, FaTimes, FaFilter } from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom"; // Import useLocation
+import { FaBars, FaSearch, FaUserCircle, FaShoppingCart, FaCog, FaTimes, FaFilter } from "react-icons/fa";
 import "../styles/Topbar.scss";
 import { useSelector } from "react-redux";
 
 const Topbar = ({ toggleSidebar }) => {
     const { Role } = useSelector(state => state.user);
+    const location = useLocation(); // Get the current location
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -13,10 +14,9 @@ const Topbar = ({ toggleSidebar }) => {
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
     };
- 
+
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-
         console.log("Search Query: ", searchQuery);
     };
 
@@ -40,6 +40,7 @@ const Topbar = ({ toggleSidebar }) => {
                 <FaBars className="icon hamburger-icon" onClick={toggleSidebar} />
                 <FaSearch className="icon mobile-search" onClick={handleSearchClick} />
             </div>
+
             <div className={`search-container ${isSearchOpen ? 'open' : ''}`}>
                 <form onSubmit={handleSearchSubmit} className="search-box">
                     <FaSearch className="search-icon" />
@@ -54,10 +55,18 @@ const Topbar = ({ toggleSidebar }) => {
                     <FaTimes className="icon close-icon" onClick={handleSearchClick} />
                 </form>
             </div>
+
             <div className="topbar-right">
-                <Link> <FaBell className="icon" /></Link>
-                <Link>  <FaCog className="icon" /></Link>
-                <Link to={"/profile"}> <FaUserCircle className="icon" /></Link>
+                {/* Add active class to respective icons based on current page */}
+                <Link to="/cart">
+                    <FaShoppingCart className={`icon ${location.pathname === '/cart' ? 'active' : ''}`} />
+                </Link>
+                <Link to="/settings">
+                    <FaCog className={`icon ${location.pathname === '/settings' ? 'active' : ''}`} />
+                </Link>
+                <Link to="/profile">
+                    <FaUserCircle className={`icon ${location.pathname === '/profile' ? 'active' : ''}`} />
+                </Link>
             </div>
         </div>
     );

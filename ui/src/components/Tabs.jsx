@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/Tabs.scss';
 
-const Tabs = ({ tabs }) => {
-    const [activeTab, setActiveTab] = useState(tabs[0].key);
+const Tabs = ({ tabs, tabKey }) => {
+    // Check localStorage for a saved tab, or default to the first tab
+    const initialActiveTab = localStorage.getItem(tabKey) || tabs[0].key;
+    const [activeTab, setActiveTab] = useState(initialActiveTab);
+
+    useEffect(() => {
+        // Whenever the activeTab changes, save it in localStorage
+        localStorage.setItem(tabKey, activeTab);
+    }, [activeTab, tabKey]);
 
     const handleTabChange = (key) => {
         setActiveTab(key);
@@ -41,6 +48,7 @@ Tabs.propTypes = {
             content: PropTypes.element.isRequired,
         })
     ).isRequired,
+    tabKey: PropTypes.string.isRequired, // Unique key for storing tab state
 };
 
 export default Tabs;

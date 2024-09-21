@@ -54,7 +54,7 @@ const AllServers = () => {
   }
 
   return (
-    <div className="container servers">
+    <div className="container component">
       {Servers && Servers.length === 0 ? (
         <h1 className="message">No servers available.</h1>
       ) : (

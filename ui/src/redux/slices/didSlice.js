@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const BASE_URL = process.env.REACT_APP_API_BASE_URL; 
 
 // Helper function to create async thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
@@ -32,34 +32,44 @@ const createApiAsyncThunk = ({ name, method, url }) => {
 
 // src/redux/slices/didSlice.js
 export const didAsyncActions = {
-    fetchAvailableDIDs: createApiAsyncThunk({
-      name: "fetchAvailableDIDs",
-      method: "GET",
-      url: "/dids/available",
-    }),
-    updateDIDConfig: createApiAsyncThunk({
-      name: "updateDIDConfig",
-      method: "PUT",
-      url: "/dids/",
-    }),
-    scheduleDIDDeletion: createApiAsyncThunk({
-      name: "scheduleDIDDeletion",
-      method: "DELETE",
-      url: "/dids/",
-    }),
-    fetchPurchasedDIDs: createApiAsyncThunk({
-      name: "fetchPurchasedDIDs",
-      method: "GET",
-      url: "/dids/purchased",
-    }),
-  };
-  
+  fetchAvailableDIDs: createApiAsyncThunk({
+    name: "fetchAvailableDIDs",
+    method: "GET",
+    url: "/dids/available",
+  }),
+  updateDIDConfig: createApiAsyncThunk({
+    name: "updateDIDConfig",
+    method: "PUT",
+    url: "/dids/",
+  }),
+  scheduleDIDDeletion: createApiAsyncThunk({
+    name: "scheduleDIDDeletion",
+    method: "DELETE",
+    url: "/dids/",
+  }),
+  fetchPurchasedDIDs: createApiAsyncThunk({
+    name: "fetchPurchasedDIDs",
+    method: "GET",
+    url: "/dids/purchased",
+  }),
+  fetchDIDPricing: createApiAsyncThunk({
+    name: "fetchDIDPricing",
+    method: "GET",
+    url: "/dids/pricing",
+  }),
+};
 
 const initialState = {
   availableDIDs: [],
+  pricing: {
+    individualPrice: null,
+    bulkPrice: null,
+    lastModified: null,
+  },
   isLoading: false,
   error: null,
 };
+
 
 const didSlice = createSlice({
   name: "did",
@@ -78,8 +88,17 @@ const didSlice = createSlice({
       builder.addCase(action.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.error = null;
+        
+        // Handle available DIDs data
         if (payload && actionName === "fetchAvailableDIDs") {
           state.availableDIDs = payload.dids;
+        }
+
+        // Handle global DID pricing
+        if (payload && actionName === "fetchDIDPricing") {
+          state.pricing.individualPrice = payload.pricing.individualPrice;
+          state.pricing.bulkPrice = payload.pricing.bulkPrice;
+          state.pricing.lastModified = payload.pricing.lastModified;
         }
       });
       builder.addCase(action.rejected, (state, { error }) => {
@@ -92,3 +111,4 @@ const didSlice = createSlice({
 
 export default didSlice.reducer;
 export const { resetDIDState } = didSlice.actions;
+

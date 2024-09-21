@@ -13,7 +13,7 @@ const TeamPage = () => {
 
     return (
         <div className="page">
-            <Tabs tabs={tabs} />
+            <Tabs tabs={tabs} tabKey="teamPageTabs" /> {/* Unique key for TeamPage */}
         </div>
     );
 };

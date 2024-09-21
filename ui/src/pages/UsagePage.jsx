@@ -18,11 +18,9 @@ const UsagePage = () => {
 
     return (
         <div className="page">
-
-                <Tabs tabs={tabs} />
-           
+            <Tabs tabs={tabs} tabKey="usageTabs" /> 
         </div>
-    ); 
+    );
 };
 
 export default UsagePage;

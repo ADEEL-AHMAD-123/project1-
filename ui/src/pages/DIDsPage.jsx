@@ -1,5 +1,3 @@
-// src/pages/DIDPage.jsx
-
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faListAlt, faPlusSquare } from '@fortawesome/free-solid-svg-icons';
@@ -20,7 +18,7 @@ const DIDPage = () => {
 
     return (
         <div className="page">
-            <Tabs tabs={tabs} />
+            <Tabs tabs={tabs} tabKey="didPageTabs" /> 
         </div>
     ); 
 };

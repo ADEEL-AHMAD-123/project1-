@@ -17,7 +17,7 @@ const VendorPage = () => {
     return (
         <div className="page">
             {userRole === 'admin' ? (
-                <Tabs tabs={tabs} />
+                <Tabs tabs={tabs} tabKey="vendorTabs" /> 
             ) : (
                 <AllVendors />
             )}

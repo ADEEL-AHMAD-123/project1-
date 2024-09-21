@@ -22,7 +22,7 @@ const ServersPage = () => {
 
     return (
         <div className="page">
-            <Tabs tabs={tabs} />
+            <Tabs tabs={tabs} tabKey="serversTabs" /> 
         </div>
     );
 };

@@ -25,10 +25,8 @@ const AccountSettings = () => {
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
-    // Determine if SSH keys are present
     const hasSSHKeys = currentUser && currentUser.sshKeys && currentUser.sshKeys.publicKey;
 
-    // Determine tab labels based on SSH keys presence
     const tabs = hasSSHKeys
         ? [
             { key: 'details', label: 'Details', icon: () => <FontAwesomeIcon icon={faUser} />, content: <AccountDetails User={currentUser} /> },
@@ -41,7 +39,7 @@ const AccountSettings = () => {
 
     return (
         <div className="page">
-            <Tabs tabs={tabs} />
+            <Tabs tabs={tabs} tabKey="accountSettingsTabs" /> {/* Unique key for AccountSettings */}
         </div>
     );
 };

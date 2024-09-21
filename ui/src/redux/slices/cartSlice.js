@@ -1,9 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  items: [], // List of items in the cart (can be DIDs, products, etc.)
+  items: [], // List of items in the cart
+  numberOfDIDs: 0, // Number of DIDs
+  pricePerDID: 0, // Price of each DID
+  totalPrice: 0, // Total price of DIDs
 };
-
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -24,6 +26,14 @@ const cartSlice = createSlice({
       // Remove the item by ID and type from the cart
       state.items = state.items.filter(item => !(item._id === _id && item.type === type));
     },
+    setCartDetails: (state, action) => {
+      const { numberOfDIDs, pricePerDID,totalPrice } = action.payload;
+
+      // Set the number of DIDs and price per DID
+      state.numberOfDIDs = numberOfDIDs;
+      state.pricePerDID = pricePerDID;
+      state.totalPrice = totalPrice;
+    },
     resetCart: (state) => {
       state.items = []; // Clear the entire cart
     },
@@ -33,6 +43,7 @@ const cartSlice = createSlice({
 export const cartAsyncActions = {
   addToCart: cartSlice.actions.addToCart,
   removeFromCart: cartSlice.actions.removeFromCart,
+  setCartDetails:cartSlice.actions.setCartDetails,
   resetCart: cartSlice.actions.resetCart,
 };
 

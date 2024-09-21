@@ -41,8 +41,17 @@ function App() {
             path="*" 
             element={
               <ErrorCard
-                message="Some custom logic needed here."
-                buttonLabel="Perform Action"
+              message={
+                <>
+                <h2 style={{fontSize:"4rem",marginBottom:"-20px"}}>
+                404
+                </h2>
+           
+                  <br />
+                  Page not found
+                </>
+              }
+                buttonLabel="Go Back"
               />
             } 
           />

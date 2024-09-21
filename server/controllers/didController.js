@@ -45,7 +45,6 @@ exports.addDID = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-
 // @desc    Add multiple DIDs in bulk
 // @route   POST /api/v1/dids/bulk
 // @access  Private
