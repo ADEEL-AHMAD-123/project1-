@@ -19,6 +19,10 @@ const didSchema = new mongoose.Schema({
   deleteAfterDays: { type: Number, default: null },
   deleteScheduledDate: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
 });
 
 // Indexing for better performance on search

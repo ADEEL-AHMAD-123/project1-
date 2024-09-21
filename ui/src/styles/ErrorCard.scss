@@ -26,9 +26,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  height: 70vh;
   width: 100%;
-  // background-color: white;
+
 }
 
 .error-card {
@@ -42,7 +42,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   max-width: 30rem;
   height: 15rem;
-  width: 100%;
+  width: 90%;
   text-align: center;
 
   h2 {

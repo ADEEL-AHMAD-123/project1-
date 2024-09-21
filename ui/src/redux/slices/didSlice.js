@@ -30,7 +30,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
   });
 };
 
-// src/redux/slices/didSlice.js
+
 export const didAsyncActions = {
   fetchAvailableDIDs: createApiAsyncThunk({
     name: "fetchAvailableDIDs",
@@ -57,10 +57,17 @@ export const didAsyncActions = {
     method: "GET",
     url: "/dids/pricing",
   }),
+
+  fetchMyDIDs: createApiAsyncThunk({
+    name: "fetchMyDIDs",
+    method: "GET",
+    url: "/dids/mydids",  
+  }),
 };
 
 const initialState = {
   availableDIDs: [],
+  myDIDs: [], 
   pricing: {
     individualPrice: null,
     bulkPrice: null,
@@ -69,7 +76,6 @@ const initialState = {
   isLoading: false,
   error: null,
 };
-
 
 const didSlice = createSlice({
   name: "did",
@@ -88,7 +94,7 @@ const didSlice = createSlice({
       builder.addCase(action.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.error = null;
-        
+
         // Handle available DIDs data
         if (payload && actionName === "fetchAvailableDIDs") {
           state.availableDIDs = payload.dids;
@@ -99,6 +105,11 @@ const didSlice = createSlice({
           state.pricing.individualPrice = payload.pricing.individualPrice;
           state.pricing.bulkPrice = payload.pricing.bulkPrice;
           state.pricing.lastModified = payload.pricing.lastModified;
+        }
+
+        // Handle "myDIDs" response
+        if (payload && actionName === "fetchMyDIDs") {
+          state.myDIDs = payload.dids;  
         }
       });
       builder.addCase(action.rejected, (state, { error }) => {
@@ -111,4 +122,3 @@ const didSlice = createSlice({
 
 export default didSlice.reducer;
 export const { resetDIDState } = didSlice.actions;
-

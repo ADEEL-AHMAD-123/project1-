@@ -113,6 +113,30 @@ exports.getAvailableDIDs = catchAsyncErrors(async (req, res, next) => {
 });
 
 
+// @desc    Get all DIDs of the logged-in user
+// @route   GET /api/v1/dids/myDids
+// @access  Private
+exports.getMyDIDs = catchAsyncErrors(async (req, res, next) => {
+  const userId = req.user.id;
+
+  // Fetch DIDs associated with the logged-in user
+  const dids = await DID.find({ userId });
+
+  if (!dids || dids.length === 0) {
+    logger.info('No DIDs found for the user', { userId });
+    return next(createError(404, 'No DIDs found for the user'));
+  }
+
+  logger.info('Fetched user\'s DIDs', { userId, count: dids.length });
+
+  res.status(200).json({
+    success: true,
+    count: dids.length,
+    dids
+  });
+});
+
+
 // @desc    Edit technical configuration of a purchased DID
 // @route   PUT /api/v1/dids/:id/config
 // @access  Private

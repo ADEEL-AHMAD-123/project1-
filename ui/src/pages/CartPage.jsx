@@ -28,7 +28,7 @@ const CartPage = () => {
       <ErrorCard 
         message="Your cart is empty."
         buttonLabel="Go Back" 
-        isFullPage={true} 
+        isFullPage={false} 
       />
     );
   }

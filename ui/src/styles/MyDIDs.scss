@@ -1,43 +1,30 @@
-// src/styles/components/_MyDIDs.scss
-
-.my-dids {
-    padding: 1rem;
-
-    .did-list {
-        list-style: none;
-        padding: 0;
-
-        li {
-            padding: 1rem;
-            border: 1px solid #ddd;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-
-            .config-btn, .delete-btn {
-                margin-right: 0.5rem;
-                padding: 0.5rem;
-                cursor: pointer;
-                border-radius: 4px;
-                border: none;
-            }
-
-            .config-btn {
-                background-color: #007bff;
-                color: white;
-
-                &:hover {
-                    background-color: #0056b3;
-                }
-            }
-
-            .delete-btn {
-                background-color: #dc3545;
-                color: white;
-
-                &:hover {
-                    background-color: #c82333;
-                }
-            }
-        }
-    }
-}
+/* src/components/MyDIDs.css */
+.my-dids-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-height: 85vh;
+  }
+  
+  .my-dids-container h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+  }
+  
+  .did-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .did-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .did-item span {
+    font-size: 16px;
+  }
+  

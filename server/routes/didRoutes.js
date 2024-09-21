@@ -7,7 +7,8 @@ const {
   getGlobalPricing, 
   addOrUpdateGlobalPricing,  
   editDIDConfig, 
-  deleteDID 
+  deleteDID,
+  getMyDIDs 
 } = require('../controllers/didController');
 
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
@@ -18,6 +19,9 @@ router.post('/bulk', isAuthenticatedUser, isAuthorized('admin'), addDIDsInBulk);
 
 // Get available DIDs
 router.get('/available', isAuthenticatedUser, getAvailableDIDs);
+
+// Get all DIDs of the logged-in user
+router.get('/mydids', isAuthenticatedUser, getMyDIDs);
 
 // Get global pricing
 router.get('/pricing', getGlobalPricing);
