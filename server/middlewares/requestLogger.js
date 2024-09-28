@@ -2,15 +2,19 @@ const logger = require('../utils/logger');
 
 const requestLogger = (req, res, next) => {
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  
+
   // Normalize IPv6 to IPv4 if necessary
   if (ip.includes('::ffff:')) {
     ip = ip.split('::ffff:')[1];
   }
 
-  // Exclude password from the request body for safe logging
-  const { password, ...safeBody } = req.body; 
-  
+  // Safely handle cases where req.body might be undefined (like in GET requests)
+  const safeBody = req.body ? { ...req.body } : {}; // Clone req.body or set to an empty object if undefined
+
+  if (safeBody.password) {
+    delete safeBody.password; // Exclude password if it exists
+  }
+
   logger.info('Incoming request', {
     meta: {
       ip,
@@ -22,6 +26,6 @@ const requestLogger = (req, res, next) => {
   });
 
   next();
-}; 
- 
+};
+
 module.exports = requestLogger;

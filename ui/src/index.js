@@ -13,16 +13,16 @@ import 'react-toastify/dist/ReactToastify.css';
 import reportWebVitals from './reportWebVitals';
 
 // Load Stripe with your public key
-// const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <Router>
-       
+          <Elements stripe={stripePromise}>  {/* Wrap the app with the Stripe Elements provider */}
             <App />
-         
+          </Elements>
           <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
         </Router>
       </PersistGate>

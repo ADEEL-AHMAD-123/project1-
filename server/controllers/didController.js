@@ -215,8 +215,6 @@ exports.getGlobalPricing = catchAsyncErrors(async (req, res, next) => {
 });
  
 
-
-
 // @desc    Add or update global pricing for DIDs
 // @route   POST /api/v1/dids/pricing
 // @access  Private

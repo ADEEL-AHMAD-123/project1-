@@ -17,7 +17,7 @@ const CartPage = () => {
 
   useEffect(() => {
     dispatch(didAsyncActions.fetchDIDPricing({ requestData: "" }));
-  }, [dispatch]);
+  }, [dispatch]); 
 
   if (!pricing?.individualPrice) {
     return <div className="cart-loading">Loading pricing data...</div>;

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const serverSchema = new Schema({
-  // Existing fields...
+
   serverName: { type: String },
   dialerSpecifications: {
     cpu: { type: String },
