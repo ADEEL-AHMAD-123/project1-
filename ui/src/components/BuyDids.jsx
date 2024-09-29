@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { didAsyncActions } from '../redux/slices/didSlice';
-import { cartAsyncActions } from '../redux/slices/cartSlice'; 
+import { cartAsyncActions } from '../redux/slices/cartSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCartPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons'; // Add icons
+import { faCartPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import '../styles/ListingTable.scss';
 import '../styles/FilterComponent.scss';
 
@@ -27,10 +27,7 @@ const BuyDIDs = () => {
   const [appliedFilters, setAppliedFilters] = useState(filters);
   const [isApplyButtonDisabled, setIsApplyButtonDisabled] = useState(true);
   const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true);
-
-  useEffect(() => {
-    applyFilters();
-  }, []);
+  const [hasSearched, setHasSearched] = useState(false); // Track whether the user has searched
 
   useEffect(() => {
     localStorage.setItem('didFilters', JSON.stringify(filters));
@@ -71,6 +68,7 @@ const BuyDIDs = () => {
     setAppliedFilters(filters);
     const queryString = new URLSearchParams(filters).toString();
     dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
+    setHasSearched(true); // Set to true when search is executed
   };
 
   const resetFilters = () => {
@@ -84,16 +82,17 @@ const BuyDIDs = () => {
     };
     setFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
-    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' }));
+    setHasSearched(false); // Reset on filter reset
+    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' })); // Optionally, you can also reset the data
   };
 
   const toggleCartItem = (did) => {
     const isInCart = cartItems.some(item => item._id === did._id);
     
     if (isInCart) {
-      dispatch(cartAsyncActions.removeFromCart({ _id: did._id, type: did.type })); // Ensure 'type' is part of the did object
+      dispatch(cartAsyncActions.removeFromCart({ _id: did._id, type: did.type })); 
     } else {
-      dispatch(cartAsyncActions.addToCart({ ...did, type: did.type })); // Include 'type' when adding
+      dispatch(cartAsyncActions.addToCart({ ...did, type: did.type })); 
     }
   };
 
@@ -162,7 +161,7 @@ const BuyDIDs = () => {
             className="apply-filters-button"
             disabled={isApplyButtonDisabled}
           >
-            Apply Filters
+            Search DIDs
           </button>
           <button
             onClick={resetFilters}
@@ -175,50 +174,52 @@ const BuyDIDs = () => {
       </div>
 
       {/* Table */}
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Number</th>
-              <th>Country</th>
-              <th>State</th>
-              <th>Area Code</th>
-              <th>Destination</th>
-              <th>Caller ID Usage</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {availableDIDs.length ? (
-              availableDIDs.map((did) => (
-                <tr key={did._id}>
-                  <td>{did.didNumber}</td>
-                  <td>{did.country}</td>
-                  <td>{did.state}</td>
-                  <td>{did.areaCode}</td>
-                  <td>{did.destination || 'N/A'}</td>
-                  <td>{did.callerIdUsage || 'N/A'}</td>
-                  <td>
-                    <FontAwesomeIcon
-                      icon={isInCart(did) ? faTrashAlt : faCartPlus}
-                      className={isInCart(did) ? 'cart-remove-icon' : 'cart-add-icon'}
-                      onClick={() => toggleCartItem(did)} // Use the updated function
-                      style={{ cursor: 'pointer', fontSize: '18px' }}
-                    />
-                  </td>
-                </tr>
-              ))
-            ) : (
+      {hasSearched && ( // Render the table only if the user has searched
+        <div className="table-container">
+          <table>
+            <thead>
               <tr>
-                <td colSpan="7" className="no-data">No DIDs available</td>
+                <th>Number</th>
+                <th>Country</th>
+                <th>State</th>
+                <th>Area Code</th>
+                <th>Destination</th>
+                <th>Caller ID Usage</th>
+                <th>Action</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {availableDIDs.length ? (
+                availableDIDs.map((did) => (
+                  <tr key={did._id}>
+                    <td>{did.didNumber}</td>
+                    <td>{did.country}</td>
+                    <td>{did.state}</td>
+                    <td>{did.areaCode}</td>
+                    <td>{did.destination || 'N/A'}</td>
+                    <td>{did.callerIdUsage || 'N/A'}</td>
+                    <td>
+                      <FontAwesomeIcon
+                        icon={isInCart(did) ? faTrashAlt : faCartPlus}
+                        className={isInCart(did) ? 'cart-remove-icon' : 'cart-add-icon'}
+                        onClick={() => toggleCartItem(did)} 
+                        style={{ cursor: 'pointer', fontSize: '18px' }}
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="no-data">No DIDs available</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {hasSearched && totalPages > 1 && ( // Show pagination only if the user has searched
         <div className="pagination">
           <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="pagination-button">Previous</button>
           <span>Page {currentPage} of {totalPages}</span>

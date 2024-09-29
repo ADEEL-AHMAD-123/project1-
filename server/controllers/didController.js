@@ -80,7 +80,6 @@ exports.addDIDsInBulk = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-
 // @desc    Get available DIDs for purchase with filtering, searching, and pagination
 // @route   GET /api/v1/dids/available
 // @access  Private
@@ -88,29 +87,43 @@ exports.getAvailableDIDs = catchAsyncErrors(async (req, res, next) => {
   const { country, state, areaCode, page = 1, limit = 10 } = req.query;
 
   const query = { status: 'available' };
-  if (country) query.country = country;
-  if (state) query.state = state;
-  if (areaCode) query.areaCode = areaCode;
+
+  // Case-insensitive search using regular expressions
+  if (country) query.country = { $regex: new RegExp(country, 'i') };
+  if (state) query.state = { $regex: new RegExp(state, 'i') };
+  if (areaCode) query.areaCode = { $regex: new RegExp(areaCode, 'i') };
 
   const totalDIDs = await DID.countDocuments(query);
   const dids = await DID.find(query)
                         .skip((page - 1) * limit)
                         .limit(limit);
 
+  // Mask last four digits of didNumber
+  const maskedDIDs = dids.map(did => {
+    const { didNumber, ...rest } = did.toObject(); // Convert mongoose document to plain object
+    if (didNumber && didNumber.length === 10) {
+      const maskedNumber = didNumber.slice(0, -4) + '****'; // Masking last four digits
+      return { didNumber: maskedNumber, ...rest };
+    }
+    return did; // Return the original if didNumber is not valid
+  });
+
   logger.info('Fetched available DIDs', {
     userId: req.user.id,
-    count: dids.length,
+    count: maskedDIDs.length,
     query,
   });
 
   res.status(200).json({
     success: true,
-    count: dids.length,
+    count: maskedDIDs.length,
     totalPages: Math.ceil(totalDIDs / limit),
     currentPage: page,
-    dids
+    dids: maskedDIDs
   });
 });
+
+
 
 
 // @desc    Get all DIDs of the logged-in user

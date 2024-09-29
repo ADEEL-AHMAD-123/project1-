@@ -5,9 +5,11 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 10px;
-  margin-bottom: 20px;
-  margin-top: 5px;
+  // margin-bottom: 20px;
+  // margin-top: 5px;
 
+background-color: $white-color;
+padding: 10px;
   /* Filter fields */
   .text-filter,
   .date-filter,
@@ -60,7 +62,6 @@
       }
 
       &:disabled {
-        background-color: #ccc;
         cursor: not-allowed;
       }
     }
