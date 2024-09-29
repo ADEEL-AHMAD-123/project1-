@@ -12,17 +12,21 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { pricing } = useSelector((state) => state.did);
+  // Fetch pricing data from Redux state
+  const { userPricing } = useSelector((state) => state.did);
+  const { User } = useSelector((state) => state.user);
   const { items: cartItems } = useSelector((state) => state.cart);
-
+  
   useEffect(() => {
-    dispatch(didAsyncActions.fetchDIDPricing({ requestData: "" }));
-  }, [dispatch]); 
+    dispatch(didAsyncActions.fetchUserDIDPricing({ requestData: User._id })); // Fetch user-specific pricing
+  }, [dispatch, User._id]);
 
-  if (!pricing?.individualPrice) {
+  // Check if pricing data is available
+  if (!userPricing) {
     return <div className="cart-loading">Loading pricing data...</div>;
   }
 
+  // Check if cart is empty
   if (!cartItems || cartItems.length === 0) {
     return (
       <ErrorCard 
@@ -33,8 +37,13 @@ const CartPage = () => {
     );
   }
 
-  const totalCost = cartItems.reduce((acc, item) => acc + pricing.individualPrice, 0);
+  // Calculate total cost based on the new pricing structure
+  const totalCost = cartItems.reduce((acc, item) => {
+    const itemPrice = item.isBulk ? userPricing.bulkPrice : userPricing.nonBulkPrice;
+    return acc + itemPrice;
+  }, 0);
 
+  // Function to handle item removal
   const handleRemove = (_id, type) => {
     dispatch(cartAsyncActions.removeFromCart({ _id, type }));
   };
@@ -64,26 +73,31 @@ const CartPage = () => {
           <thead>
             <tr>
               <th>DID Number</th>
-              <th>Country</th> {/* Split into Country */}
-              <th>Area Code</th> {/* Split into Area Code */}
+              <th>Country</th>
+              <th>Area Code</th>
+              <th>Price</th> {/* New Price Column */}
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {cartItems.map((item) => (
-              <tr key={item._id}>
-                <td>{item.didNumber}</td>
-                <td>{item.country}</td>  {/* Country column */}
-                <td>{item.areaCode}</td> {/* Area Code column */}
-                <td>
-                  <FontAwesomeIcon
-                    icon={faTrashAlt}
-                    className="remove-icon"
-                    onClick={() => handleRemove(item._id, item.type)}
-                  />
-                </td>
-              </tr>
-            ))}
+            {cartItems.map((item) => {
+              const itemPrice = item.isBulk ? userPricing.bulkPrice : userPricing.nonBulkPrice;
+              return (
+                <tr key={item._id}>
+                  <td>{item.didNumber}</td>
+                  <td>{item.country}</td>
+                  <td>{item.areaCode}</td>
+                  <td>${itemPrice.toFixed(2)}</td> {/* Display Price */}
+                  <td>
+                    <FontAwesomeIcon
+                      icon={faTrashAlt}
+                      className="remove-icon"
+                      onClick={() => handleRemove(item._id, item.type)}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

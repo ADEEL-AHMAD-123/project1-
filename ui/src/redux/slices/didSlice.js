@@ -1,9 +1,8 @@
-// src/redux/slices/didSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const BASE_URL = process.env.REACT_APP_API_BASE_URL; 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // Helper function to create async thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
@@ -30,7 +29,6 @@ const createApiAsyncThunk = ({ name, method, url }) => {
   });
 };
 
-
 export const didAsyncActions = {
   fetchAvailableDIDs: createApiAsyncThunk({
     name: "fetchAvailableDIDs",
@@ -52,26 +50,46 @@ export const didAsyncActions = {
     method: "GET",
     url: "/dids/purchased",
   }),
-  fetchDIDPricing: createApiAsyncThunk({
-    name: "fetchDIDPricing",
+  fetchGlobalDIDPricing: createApiAsyncThunk({
+    name: "fetchGlobalDIDPricing",
     method: "GET",
-    url: "/dids/pricing",
+    url: "/dids/pricing/global",
   }),
-
+  fetchUserDIDPricing: createApiAsyncThunk({
+    name: "fetchUserDIDPricing",
+    method: "GET",
+    url: "/dids/pricing/user/",
+  }),
+  setGlobalDIDPricing: createApiAsyncThunk({
+    name: "setGlobalDIDPricing",
+    method: "POST",
+    url: "/dids/pricing/global",
+  }),
+  setUserDIDPricing: createApiAsyncThunk({
+    name: "setUserDIDPricing",
+    method: "POST",
+    url: "/dids/pricing/user/",
+  }),
   fetchMyDIDs: createApiAsyncThunk({
     name: "fetchMyDIDs",
     method: "GET",
-    url: "/dids/mydids",  
+    url: "/dids/mydids",
   }),
 };
 
 const initialState = {
   availableDIDs: [],
-  myDIDs: [], 
-  pricing: {
-    individualPrice: null,
+  myDIDs: [],
+  globalPricing: {
+    nonBulkPrice: null,
     bulkPrice: null,
+    bulkThreshold: null,
     lastModified: null,
+  },
+  userPricing: {
+    nonBulkPrice: null,
+    bulkPrice: null,
+    bulkThreshold: null,
   },
   isLoading: false,
   error: null,
@@ -101,15 +119,23 @@ const didSlice = createSlice({
         }
 
         // Handle global DID pricing
-        if (payload && actionName === "fetchDIDPricing") {
-          state.pricing.individualPrice = payload.pricing.individualPrice;
-          state.pricing.bulkPrice = payload.pricing.bulkPrice;
-          state.pricing.lastModified = payload.pricing.lastModified;
+        if (payload && actionName === "fetchGlobalDIDPricing" || actionName === "setGlobalDIDPricing") {
+          state.globalPricing.nonBulkPrice = payload.pricing.nonBulkPrice;
+          state.globalPricing.bulkPrice = payload.pricing.bulkPrice;
+          state.globalPricing.bulkThreshold = payload.pricing.bulkThreshold;
+          state.globalPricing.lastModified = payload.pricing.lastModified;
+        }
+
+        // Handle user DID pricing
+        if (payload && actionName === "fetchUserDIDPricing") {
+          state.userPricing.nonBulkPrice = payload.pricing.nonBulkPrice;
+          state.userPricing.bulkPrice = payload.pricing.bulkPrice;
+          state.userPricing.bulkThreshold = payload.pricing.bulkThreshold;
         }
 
         // Handle "myDIDs" response
         if (payload && actionName === "fetchMyDIDs") {
-          state.myDIDs = payload.dids;  
+          state.myDIDs = payload.dids;
         }
       });
       builder.addCase(action.rejected, (state, { error }) => {

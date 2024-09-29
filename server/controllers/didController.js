@@ -3,7 +3,7 @@ const Pricing = require('../models/DIDPricing');
 const logger = require('../utils/logger');
 const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const createError = require('http-errors');
-
+const User=require('../models/user')
 
 // @desc    Add a new DID
 // @route   POST /api/v1/dids
@@ -124,8 +124,6 @@ exports.getAvailableDIDs = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-
-
 // @desc    Get all DIDs of the logged-in user
 // @route   GET /api/v1/dids/myDids
 // @access  Private
@@ -204,56 +202,49 @@ exports.deleteDID = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-// @desc    Get global pricing for DIDs
-// @route   GET /api/v1/dids/pricing
+// @desc    Get global DID pricing
+// @route   GET /api/v1/dids/pricing/global
 // @access  Public
 exports.getGlobalPricing = catchAsyncErrors(async (req, res, next) => {
   const pricing = await Pricing.findOne();
 
   if (!pricing) {
-    logger.error('Global pricing fetch failed: No pricing data found', { ip: req.ip });
-    return next(createError(404, 'No pricing data found'));
+    return next(createError(404, 'No global pricing data found'));
   }
-
-  logger.info('Fetched global pricing', { ip: req.ip });
 
   res.status(200).json({
     success: true,
     pricing: {
-      individualPrice: pricing.individualPrice,
+      nonBulkPrice: pricing.nonBulkPrice,
       bulkPrice: pricing.bulkPrice,
+      bulkThreshold: pricing.bulkThreshold,
       lastModified: pricing.lastModified,
     },
   });
 });
+
  
-
-// @desc    Add or update global pricing for DIDs
-// @route   POST /api/v1/dids/pricing
-// @access  Private
-exports.addOrUpdateGlobalPricing = catchAsyncErrors(async (req, res, next) => {
-  const { individualPrice, bulkPrice } = req.body;
-
-  if (!individualPrice || !bulkPrice) {
-    logger.error('Failed pricing update: Missing individual or bulk price', { userId: req.user.id });
-    return next(createError(400, 'Both individual and bulk prices are required'));
-  }
+// @desc    Set or update global DID pricing
+// @route   POST /api/v1/dids/pricing/global
+// @access  Private (Admin)
+exports.setGlobalPricing = catchAsyncErrors(async (req, res, next) => {
+  const { nonBulkPrice, bulkPrice, bulkThreshold } = req.body;
 
   let pricing = await Pricing.findOne();
 
   if (pricing) {
-    // Update the existing global pricing
-    pricing.individualPrice = individualPrice;
+    // Update existing pricing
+    pricing.nonBulkPrice = nonBulkPrice;
     pricing.bulkPrice = bulkPrice;
+    pricing.bulkThreshold = bulkThreshold;
     pricing.lastModified = Date.now();
-    logger.info('Global pricing updated', { userId: req.user.id, individualPrice, bulkPrice });
   } else {
-    // Create new global pricing if none exists
+    // Create new pricing if none exists
     pricing = new Pricing({
-      individualPrice,
-      bulkPrice
+      nonBulkPrice,
+      bulkPrice,
+      bulkThreshold,
     });
-    logger.info('Global pricing created', { userId: req.user.id, individualPrice, bulkPrice });
   }
 
   await pricing.save();
@@ -264,4 +255,66 @@ exports.addOrUpdateGlobalPricing = catchAsyncErrors(async (req, res, next) => {
     pricing,
   });
 });
+
+
+// @desc    Get DID pricing for a specific user
+// @route   GET /api/v1/dids/pricing/user/:userId
+// @access  Private (Admin)
+exports.getUserPricing = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.params.userId);
+
+
+  if (!user) {
+    return next(createError(404, 'User not found'));
+  }
+
+  const globalPricing = await Pricing.findOne();
+
+  if (!globalPricing) {
+    return next(createError(404, 'No global pricing data found'));
+  }
+
+  // Use user-specific pricing if available, otherwise fallback to global
+  const pricing = {
+    nonBulkPrice: user.pricing?.nonBulkPrice || globalPricing.nonBulkPrice,
+    bulkPrice: user.pricing?.bulkPrice || globalPricing.bulkPrice,
+    bulkThreshold: user.pricing?.bulkThreshold || globalPricing.bulkThreshold,
+  };
+
+  res.status(200).json({
+    success: true,
+    user: user._id,
+    pricing,
+  });
+});
+
+
+// @desc    Set or update DID pricing for a specific user
+// @route   POST /api/v1/dids/pricing/user/:userId
+// @access  Private (Admin)
+exports.setUserPricing = catchAsyncErrors(async (req, res, next) => {
+  const { nonBulkPrice, bulkPrice, bulkThreshold } = req.body;
+
+  let user = await User.findById(req.params.userId);
+
+  if (!user) {
+    return next(createError(404, 'User not found'));
+  }
+
+  // Update user-specific pricing
+  user.pricing = {
+    nonBulkPrice: nonBulkPrice || user.pricing?.nonBulkPrice,
+    bulkPrice: bulkPrice || user.pricing?.bulkPrice,
+    bulkThreshold: bulkThreshold || user.pricing?.bulkThreshold,
+  };
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'User-specific pricing updated successfully',
+    userPricing: user.pricing,
+  });
+});
+
 
