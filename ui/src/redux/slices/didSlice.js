@@ -91,6 +91,7 @@ const initialState = {
     bulkPrice: null,
     bulkThreshold: null,
   },
+  pagination: null,
   isLoading: false,
   error: null,
 };
@@ -116,6 +117,7 @@ const didSlice = createSlice({
         // Handle available DIDs data
         if (payload && actionName === "fetchAvailableDIDs") {
           state.availableDIDs = payload.dids;
+          state.pagination = payload.pagination;
         }
 
         // Handle global DID pricing

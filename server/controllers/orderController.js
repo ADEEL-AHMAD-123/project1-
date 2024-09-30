@@ -4,6 +4,7 @@ const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const Order = require('../models/Order');
 const StripeService = require('../services/StripeService');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { assignDIDToUser, assignServerToUser } = require('../services/AssignItems');
 
 // @desc    Create a new order
 // @route   POST /api/v1/orders/create
@@ -37,28 +38,66 @@ exports.createOrder = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// @desc    Handle Stripe Webhook
-// @route   POST /api/v1/payments/webhook
-// @access  Public
+// Stripe webhook handler for various events
 exports.stripeWebhook = catchAsyncErrors(async (req, res, next) => {
   const sig = req.headers['stripe-signature'];
   const payload = req.body;
 
   try {
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    const result = await StripeService.handleWebhook(event);
 
-    if (result.status === 'completed') {
-      await Order.findByIdAndUpdate(result.intent.metadata.orderId, { paymentStatus: 'completed' });
-      logger.info('Payment completed', { orderId: result.intent.metadata.orderId });
-    } else if (result.status === 'failed') {
-      await Order.findByIdAndUpdate(result.intent.metadata.orderId, { paymentStatus: 'failed' });
-      logger.error('Payment failed', { orderId: result.intent.metadata.orderId });
-    } else if (result.status === 'unhandled') {
-      logger.warn(`Unhandled event type: ${event.type}`);
+    // Handle different event types from Stripe
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        logger.info(`PaymentIntent succeeded for event: ${event.id}`);
+
+        const paymentIntent = event.data.object;
+        const orderId = paymentIntent.metadata.orderId;
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+          logger.error(`Order not found for orderId: ${orderId}`);
+          return res.status(404).send('Order not found');
+        }
+
+        // Update payment status
+        order.paymentStatus = 'completed';
+        await order.save();
+
+        // Assign items after successful payment
+        for (const item of order.orderItems) {
+          if (item.referenceType === 'DID') {
+            await assignDIDToUser(order.user, item.referenceId);
+          } else if (item.referenceType === 'Server') {
+            await assignServerToUser(order.user, item.referenceId);
+          }
+        }
+
+        logger.info(`Payment and assignment completed for order ${orderId}`, { orderId });
+        break;
+
+      case 'payment_intent.payment_failed':
+        logger.error(`PaymentIntent failed for event: ${event.id}`);
+
+        const failedPaymentIntent = event.data.object;
+        const failedOrderId = failedPaymentIntent.metadata.orderId;
+
+        // Update payment status to failed
+        await Order.findByIdAndUpdate(failedOrderId, { paymentStatus: 'failed' });
+        logger.error(`Payment failed for order ${failedOrderId}`, { failedOrderId });
+        break;
+
+      case 'charge.refunded':
+        logger.info(`Charge refunded for event: ${event.id}`);
+        // Handle refund logic here, such as updating order status, notifying the user, etc.
+        break;
+
+      default:
+        logger.warn(`Unhandled event type: ${event.type}`, { eventId: event.id });
+        break;
     }
 
-    res.status(200).send('Webhook received successfully');
+    res.status(200).send('Webhook processed successfully');
   } catch (err) {
     logger.error('Stripe webhook error', { error: err.message });
     return next(createError(400, 'Webhook Error'));

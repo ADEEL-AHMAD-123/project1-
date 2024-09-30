@@ -27,10 +27,12 @@ const BuyDIDs = () => {
   const [appliedFilters, setAppliedFilters] = useState(filters);
   const [isApplyButtonDisabled, setIsApplyButtonDisabled] = useState(true);
   const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true);
-  const [hasSearched, setHasSearched] = useState(false); // Track whether the user has searched
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('didFilters', JSON.stringify(filters));
+    // Whenever filters change, reset the page to 1
+    setFilters((prevFilters) => ({ ...prevFilters, page: 1 }));
   }, [filters]);
 
   useEffect(() => {
@@ -58,17 +60,22 @@ const BuyDIDs = () => {
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
+
     setFilters((prevFilters) => ({
       ...prevFilters,
       page: newPage,
     }));
+    
+    // Fetch data with updated filters immediately
+    const queryString = new URLSearchParams({ ...filters, page: newPage }).toString();
+    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
   };
 
   const applyFilters = () => {
     setAppliedFilters(filters);
     const queryString = new URLSearchParams(filters).toString();
     dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
-    setHasSearched(true); // Set to true when search is executed
+    setHasSearched(true);
   };
 
   const resetFilters = () => {
@@ -82,17 +89,17 @@ const BuyDIDs = () => {
     };
     setFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
-    setHasSearched(false); // Reset on filter reset
-    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' })); // Optionally, you can also reset the data
+    setHasSearched(false);
+    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' }));
   };
 
   const toggleCartItem = (did) => {
     const isInCart = cartItems.some(item => item._id === did._id);
     
     if (isInCart) {
-      dispatch(cartAsyncActions.removeFromCart({ _id: did._id, type: did.type })); 
+      dispatch(cartAsyncActions.removeFromCart({ _id: did._id, type: did.type }));
     } else {
-      dispatch(cartAsyncActions.addToCart({ ...did, type: did.type })); 
+      dispatch(cartAsyncActions.addToCart({ ...did, type: did.type }));
     }
   };
 
@@ -174,7 +181,7 @@ const BuyDIDs = () => {
       </div>
 
       {/* Table */}
-      {hasSearched && ( // Render the table only if the user has searched
+      {hasSearched && (
         <div className="table-container">
           <table>
             <thead>
@@ -219,7 +226,7 @@ const BuyDIDs = () => {
       )}
 
       {/* Pagination */}
-      {hasSearched && totalPages > 1 && ( // Show pagination only if the user has searched
+      {hasSearched && totalPages > 1 && (
         <div className="pagination">
           <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="pagination-button">Previous</button>
           <span>Page {currentPage} of {totalPages}</span>

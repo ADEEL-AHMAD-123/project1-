@@ -25,9 +25,12 @@ const didSchema = new mongoose.Schema({
   deleteAfterDays: { type: Number, default: null },
   deleteScheduledDate: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
-  userId: {
+
+  // The field that stores the user to whom the DID is assigned
+  assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    default: null,  // If null, the DID is not assigned
   },
 });
 

@@ -117,8 +117,10 @@ exports.getAvailableDIDs = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     count: maskedDIDs.length,
-    totalPages: Math.ceil(totalDIDs / limit),
-    currentPage: page,
+    pagination:{
+      totalPages: Math.ceil(totalDIDs / limit),
+      currentPage: page
+    },
     dids: maskedDIDs
   });
 });
