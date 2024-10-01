@@ -5,7 +5,7 @@ class BillingSwitchServer {
   constructor(apiKey, apiSecret) {
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
-    this.publicUrl = 'http://65.108.146.238/mbilling'; // Adjust this URL as needed
+    this.publicUrl = 'http://65.108.146.238/mbilling'; 
     this.filter = []; // Initialize filter array
   }
 
@@ -40,7 +40,7 @@ class BillingSwitchServer {
 
       const response = await axios.post(url, postData, { headers });
       
-      // console.log(response.data);
+      console.log('API Response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error in BillingSwitchServer query:', error.message);
