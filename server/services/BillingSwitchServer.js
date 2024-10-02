@@ -40,7 +40,8 @@ class BillingSwitchServer {
       console.log('API Request:', { url, postData, headers });
 
       const response = await axios.post(url, postData, { headers });
-      
+
+
       console.log('API Response:', response.data);
       return response.data;
     } catch (error) {

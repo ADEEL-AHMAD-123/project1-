@@ -50,7 +50,7 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
   }
 
   // Prepare data for API call
-  const username = `${user.firstName}-${user.lastName}`; // Construct username from first name and last name
+  const username = `${req.body.firstName}-${req.body.lastName}`; // Construct username from first name and last name
   const apiData = {
     username: username,
     password: '11111111', // Static password
