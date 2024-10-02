@@ -63,7 +63,7 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
   try {
     // Make API call
     const result = await server.create(module, apiData);
-    console.log('API result:', result); // Log the result for debugging
+
 
     // Check for API call success
     if (result && result.success) {
@@ -81,7 +81,7 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
           });
         } else if (module === 'user') {
           storedData = await BillingAccount.create({
-            ...apiDataToStore, // Store all fields from the API response
+            ...apiDataToStore, 
             user_id: user._id
           });
 

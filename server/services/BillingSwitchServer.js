@@ -37,6 +37,7 @@ class BillingSwitchServer {
       
       const url = `${this.publicUrl}/index.php/${req.module}/${req.action}`;
       
+      console.log('API Request:', { url, postData, headers });
 
       const response = await axios.post(url, postData, { headers });
       
