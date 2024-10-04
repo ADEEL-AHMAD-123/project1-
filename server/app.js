@@ -68,3 +68,12 @@ app.use('/api/v1/orders', orders);
 app.use(ErrorHandler);
 
 module.exports = app;
+
+
+const crypto = require('crypto');
+
+const apiSecret = 'SECRET-ClBHdDz8eAZ4Ds4bDOIhHD32w';
+const postData = 'username=debug-test&password=11111111&id_group=3&callingcard_pin=617602&module=user&action=save&id=0&nonce=123456789';
+const sign = crypto.createHmac('sha512', apiSecret).update(postData).digest('hex');
+
+console.log(sign); // Use this value for your Postman request

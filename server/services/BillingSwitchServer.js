@@ -3,8 +3,8 @@ const crypto = require('crypto');
 
 class BillingSwitchServer {
   constructor(apiKey, apiSecret) {
-    this.apiKey = apiKey;
-    this.apiSecret = apiSecret;
+    this.apiKey = 'KEY-XxYVU7WxkDExD27lNFuU';
+    this.apiSecret = 'SECRET-ClBHdDz8eAZ4Ds4bDOIhHD32w';
     this.publicUrl = 'http://65.108.146.238/mbilling'; 
     this.filter = []; // Initialize filter array
   }

@@ -353,7 +353,7 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     let result;
 
     if (includesToday) {
-      result = await server.fetchAllPages('callSummaryDayUser'); // Fetch all pages using the selected server
+      result = await server.fetchAllPages('callSummaryDayUser'); 
       logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
 
       await storeDataInMongoDB(result);

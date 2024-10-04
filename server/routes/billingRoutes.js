@@ -11,6 +11,8 @@ const {
 } = require('../controllers/billingController');
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 
+const { debugBillingConnection } = require('../utils/billingDebugFunction')
+
 // Route to create a new resource
 router.post('/create', isAuthenticatedUser, isAuthorized('admin','client','supportive staff'), createResource);
 
@@ -38,6 +40,11 @@ router.get('/summary/days', isAuthenticatedUser, isAuthorized('admin', 'supporti
 
 // Route to get record of a user for a day
 router.get('/summary/month', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllMonths);
+
+
+
+// Route to debug the connection to the billing server
+router.get('/debug-billing', isAuthenticatedUser, isAuthorized('admin'), debugBillingConnection);
 
 
 module.exports = router;
