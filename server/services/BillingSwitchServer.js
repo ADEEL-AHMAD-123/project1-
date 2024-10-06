@@ -2,12 +2,23 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 class BillingSwitchServer {
-  constructor(apiKey, apiSecret) {
-    this.apiKey = 'KEY-XxYVU7WxkDExD27lNFuU';
-    this.apiSecret = 'SECRET-ClBHdDz8eAZ4Ds4bDOIhHD32w';
-    this.publicUrl = 'http://65.108.146.238/mbilling'; 
-    this.filter = []; // Initialize filter array
+  constructor(apiKey, apiSecret, publicUrl = process.env.SWITCH_BILLING_PUBLIC_URL) {
+  
+ 
+    this.apiKey = apiKey;
+    this.apiSecret = apiSecret;
+    this.publicUrl = publicUrl; 
+    this.filter = []; 
+
+  
   }
+
+ // Ensure required fields are provided before each request
+ validateFields() {
+  if (!this.apiKey || !this.apiSecret || !this.publicUrl) {
+    throw new Error('Missing required API key, secret, or public URL! Make sure all values are provided.');
+  }
+}
 
   generateNonce() {
     const mt = process.hrtime();
@@ -23,31 +34,22 @@ class BillingSwitchServer {
       const nonce = this.generateNonce();
       req.nonce = nonce;
       
-      // Generate the POST data string
       const postData = new URLSearchParams(req).toString();
-      
-      // Generate the signature
       const sign = this.generateSignature(postData);
-      
-      // Generate the headers
+
       const headers = {
         'key': this.apiKey,
         'sign': sign
       };
-      
+
       const url = `${this.publicUrl}/index.php/${req.module}/${req.action}`;
       
-      console.log('API Request:', { url, postData, headers });
-
-      const response = await axios.post(url, postData, { headers });
-
 
       console.log('API Response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error in BillingSwitchServer query:', error.message);
-      return error
-
+      return error;
     }
   }
 

@@ -63,7 +63,7 @@ const storeDataInMongoDB = async (data) => {
       throw new Error('No data to store');
     }
 
-    const records = data.map(record => ({
+    const records = data.rows.map(record => ({
       ...record
     }));
 

@@ -90,7 +90,7 @@ export const userAsyncActions = {
 // Initial State
 const initialState = {
   User: null,
-  BillingAccount: null, // Add BillingAccount to initial state
+  hasBillingAccount: false, 
   Team: [],
   Users: [],
   Role: null,
@@ -127,14 +127,13 @@ const userSlice = createSlice({
           ) {
             state.User = payload.user;
             state.Role = payload.user.role;
-            state.BillingAccount = payload.billingAccount || null;
+            state.hasBillingAccount = !!payload.user.hasBillingAccount; 
             state.logoutSuccess = false;
-
           }
         } else if (actionName === "logoutUser") {
           state.logoutSuccess = true;
           state.User = null; 
-          state.BillingAccount = null; // Clear BillingAccount on logout
+          state.hasBillingAccount = false;
           state.Role = null; 
         } else if (actionName === "getTeam") {
           state.Team = payload.teamMembers;

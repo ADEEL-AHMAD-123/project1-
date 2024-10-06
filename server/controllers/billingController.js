@@ -28,20 +28,11 @@ function getBillingServer(type) {
 }
 
 
-// @desc    Create a new resource
-// @route   POST /api/v1/billing/create
+// @desc    Create a billing account
+// @route   POST /api/v1/billing/create-billing-account
 // @access  Private
-exports.createResource = catchAsyncErrors(async (req, res, next) => {
-  const { module, type } = req.query; // Get the module and type from query
-
-  if (!module) {
-    return next(createError(400, 'Module is required'));
-  }
-
-  // Validate module
-  if (!['sip', 'user'].includes(module)) {
-    return next(createError(400, 'Invalid module specified'));
-  }
+exports.createBillingAccount = catchAsyncErrors(async (req, res, next) => {
+  const { type } = req.query;
 
   // Fetch current logged-in user
   const user = await User.findById(req.user._id); // Assuming req.user._id is set by authentication middleware
@@ -49,8 +40,8 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
     return next(createError(404, 'User not found'));
   }
 
-  // Prepare data for API call
-  const username = `${req.body.firstName}-${req.body.lastName}`; // Construct username from first name and last name
+  // Prepare data for the API call
+  const username = `${user.firstName}-${user.lastName}1`;
   const apiData = {
     username: username,
     password: '11111111', // Static password
@@ -61,68 +52,52 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
   const server = getBillingServer(type);
 
   try {
-    // Make API call
-    const result = await server.create(module, apiData);
+    // Make API call to create the billing account
+    const result = await server.create('user', apiData);
 
-
-    // Check for API call success
     if (result && result.success) {
-      let storedData;
-
-      // Access the first item in the rows array
       const apiDataToStore = result.rows[0];
 
       try {
-        // Store in the appropriate model based on module
-        if (module === 'sip') {
-          storedData = await SIPDetails.create({
-            ...apiDataToStore, // Store all fields from the API response
-            user_id: user._id
-          });
-        } else if (module === 'user') {
-          storedData = await BillingAccount.create({
-            ...apiDataToStore, 
-            user_id: user._id
-          });
+        // Store the billing account details in the database
+        const storedData = await BillingAccount.create({
+          ...apiDataToStore,
+          user_id: user._id
+        });
 
-          // Update user document to set hasBillingAccount to true
-          await User.findByIdAndUpdate(user._id, { hasBillingAccount: true });
-        }
+        // Update the user document to indicate that the user now has a billing account
+        await User.findByIdAndUpdate(user._id, { hasBillingAccount: true });
+
+        logger.info('Billing account created', {
+          user: user._id,
+          storedData
+        });
+
+        return res.status(201).json({
+          success: true,
+          message: 'Billing account created successfully',
+          data: storedData
+        });
       } catch (dbError) {
-        console.error('Error storing data in DB:', dbError);
-        return next(createError(500, 'Failed to store data in DB'));
+        console.error('Error storing billing account data in DB:', dbError);
+        return next(createError(500, 'Failed to store billing account data'));
       }
-
-      // Log the resource creation
-      logger.info('Resource created', {
-        module,
-        result: storedData
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: `${module.charAt(0).toUpperCase() + module.slice(1)} created successfully`,
-        data: storedData
-      });
     } else {
-      // Log the entire result for debugging
       const errorMessage = result.errors ? Object.values(result.errors).flat().join(', ') : 'Unknown error occurred';
-      logger.error('Resource creation failed', {
-        module,
-        result, // Include result for detailed debugging
+      logger.error('Billing account creation failed', {
+        user: user._id,
         error: errorMessage
       });
 
       return res.status(400).json({
         success: false,
-        message: 'Failed to create resource',
+        message: 'Failed to create billing account',
         error: errorMessage
       });
     }
   } catch (err) {
-    // Handle other errors
-    logger.error('API call failed', {
-      module,
+    logger.error('Billing account API call failed', {
+      user: user._id,
       error: err.message
     });
 
@@ -130,9 +105,113 @@ exports.createResource = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+
+
+// @desc    Create a SIP account
+// @route   POST /api/v1/billing/create-sip-account
+// @access  Private
+exports.createSIPAccount = catchAsyncErrors(async (req, res, next) => {
+  const { type } = req.query;
+
+  // Fetch current logged-in user
+  const user = await User.findById(req.user._id); // Assuming req.user._id is set by authentication middleware
+  if (!user) {
+    return next(createError(404, 'User not found'));
+  }
+
+  // Prepare data for the API call
+  const username = `${req.body.firstName}-${req.body.lastName}`;
+  const apiData = {
+    username: username,
+    password: '11111111', // Static password
+    id_group: 3, // Assuming this is a default or static value
+    callingcard_pin: generateRandomPin() // Generate or get a calling card pin
+  };
+
+  const server = getBillingServer(type);
+
+  try {
+    // Make API call to create the SIP account
+    const result = await server.create('SIP', apiData);
+
+    if (result && result.success) {
+      const apiDataToStore = result.rows[0];
+
+      try {
+        // Store the SIP account details in the database
+        const storedData = await SIPDetails.create({
+          ...apiDataToStore,
+          user_id: user._id
+        });
+
+        logger.info('SIP account created', {
+          user: user._id,
+          storedData
+        });
+
+        return res.status(201).json({
+          success: true,
+          message: 'SIP account created successfully',
+          data: storedData
+        });
+      } catch (dbError) {
+        console.error('Error storing SIP account data in DB:', dbError);
+        return next(createError(500, 'Failed to store SIP account data'));
+      }
+    } else {
+      const errorMessage = result.errors ? Object.values(result.errors).flat().join(', ') : 'Unknown error occurred';
+      logger.error('SIP account creation failed', {
+        user: user._id,
+        error: errorMessage
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to create SIP account',
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    logger.error('SIP account API call failed', {
+      user: user._id,
+      error: err.message
+    });
+
+    return next(createError(500, 'Internal Server Error'));
+  }
+});
+
+// @desc    Get logged-in user's billing account
+// @route   GET /api/v1/billing/account
+// @access  Private
+exports.getBillingAccount = catchAsyncErrors(async (req, res, next) => {
+  const userId = req.user.id; // Assuming req.user contains the authenticated user's info
+
+  try {
+    // Fetch the user's billing account from the BillingAccount collection
+    const billingAccount = await BillingAccount.findOne({ user_id: userId });
+
+    // If no billing account is found, return an error
+    if (!billingAccount) { 
+      return next(createError(404, 'Billing account not found for this user'));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: billingAccount,
+    });
+  } catch (err) {
+    logger.error('Error fetching billing account', {
+      userId,
+      error: err.message,
+    });
+    return next(createError(500, 'Internal Server Error'));
+  }
+});
 // @desc    Get all resources
 // @route   GET /api/v1/billing/resources
 // @access  Private
+
 exports.getAllResources = catchAsyncErrors(async (req, res, next) => {
   const { module, type, page = 1, limit = 10 } = req.query;
   const server = getBillingServer(type);
@@ -302,7 +381,6 @@ exports.updateResource = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-
 // @desc    Get records based on id and date range
 // @route   GET /api/v1/summary/days
 // @access  Private
@@ -353,7 +431,7 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     let result;
 
     if (includesToday) {
-      result = await server.fetchAllPages('callSummaryDayUser'); 
+      result = await server.read('callSummaryDayUser'); 
       logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
 
       await storeDataInMongoDB(result);
@@ -480,3 +558,68 @@ exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
     return next(createError(500, `Internal Server Error: ${err.message}`));
   }
 });
+
+
+
+// @desc    Fetch data from switchBilling server directly (no MongoDB)
+// @route   GET /api/v1/billing/switch-data
+// @access  Private
+exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
+  const { module, type, page = 1, limit = 10 } = req.query; // Extract query parameters
+  const server = getBillingServer(type); // Get the appropriate server (inbound or outbound)
+
+  if (!module) {
+    return next(createError(400, 'Module is required'));
+  }
+
+  // Define the query parameters for the switchBilling API
+  const queryParams = {
+    page,
+    limit,
+  };
+
+  try {
+    // Fetch data directly from the switchBilling server
+    const apiResponse = await fetchAllPages(module, queryParams);
+
+    // Check if the API response is successful
+    if (apiResponse) {
+      logger.info('Data fetched from switchBilling server', {
+        module,
+        result: apiResponse,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: apiResponse.rows, // Assuming `rows` contains the data
+        pagination: {
+          total: apiResponse.total, // Assuming `total` contains the total number of records
+          page: parseInt(page),
+          limit: parseInt(limit),
+        },
+      });
+    } else {
+      const errorMessage = apiResponse.errors
+        ? Object.values(apiResponse.errors).flat().join(', ')
+        : 'Unknown error occurred';
+      logger.error('Failed to fetch data from switchBilling server', {
+        module,
+        result: apiResponse,
+        error: errorMessage,
+      });
+
+      return next(createError(400, 'Failed to fetch data from switchBilling server'));
+    }
+  } catch (err) {
+    // Handle any errors during the API call
+    logger.error('Error fetching data from switchBilling server', {
+      module,
+      error: err.message,
+    });
+    return next(createError(500, 'Internal Server Error while fetching data from switchBilling server'));
+  }
+});
+
+
+
+

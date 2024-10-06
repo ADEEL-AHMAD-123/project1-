@@ -7,8 +7,8 @@ import '../styles/FilterComponent.scss';
 
 const OutBoundUsage = () => {
   const dispatch = useDispatch();
-  const { loading, error, OutBoundUsage, pagination = {} } = useSelector((state) => state.billing);
-  const { Role, BillingAccount } = useSelector((state) => state.user);
+  const { loading, error, OutBoundUsage, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
+  const { Role, hasBillingAccount } = useSelector((state) => state.user);
 
   const initialFilters = {
     id: Role === 'client' ? BillingAccount?.id || '' : '',
@@ -17,49 +17,41 @@ const OutBoundUsage = () => {
     limit: 10,
     startDate: '',
     endDate: '',
-    type: 'outbound'
+    type: 'outbound',
   };
 
-  // Unique key for storing filter data specific to OutBoundUsage
   const storageKey = 'outboundUsageFilters';
-
-  // Load filters from localStorage or use the initial ones
   const [filters, setFilters] = useState(() => JSON.parse(localStorage.getItem(storageKey)) || initialFilters);
   const [localFilters, setLocalFilters] = useState(filters);
-
-  // Track if filters have been modified
   const [isModified, setIsModified] = useState(false);
-
-  // Track if filters are applied
   const [isApplied, setIsApplied] = useState(false);
-
-  // Button states
   const [isApplyButtonDisabled, setIsApplyButtonDisabled] = useState(true);
   const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true);
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Effect to check for changes in filters and handle button enabling/disabling
   useEffect(() => {
     const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
     setIsModified(isFilterModified);
 
-    if (isFilterModified) {
-      setIsApplyButtonDisabled(false);  // Enable the "Apply Filters" button when changes are detected
-    } else {
-      setIsApplyButtonDisabled(true);   // Disable if no changes
-    }
-
-    // Enable "Reset Filters" if local filters are different from the initial state or applied filters
+    setIsApplyButtonDisabled(!isFilterModified);
     setIsResetButtonDisabled(!isApplied && JSON.stringify(localFilters) === JSON.stringify(initialFilters));
   }, [localFilters, filters, isApplied]);
 
   useEffect(() => {
-    if (Role === 'client' && !BillingAccount?.id) return;
-    applyFilters(filters);
-    setIsApplied(true);
-    setIsResetButtonDisabled(false); // Enable reset if filters are applied
-  }, [Role, BillingAccount?.id]);
+    // Dispatch getBillingAccount if Role is 'client' and they don't have BillingAccount yet
+    if (Role === 'client' && hasBillingAccount && !BillingAccount?.id) {
+      dispatch(billingAsyncActions.getBillingAccount({ requestData: '' }));
+    }
+  }, [Role, hasBillingAccount, BillingAccount?.id, dispatch]);
+
+  useEffect(() => {
+    // Apply filters when page loads for all roles
+    // For clients, wait for BillingAccount.id to be available before dispatching
+    if (Role !== 'client' || (Role === 'client' && BillingAccount?.id)) {
+      applyFilters(filters); // Apply filters on page load
+    }
+  }, [Role, BillingAccount?.id, filters]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,12 +62,10 @@ const OutBoundUsage = () => {
   };
 
   const handleApplyFilters = () => {
-    setFilters(localFilters); // Update filters state
+    setFilters(localFilters);
     localStorage.setItem(storageKey, JSON.stringify(localFilters));
     setIsApplied(true);
-    setIsApplyButtonDisabled(true);  // Disable the button after applying filters
-
-    // Fetch data with the updated filters
+    setIsApplyButtonDisabled(true);
     applyFilters(localFilters);
   };
 
@@ -85,12 +75,13 @@ const OutBoundUsage = () => {
     localStorage.removeItem(storageKey);
     setIsApplied(false);
     setIsModified(false);
-    setIsApplyButtonDisabled(true); // Disable apply button after reset
-    setIsResetButtonDisabled(true); // Disable reset button after reset
+    setIsApplyButtonDisabled(true);
+    setIsResetButtonDisabled(true);
     applyFilters(initialFilters);
   };
 
   const applyFilters = (currentFilters) => {
+    // Prevent dispatching if it's a client and BillingAccount.id isn't available
     if (Role === 'client' && !BillingAccount?.id) return;
 
     const updatedFilters = Role === 'client'
@@ -110,17 +101,16 @@ const OutBoundUsage = () => {
     applyFilters(updatedFilters);
   };
 
+  // Check for conditions to render messages
   if (loading) {
-    return <div className="container outbound-usage"><h1 className="message">Loading...</h1></div>;
+    return <div className="container inbound-usage"><h1 className="message">Loading...</h1></div>;
   }
 
   if (error) {
     return <ErrorCard message={error} />;
   }
 
-  if (Role === 'client' && !BillingAccount?.id) {
-    return <div className="container outbound-usage"><h1 className="message">No billing account found.</h1></div>;
-  }
+ 
 
   const totalPages = pagination?.totalPages || 1;
   const currentPage = localFilters.page || 1;
@@ -133,7 +123,7 @@ const OutBoundUsage = () => {
           <input
             type="date"
             name="startDate"
-            value={localFilters.startDate || ''}
+            value={filters.startDate || ''}
             onChange={handleChange}
             className="filter-input"
             max={today} // Restrict date to today's date
@@ -145,7 +135,7 @@ const OutBoundUsage = () => {
           <input
             type="date"
             name="endDate"
-            value={localFilters.endDate || ''}
+            value={filters.endDate || ''}
             onChange={handleChange}
             className="filter-input"
             max={today} // Restrict date to today's date
@@ -158,19 +148,18 @@ const OutBoundUsage = () => {
             <input
               type="text"
               name="id"
-              value={localFilters.id || ''}
+              value={filters.id || ''}
               onChange={handleChange}
               className="filter-input"
               placeholder="Enter user ID"
             />
           </div>
         )}
-       
         <div className="select-container">
           <label htmlFor="period" className="filter-label">Period</label>
           <select
             name="period"
-            value={localFilters.period || 'daily'}
+            value={filters.period || 'daily'}
             onChange={handleChange}
             className="select-field"
           >
@@ -191,7 +180,7 @@ const OutBoundUsage = () => {
           <button
             onClick={handleResetFilters}
             className="reset-filters-button"
-            disabled={isResetButtonDisabled} // Only enabled if filters were applied
+            disabled={isResetButtonDisabled}
           >
             Reset Filters
           </button>
@@ -234,16 +223,16 @@ const OutBoundUsage = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="11">No data available</td>
+                <td colSpan="11" className="no-data">No data available</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {totalPages > 1 && (
+      {totalPages > 1 && ( // Render pagination only if there is more than one page
         <div className="pagination">
-          {currentPage > 1 && (
+          {currentPage > 1 && ( // Render "Previous" button if not on the first page
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               className="pagination-button"
@@ -251,7 +240,8 @@ const OutBoundUsage = () => {
               Previous
             </button>
           )}
-          {currentPage < totalPages && (
+          <span>Page {currentPage} of {totalPages}</span>
+          {currentPage < totalPages && ( // Render "Next" button if not on the last page
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               className="pagination-button"

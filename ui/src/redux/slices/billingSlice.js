@@ -1,5 +1,3 @@
-// src/redux/slices/billingSlice.js
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -42,16 +40,17 @@ const createApiAsyncThunk = ({ name, method, url }) => {
   });
 };
 
+// Define async action for getting billing account
 export const billingAsyncActions = {
   createBillingAccount: createApiAsyncThunk({
     name: "create-billing-account",
     method: "POST",
-    url: "/billing/create",
+    url: "/billing/create-billing-account",
   }),
   createSIPAccount: createApiAsyncThunk({
     name: "create-SIP-account",
     method: "POST",
-    url: "/billing/create",
+    url: "/billing/create-sip-account",
   }),
   getInboundUsage: createApiAsyncThunk({
     name: "get-inbound-usage",
@@ -68,16 +67,21 @@ export const billingAsyncActions = {
     method: "GET",
     url: "/billing/balance/days",
   }),
+  getBillingAccount: createApiAsyncThunk({
+    name: "get-billing-account",
+    method: "GET",
+    url: "/billing/account", 
+  }),
 };
 
 const initialState = {
+  BillingAccount: null,
   InBoundUsage: [],
   OutBoundUsage: [],
   balance: null,
   isLoading: false,
   error: null,
   pagination: null,
-  account: null,
   SIPDetails: null,
 };
 
@@ -110,9 +114,11 @@ const billingSlice = createSlice({
           } else if (actionName === "getBalance") {
             state.balance = payload.balance;
           } else if (actionName === "createBillingAccount") {
-            state.account = payload.data;
+            state.BillingAccount = payload.data;
           } else if (actionName === "createSIPAccount") {
             state.SIPDetails = payload.data;
+          } else if (actionName === "getBillingAccount") {
+            state.BillingAccount = payload.data;  
           }
         }
       });
