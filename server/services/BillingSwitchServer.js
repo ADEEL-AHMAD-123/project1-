@@ -3,55 +3,61 @@ const crypto = require('crypto');
 
 class BillingSwitchServer {
   constructor(apiKey, apiSecret, publicUrl = process.env.SWITCH_BILLING_PUBLIC_URL) {
-  
- 
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
-    this.publicUrl = publicUrl; 
-    this.filter = []; 
-
-  
+    this.publicUrl = publicUrl;
+    this.filter = [];
   }
 
- // Ensure required fields are provided before each request
- validateFields() {
-  if (!this.apiKey || !this.apiSecret || !this.publicUrl) {
-    throw new Error('Missing required API key, secret, or public URL! Make sure all values are provided.');
+  // Ensure required fields are provided before each request
+  validateFields() {
+    if (!this.apiKey || !this.apiSecret || !this.publicUrl) {
+      throw new Error('Missing required API key, secret, or public URL! Make sure all values are provided.');
+    }
   }
-}
 
   generateNonce() {
     const mt = process.hrtime();
-    return mt[1] + Math.floor(Math.random() * 1000000);
+    return `${mt[1]}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
   }
 
   generateSignature(postData) {
+    this.validateFields(); // Validate required fields before generating signature
     return crypto.createHmac('sha512', this.apiSecret).update(postData).digest('hex');
   }
 
   async query(req) {
+    this.validateFields(); // Validate fields before making an API request
     try {
       const nonce = this.generateNonce();
       req.nonce = nonce;
-      
+
       const postData = new URLSearchParams(req).toString();
       const sign = this.generateSignature(postData);
 
       const headers = {
         'key': this.apiKey,
-        'sign': sign
+        'sign': sign,
+        'Content-Type': 'application/x-www-form-urlencoded'
       };
 
       const url = `${this.publicUrl}/index.php/${req.module}/${req.action}`;
-      
 
+      const response = await axios.post(url, postData, { headers });
       console.log('API Response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error in BillingSwitchServer query:', error.message);
+      if (error.response) {
+        console.error('Error Status:', error.response.status);
+        console.error('Error Response Data:', error.response.data);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      } else {
+        console.error('Error Message:', error.message);
+      }
       return error;
     }
-  }
+  } 
 
   async create(module, data = {}, action = 'save') {
     data.module = module;

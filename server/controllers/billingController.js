@@ -41,11 +41,11 @@ exports.createBillingAccount = catchAsyncErrors(async (req, res, next) => {
   }
 
   // Prepare data for the API call
-  const username = `${user.firstName}-${user.lastName}1`;
+  const username = `${user.firstName}-${user.lastName}33`;
   const apiData = {
     username: username,
-    password: '11111111', // Static password
-    id_group: 3, // Assuming this is a default or static value
+    password: '11111111', 
+    id_group: 3, 
     callingcard_pin: generateRandomPin() // Generate or get a calling card pin
   };
 
@@ -432,10 +432,10 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
 
     if (includesToday) {
       result = await server.read('callSummaryDayUser'); 
-      logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
-
+      
       await storeDataInMongoDB(result);
       result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page }); 
+      logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
     } else {
       result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page });
     }
