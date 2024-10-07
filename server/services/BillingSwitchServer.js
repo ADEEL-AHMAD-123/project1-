@@ -11,7 +11,7 @@ class BillingSwitchServer {
 
   // Ensure required fields are provided before each request
   validateFields() {
-    console.log('apikey: ',this.apikey,'api-secret: ',this.apiSecret,'public-url: ',this.publicUrl)
+    console.log('apikey: ',this.apiKey,'api-secret: ',this.apiSecret,'public-url: ',this.publicUrl)
     if (!this.apiKey || !this.apiSecret || !this.publicUrl) {
       throw new Error('Missing required API key, secret, or public URL! Make sure all values are provided.');
     }
