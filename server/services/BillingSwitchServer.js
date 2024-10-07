@@ -2,16 +2,19 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 class BillingSwitchServer {
-  constructor(apiKey, apiSecret, publicUrl = process.env.SWITCH_BILLING_PUBLIC_URL) {
-    this.apiKey = apiKey;
-    this.apiSecret = apiSecret;
-    this.publicUrl = publicUrl;
+  constructor() {
+    this.apiKey = process.env.SWITCH_BILLING_OUTBOUND_API_KEY;
+    this.apiSecret = process.env.SWITCH_BILLING_INBOUND_API_SECRET;
+    this.publicUrl = process.env.SWITCH_BILLING_PUBLIC_URL;
     this.filter = [];
   }
 
   // Ensure required fields are provided before each request
   validateFields() {
-    console.log('apikey: ',this.apiKey,'api-secret: ',this.apiSecret,'public-url: ',this.publicUrl)
+    console.log('API Key from ENV:', process.env.SWITCH_BILLING_API_KEY);
+    console.log('API Secret from ENV:', process.env.SWITCH_BILLING_INBOUND_API_SECRET);
+    console.log('Public URL from ENV:', process.env.SWITCH_BILLING_PUBLIC_URL);
+    
     if (!this.apiKey || !this.apiSecret || !this.publicUrl) {
       throw new Error('Missing required API key, secret, or public URL! Make sure all values are provided.');
     }
