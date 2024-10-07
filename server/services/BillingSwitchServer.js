@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 class BillingSwitchServer {
   constructor() {
-    this.apiKey = process.env.SWITCH_BILLING_OUTBOUND_API_KEY;
+    this.apiKey = process.env.SWITCH_BILLING_INBOUND_API_KEY;
     this.apiSecret = process.env.SWITCH_BILLING_INBOUND_API_SECRET;
     this.publicUrl = process.env.SWITCH_BILLING_PUBLIC_URL;
     this.filter = [];
@@ -11,9 +11,9 @@ class BillingSwitchServer {
 
   // Ensure required fields are provided before each request
   validateFields() {
-    console.log('API Key from ENV:', process.env.SWITCH_BILLING_API_KEY);
-    console.log('API Secret from ENV:', process.env.SWITCH_BILLING_INBOUND_API_SECRET);
-    console.log('Public URL from ENV:', process.env.SWITCH_BILLING_PUBLIC_URL);
+    console.log('API Key from ENV:', process.env.SWITCH_BILLING_INBOUND_API_KEY,this.apiKey);
+    console.log('API Secret from ENV:', process.env.SWITCH_BILLING_INBOUND_API_SECRET,this.apiSecret);
+    console.log('Public URL from ENV:', process.env.SWITCH_BILLING_PUBLIC_URL,this.publicUrl);
     
     if (!this.apiKey || !this.apiSecret || !this.publicUrl) {
       throw new Error('Missing required API key, secret, or public URL! Make sure all values are provided.');
