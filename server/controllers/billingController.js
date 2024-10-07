@@ -208,10 +208,10 @@ exports.getBillingAccount = catchAsyncErrors(async (req, res, next) => {
     return next(createError(500, 'Internal Server Error'));
   }
 });
+
 // @desc    Get all resources
 // @route   GET /api/v1/billing/resources
 // @access  Private
-
 exports.getAllResources = catchAsyncErrors(async (req, res, next) => {
   const { module, type, page = 1, limit = 10 } = req.query;
   const server = getBillingServer(type);
@@ -580,13 +580,12 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
 
   try {
     // Fetch data directly from the switchBilling server
-    const apiResponse = await fetchAllPages(module, queryParams);
+    const apiResponse = await server.read(module, page);
 
     // Check if the API response is successful
     if (apiResponse) {
       logger.info('Data fetched from switchBilling server', {
         module,
-        result: apiResponse,
       });
 
       return res.status(200).json({

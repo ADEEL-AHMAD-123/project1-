@@ -2,19 +2,15 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 class BillingSwitchServer {
-  constructor() {
-    this.apiKey = process.env.SWITCH_BILLING_INBOUND_API_KEY;
-    this.apiSecret = process.env.SWITCH_BILLING_INBOUND_API_SECRET;
-    this.publicUrl = process.env.SWITCH_BILLING_PUBLIC_URL;
+  constructor(apiKey, apiSecret, publicUrl = process.env.SWITCH_BILLING_PUBLIC_URL) {
+    this.apiKey = apiKey;
+    this.apiSecret = apiSecret;
+    this.publicUrl = publicUrl;
     this.filter = [];
   }
 
   // Ensure required fields are provided before each request
   validateFields() {
-    console.log('API Key from ENV:', process.env.SWITCH_BILLING_INBOUND_API_KEY,this.apiKey);
-    console.log('API Secret from ENV:', process.env.SWITCH_BILLING_INBOUND_API_SECRET,this.apiSecret);
-    console.log('Public URL from ENV:', process.env.SWITCH_BILLING_PUBLIC_URL,this.publicUrl);
-    
     if (!this.apiKey || !this.apiSecret || !this.publicUrl) {
       throw new Error('Missing required API key, secret, or public URL! Make sure all values are provided.');
     }
@@ -48,7 +44,7 @@ class BillingSwitchServer {
       const url = `${this.publicUrl}/index.php/${req.module}/${req.action}`;
 
       const response = await axios.post(url, postData, { headers });
-      console.log('API Response:', response.data);
+
       return response.data;
     } catch (error) {
       if (error.response) {
@@ -85,13 +81,13 @@ class BillingSwitchServer {
     });
   }
 
-  async read(module, page = 1, action = 'read') {
+  async read(module, page = 1) {
     return this.query({
       module: module,
-      action: action,
+      action: 'read',
       page: page,
-      start: page === 1 ? 0 : (page - 1) * 25,
-      limit: 25,
+      start: page === 1 ? 0 : (page - 1) * 2,
+      limit: 2,
       filter: JSON.stringify(this.filter)
     });
   }

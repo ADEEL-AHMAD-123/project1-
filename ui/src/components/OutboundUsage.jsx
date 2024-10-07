@@ -110,7 +110,17 @@ const OutBoundUsage = () => {
     return <ErrorCard message={error} />;
   }
 
- 
+  // Error card for clients without a billing account
+  if (Role === 'client' && !hasBillingAccount) {
+    return (
+      <ErrorCard 
+        message="No billing account created yet." 
+        buttonLabel="create billing account"
+        redirectLink="/" 
+        isFullPage={false}
+      />
+    );
+  }
 
   const totalPages = pagination?.totalPages || 1;
   const currentPage = localFilters.page || 1;

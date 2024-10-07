@@ -1,13 +1,23 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { useSelector, useDispatch } from 'react-redux';
-import { userAsyncActions } from '../redux/slices/userSlice';
-import { billingAsyncActions } from '../redux/slices/billingSlice';
+import { userAsyncActions,resetUserState } from '../redux/slices/userSlice';
+import { billingAsyncActions,resetBillingState } from '../redux/slices/billingSlice';
+import {  resetDIDState } from '../redux/slices/didSlice'; 
+import { resetOrderState } from '../redux/slices/orderSlice'; 
+import { resetLogState } from '../redux/slices/logSlice'; 
+import { cartAsyncActions } from '../redux/slices/cartSlice'; 
+import { resetPaymentState } from '../redux/slices/paymentSlice'; 
+import { resetServerState } from '../redux/slices/serverSlice'; 
+import { resetVendorState } from '../redux/slices/vendorSlice'; 
+import { persistor } from '../redux/store/store'; 
 import "../styles/Dashboard.scss";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
   const user = useSelector(state => state.user.User);
-  const billingAccount = useSelector(state => state.user.BillingAccount); // Get BillingAccount from state
+  const navigate = useNavigate();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -16,12 +26,34 @@ const Dashboard = () => {
     return 'Good evening';
   };
 
-  const handleLogout = () => {
-    dispatch(userAsyncActions.logoutUser({requestData:""}));
+  const handleLogout = async () => {
+    try {
+      // Dispatch the logout action
+      await dispatch(userAsyncActions.logoutUser({ requestData: "" }));
+      
+      // Purge the persisted state (clear localStorage/sessionStorage)
+      persistor.purge();
+      
+      // Dispatch reset actions for all slices
+      dispatch(resetUserState());
+      dispatch(resetDIDState());
+      dispatch(resetOrderState());
+      dispatch(resetLogState());
+      dispatch(resetBillingState()); 
+      dispatch(resetPaymentState()); 
+      dispatch(resetServerState()); 
+      dispatch(resetVendorState()); 
+      dispatch(cartAsyncActions.resetCart()); 
+      
+      // Optionally, redirect to the login page or home page
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const handleActivation = () => {
-    dispatch(billingAsyncActions.createBillingAccount({requestData:"?module=user"}));
+    dispatch(billingAsyncActions.createBillingAccount({ requestData: "?module=user" }));
   };
 
   // Check if user is available before rendering

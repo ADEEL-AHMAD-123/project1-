@@ -110,15 +110,19 @@ const UsageSummary = () => {
     return <ErrorCard message={error} />;
   }
 
-  if (Role === 'client' && hasBillingAccount && BillingAccount && (!InBoundUsage || InBoundUsage.length === 0)) {
+  // Error card for clients without a billing account
+  if (Role === 'client' && !hasBillingAccount) {
     return (
-      <div className="container usage-summary">
-        
-        <h1 className="message">No usage summary available for the user.</h1>
-      </div>
+      <ErrorCard 
+        message="No billing account created yet." 
+        buttonLabel="create billing account"
+        redirectLink="/" 
+        isFullPage={false}
+      />
     );
   }
 
+ 
 
   const totalPages = pagination?.totalPages || 1;
   const currentPage = localFilters.page || 1;
@@ -239,9 +243,9 @@ const UsageSummary = () => {
       <div className="pagination">
         {totalPages > 1 && Array.from({ length: totalPages }, (_, index) => (
           <button
-            key={index}
-            className={`pagination-button ${currentPage === index + 1 ? 'active' : ''}`}
+            key={index + 1}
             onClick={() => handlePageChange(index + 1)}
+            className={`page-button ${currentPage === index + 1 ? 'active' : ''}`}
           >
             {index + 1}
           </button>
