@@ -15,8 +15,8 @@ const OutBoundUsage = () => {
     period: 'daily',
     page: 1,
     limit: 10,
-    startDate: '',
-    endDate: '',
+    startDate: '', // Ensure startDate is included in initial filters
+    endDate: '',   // Ensure endDate is included in initial filters
     type: 'outbound',
   };
 
@@ -33,7 +33,6 @@ const OutBoundUsage = () => {
   useEffect(() => {
     const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
     setIsModified(isFilterModified);
-
     setIsApplyButtonDisabled(!isFilterModified);
     setIsResetButtonDisabled(!isApplied && JSON.stringify(localFilters) === JSON.stringify(initialFilters));
   }, [localFilters, filters, isApplied]);
@@ -47,7 +46,6 @@ const OutBoundUsage = () => {
 
   useEffect(() => {
     // Apply filters when page loads for all roles
-    // For clients, wait for BillingAccount.id to be available before dispatching
     if (Role !== 'client' || (Role === 'client' && BillingAccount?.id)) {
       applyFilters(filters); // Apply filters on page load
     }
@@ -103,19 +101,17 @@ const OutBoundUsage = () => {
 
   // Check for conditions to render messages
   if (loading) {
-    return <div className="container inbound-usage"><h1 className="message">Loading...</h1></div>;
+    return <div className="container outbound-usage"><h1 className="message">Loading...</h1></div>;
   }
 
-  if (error) {
-    return <ErrorCard message={error} />;
-  }
+
 
   // Error card for clients without a billing account
   if (Role === 'client' && !hasBillingAccount) {
     return (
       <ErrorCard 
         message="No billing account created yet." 
-        buttonLabel="create billing account"
+        buttonLabel="Create billing account"
         redirectLink="/" 
         isFullPage={false}
       />
@@ -133,11 +129,10 @@ const OutBoundUsage = () => {
           <input
             type="date"
             name="startDate"
-            value={filters.startDate || ''}
+            value={localFilters.startDate || ''} // Controlled value
             onChange={handleChange}
             className="filter-input"
             max={today} // Restrict date to today's date
-            placeholder="Select start date" // Placeholder for date input
           />
         </div>
         <div className="date-filter">
@@ -145,11 +140,10 @@ const OutBoundUsage = () => {
           <input
             type="date"
             name="endDate"
-            value={filters.endDate || ''}
+            value={localFilters.endDate || ''} // Controlled value
             onChange={handleChange}
             className="filter-input"
             max={today} // Restrict date to today's date
-            placeholder="Select end date" // Placeholder for date input
           />
         </div>
         {Role !== 'client' && (
@@ -158,7 +152,7 @@ const OutBoundUsage = () => {
             <input
               type="text"
               name="id"
-              value={filters.id || ''}
+              value={localFilters.id || ''} // Controlled value
               onChange={handleChange}
               className="filter-input"
               placeholder="Enter user ID"
@@ -169,7 +163,7 @@ const OutBoundUsage = () => {
           <label htmlFor="period" className="filter-label">Period</label>
           <select
             name="period"
-            value={filters.period || 'daily'}
+            value={localFilters.period || 'daily'} // Controlled value
             onChange={handleChange}
             className="select-field"
           >
@@ -178,7 +172,6 @@ const OutBoundUsage = () => {
           </select>
         </div>
         <div className="filter-buttons">
-          {/* Enable "Apply Filters" button only if filters are modified */}
           <button
             onClick={handleApplyFilters}
             className="apply-filters-button"
@@ -186,7 +179,6 @@ const OutBoundUsage = () => {
           >
             Apply Filters
           </button>
-          {/* Enable "Reset Filters" button only if filters have been applied */}
           <button
             onClick={handleResetFilters}
             className="reset-filters-button"
@@ -240,9 +232,9 @@ const OutBoundUsage = () => {
         </table>
       </div>
 
-      {totalPages > 1 && ( // Render pagination only if there is more than one page
+      {totalPages > 1 && (
         <div className="pagination">
-          {currentPage > 1 && ( // Render "Previous" button if not on the first page
+          {currentPage > 1 && (
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               className="pagination-button"
@@ -251,7 +243,7 @@ const OutBoundUsage = () => {
             </button>
           )}
           <span>Page {currentPage} of {totalPages}</span>
-          {currentPage < totalPages && ( // Render "Next" button if not on the last page
+          {currentPage < totalPages && (
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               className="pagination-button"

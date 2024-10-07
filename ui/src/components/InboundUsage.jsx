@@ -103,12 +103,10 @@ const InboundUsage = () => {
 
   // Check for conditions to render messages
   if (loading) {
-    return <div className="container inbound-usage"><h1 className="message">Loading...</h1></div>;
+    return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
   }
 
-  if (error) {
-    return <ErrorCard message={error} />;
-  }
+  
 
   // Error card for clients without a billing account
   if (Role === 'client' && !hasBillingAccount) {
@@ -133,11 +131,11 @@ const InboundUsage = () => {
           <input
             type="date"
             name="startDate"
-            value={filters.startDate || ''}
+            value={localFilters.startDate || ''}
             onChange={handleChange}
             className="filter-input"
-            max={today} // Restrict date to today's date
-            placeholder="Select start date" // Placeholder for date input
+            max={today}
+            placeholder="Select start date"
           />
         </div>
         <div className="date-filter">
@@ -145,11 +143,11 @@ const InboundUsage = () => {
           <input
             type="date"
             name="endDate"
-            value={filters.endDate || ''}
+            value={localFilters.endDate || ''}
             onChange={handleChange}
             className="filter-input"
-            max={today} // Restrict date to today's date
-            placeholder="Select end date" // Placeholder for date input
+            max={today}
+            placeholder="Select end date"
           />
         </div>
         {Role !== 'client' && (
@@ -158,7 +156,7 @@ const InboundUsage = () => {
             <input
               type="text"
               name="id"
-              value={filters.id || ''}
+              value={localFilters.id || ''}
               onChange={handleChange}
               className="filter-input"
               placeholder="Enter user ID"
@@ -169,7 +167,7 @@ const InboundUsage = () => {
           <label htmlFor="period" className="filter-label">Period</label>
           <select
             name="period"
-            value={filters.period || 'daily'}
+            value={localFilters.period || 'daily'}
             onChange={handleChange}
             className="select-field"
           >
@@ -178,7 +176,6 @@ const InboundUsage = () => {
           </select>
         </div>
         <div className="filter-buttons">
-          {/* Enable "Apply Filters" button only if filters are modified */}
           <button
             onClick={handleApplyFilters}
             className="apply-filters-button"
@@ -186,7 +183,6 @@ const InboundUsage = () => {
           >
             Apply Filters
           </button>
-          {/* Enable "Reset Filters" button only if filters have been applied */}
           <button
             onClick={handleResetFilters}
             className="reset-filters-button"
@@ -240,27 +236,17 @@ const InboundUsage = () => {
         </table>
       </div>
 
-      {totalPages > 1 && ( // Render pagination only if there is more than one page
-        <div className="pagination">
-          {currentPage > 1 && ( // Render "Previous" button if not on the first page
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              className="pagination-button"
-            >
-              Previous
-            </button>
-          )}
-          <span>Page {currentPage} of {totalPages}</span>
-          {currentPage < totalPages && ( // Render "Next" button if not on the last page
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              className="pagination-button"
-            >
-              Next
-            </button>
-          )}
-        </div>
-      )}
+      <div className="pagination">
+        {totalPages > 1 && Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index + 1}
+            onClick={() => handlePageChange(index + 1)}
+            className={`page-button ${currentPage === index + 1 ? 'active' : ''}`}
+          >
+            {index + 1}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

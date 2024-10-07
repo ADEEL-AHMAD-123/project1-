@@ -44,7 +44,6 @@ class BillingSwitchServer {
       const url = `${this.publicUrl}/index.php/${req.module}/${req.action}`;
 
       const response = await axios.post(url, postData, { headers });
-
       return response.data;
     } catch (error) {
       if (error.response) {
@@ -76,7 +75,7 @@ class BillingSwitchServer {
   async destroy(module, id) {
     return this.query({
       module: module,
-      action: 'destroy',
+      action: 'destroy', 
       id: id
     });
   }
@@ -86,8 +85,8 @@ class BillingSwitchServer {
       module: module,
       action: 'read',
       page: page,
-      start: page === 1 ? 0 : (page - 1) * 2,
-      limit: 2,
+      start: page === 1 ? 0 : (page - 1) * 25,
+      limit: 25,
       filter: JSON.stringify(this.filter)
     });
   }

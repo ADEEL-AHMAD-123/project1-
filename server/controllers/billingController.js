@@ -425,7 +425,7 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
   const includesToday = startDate && endDate && moment(startDate).isBefore(today) && moment(endDate).isSameOrAfter(today);
 
   const limit = 10; // Define limit as needed
-  const skip = (page - 1) * limit;
+  const skip = (page - 1) * limit; 
 
   try {
     let result;
@@ -437,6 +437,7 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
       result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page }); 
       logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
     } else {
+      console.log('else part')
       result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page });
     }
 
@@ -590,9 +591,9 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
 
       return res.status(200).json({
         success: true,
-        data: apiResponse.rows, // Assuming `rows` contains the data
+        data: apiResponse.rows,
         pagination: {
-          total: apiResponse.total, // Assuming `total` contains the total number of records
+          total: apiResponse.count,
           page: parseInt(page),
           limit: parseInt(limit),
         },

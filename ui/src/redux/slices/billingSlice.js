@@ -108,17 +108,23 @@ const billingSlice = createSlice({
           if (actionName === "getInboundUsage") {
             state.InBoundUsage = payload.data;
             state.pagination = payload.pagination;
+            state.error=payload.error;
           } else if (actionName === "getOutboundUsage") {
             state.OutBoundUsage = payload.data;
             state.pagination = payload.pagination;
+            state.error=payload.error;
           } else if (actionName === "getBalance") {
             state.balance = payload.balance;
+            state.error=payload.error;
           } else if (actionName === "createBillingAccount") {
             state.BillingAccount = payload.data;
+            state.error=payload.error;
           } else if (actionName === "createSIPAccount") {
             state.SIPDetails = payload.data;
+            state.error=payload.error;
           } else if (actionName === "getBillingAccount") {
             state.BillingAccount = payload.data;  
+            state.error=payload.error;
           }
         }
       });

@@ -106,9 +106,7 @@ const UsageSummary = () => {
     return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
   }
 
-  if (error) {
-    return <ErrorCard message={error} />;
-  }
+  
 
   // Error card for clients without a billing account
   if (Role === 'client' && !hasBillingAccount) {
