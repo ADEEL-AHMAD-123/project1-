@@ -121,19 +121,87 @@ exports.createServer = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-
-// @desc    Get all servers (admin only)
+// @desc    Get all servers (admin only) with filtering, pagination, and searching
 // @route   GET /api/v1/servers
 // @access  Private (admin)
 exports.getAllServersByAdmin = catchAsyncErrors(async (req, res, next) => {
-  const servers = await Server.find().populate('companyUser', 'firstName lastName');
+  // Destructure query parameters
+  const { page = 1, limit = 10, serverName, status, username, ipAddress, location, createdAt } = req.query;
+
+  const query = {}; // Initialize the query object
+
+  // Add server name filter (case-insensitive regex)
+  if (serverName) {
+    query.serverName = { $regex: new RegExp(serverName, 'i') }; // Match server name if provided
+  }
+
+  // Add status filter (exact match)
+  if (status) {
+    query.status = status; // Match status if provided
+  }
+
+  // Add company user name filter (combining firstName and lastName in companyUser)
+  if (username) {
+    const nameRegex = new RegExp(username, 'i'); // Case-insensitive regex for username
+    query.$or = [
+      { 'companyUser.firstName': nameRegex },
+      { 'companyUser.lastName': nameRegex },
+    ];
+  }
+
+  // Add IP address filter (exact match on sipIpAddress in agentCredentials)
+  if (ipAddress) {
+    query['agentCredentials.sipIpAddress'] = { $regex: new RegExp(ipAddress, 'i') }; // Case-insensitive regex for IP
+  }
+
+  // Add location filter (city and/or country in dialerLocation)
+  if (location) {
+    // Split location string if it contains a comma (assuming "city, country" format)
+    const [city, country] = location.split(',').map(loc => loc.trim());
+
+    // Initialize $and array for city and country filters
+    query.$and = [];
+
+    if (city) {
+      query.$and.push({ 'dialerLocation.city': { $regex: new RegExp(city, 'i') } }); // Case-insensitive regex for city
+    }
+    if (country) {
+      query.$and.push({ 'dialerLocation.country': { $regex: new RegExp(country, 'i') } }); // Case-insensitive regex for country
+    }
+  }
+
+  // Optionally filter by creation date if provided
+  if (createdAt) {
+    const date = new Date(createdAt);
+    query.createdAt = {
+      $gte: date.setHours(0, 0, 0, 0), // Start of the day
+      $lte: date.setHours(23, 59, 59, 999), // End of the day
+    };
+  }
+
+  const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
+  // Fetch servers with applied filters, pagination, and sorting
+  const servers = await Server.find(query)
+    .populate('companyUser', 'firstName lastName') // Populate company user info
+    .skip(skip) // Skip the documents based on the page number
+    .limit(parseInt(limit)) // Limit the number of documents returned
+    .sort({ createdAt: -1 }); // Sort by creation date, newest first
+
+  const totalServers = await Server.countDocuments(query); // Count total servers matching the query
+  const totalPages = Math.ceil(totalServers / limit); // Calculate total pages
 
   res.status(200).json({
     success: true,
     count: servers.length,
+    totalServers,
+    totalPages,
+    currentPage: parseInt(page),
     servers,
   });
 });
+
+
 
 // @desc    Get single server by ID
 // @route   GET /api/v1/servers/:id

@@ -1,45 +1,53 @@
 @import "./variables";
 
 .container {
-  // padding: 20px;
-  // background-color: $white-color;
   border-radius: 8px;
-  // box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   height: 85vh; 
   display: flex;
   flex-direction: column;
- 
-
+  background-color: $white-color;
 }
 
 .table-container {
   width: 100%;
-  overflow-x: auto; // Ensure horizontal scroll if necessary
+  height: 100%; // Take full height
   background-color: $white-color;
-  padding: 10px;
+  padding: 8px;
+  overflow: hidden; // Prevent the entire container from scrolling
 
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    min-width: 100%; // Ensure table width does not shrink below 100%
+    min-width: 100%; // Ensure the table width does not shrink below 100%
 
     thead {
       position: sticky;
       top: 0;
-      background-color: $primary-background-color; // Ensure the header background is solid
-      z-index: 1; // Ensure the header stays above the table body
+      background-color: $primary-background-color; // Keep header background solid
+      z-index: 2; // Ensure the header stays above the body
     }
 
-    th,
-    td {
-      padding: 12px 15px !important;  // Slightly increased padding for better readability
-      text-align: left;
+    tbody {
+      display: block;
+      height: 50vh; // Set the height for the table body to allow scrolling
+      overflow-y: auto; // Enable vertical scroll only within the table body
+    }
+
+    thead, tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed; // Fix table layout to ensure column alignment
+    }
+
+    th, td {
+      padding: 10px 5px !important;
+      text-align: center; // Change to center alignment for both th and td
       border-bottom: 1px solid #ddd;
     }
 
     th {
-      font-size: 18px; // Adjusted font size for better readability
+      font-size: 18px;
+      background-color: $primary-background-color; // Header background
     }
 
     tr:hover {
@@ -78,26 +86,23 @@
 }
 
 .component {
-  // Apply specific font size settings for usage-summary
   table {
-    th,
-    td {
-      font-size: clamp(12px, 2vw, 12px) !important; // Font size between 10px and 12px
+    th, td {
+      font-size: clamp(12px, 2vw, 12px) !important;
     }
   }
 }
 
 .heading {
   margin-bottom: 20px;
-  font-size: 28px; // Increased heading font size
+  font-size: 28px;
   color: #333;
   text-align: center;
 }
 
-.loading,
-.error {
+.loading, .error {
   text-align: center;
-  font-size: 20px; // Increased loading and error message font size
+  font-size: 20px;
   color: #666;
 }
 
@@ -105,16 +110,14 @@
   text-align: center;
 }
 
-// Media queries
+// Media Queries
 @media only screen and (max-width: 768px) {
   .table-container {
     table {
-      th,
-      td {
+      th, td {
         padding: 10px;
-        font-size: clamp(10px, 2vw, 12px) !important; // Responsive font size for medium screens
+        font-size: clamp(10px, 2vw, 12px) !important;
       }
-
       .avatar {
         width: 40px;
         height: 40px;
@@ -126,29 +129,25 @@
 @media only screen and (max-width: 480px) {
   .table-container {
     table {
-      th,
-      td {
+      th, td {
         padding: 8px;
-        font-size: clamp(10px, 2vw, 12px) !important; // Responsive font size for small screens
+        font-size: clamp(10px, 2vw, 12px) !important;
       }
-
       .avatar {
         width: 30px;
         height: 30px;
       }
-
-      .heading {
-        font-size: 24px; // Adjusted heading font size for small screens
-      }
+    }
+    .heading {
+      font-size: 24px;
     }
   }
 }
 
-
 .pagination {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center;  // Vertically center the buttons and text
   margin-top: 20px;
 
   .pagination-button {
@@ -158,14 +157,13 @@
     border: none;
     border-radius: 4px;
     font-size: 14px;
-    cursor: pointer;
     margin: 0 5px;
-    transition: background-color 0.3s ease;
-    width: 80px; // Fixed width for consistent button size
-    height: 40px; // Fixed height for consistent button size
+    width: 80px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 
     &:hover {
       background-color: $white-color;
@@ -177,31 +175,9 @@
   span {
     font-size: 14px;
     font-weight: bold;
-  }
-}
-
-
-.cart-button {
-  padding: 10px 15px;
-  background-color: $primary-color;
-  color: $white-color;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  font-size: 14px;
-  display: inline-block;
-
-  &:hover {
-    background-color: darken($primary-color, 10%);
-  }
-
-  &.in-cart {
-    background-color: red;
-    color: $white-color;
-
-    &:hover {
-      background-color: darken(red, 10%);
-    }
+    margin: 0 10px;   // Add margin between buttons
+    display: flex;
+    align-items: center;  // Vertically align the text
+    height: 40px;  // Match the button height for consistent alignment
   }
 }

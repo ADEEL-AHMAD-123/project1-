@@ -122,13 +122,13 @@ exports.createSIPAccount = catchAsyncErrors(async (req, res, next) => {
   // Prepare data for the API call
   const username = `${req.body.firstName}-${req.body.lastName}`;
   const apiData = {
-    username: username,
+    username: username, 
     password: '11111111', // Static password
     id_group: 3, // Assuming this is a default or static value
     callingcard_pin: generateRandomPin() // Generate or get a calling card pin
   };
 
-  const server = getBillingServer(type);
+  const server = getBillingServer(type);    
 
   try {
     // Make API call to create the SIP account
@@ -437,7 +437,6 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
       result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page }); 
       logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
     } else {
-      console.log('else part')
       result = await fetchDataFromMongoDB({ startDate, endDate, id, skip, limit, page });
     }
 

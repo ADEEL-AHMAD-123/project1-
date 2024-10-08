@@ -232,27 +232,28 @@ const OutBoundUsage = () => {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="pagination">
-          {currentPage > 1 && (
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              className="pagination-button"
-            >
-              Previous
-            </button>
-          )}
-          <span>Page {currentPage} of {totalPages}</span>
-          {currentPage < totalPages && (
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              className="pagination-button"
-            >
-              Next
-            </button>
-          )}
-        </div>
-      )}
+      <div className="pagination">
+  {totalPages > 1 && (
+    <>
+      <button
+        className="pagination-button"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        Prev
+      </button>
+      <span>Page {currentPage} of {totalPages}</span>
+      <button
+        className="pagination-button"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        Next
+      </button>
+    </>
+  )}
+</div>
+
     </div>
   );
 };

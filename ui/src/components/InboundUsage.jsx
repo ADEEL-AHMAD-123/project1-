@@ -237,16 +237,27 @@ const InboundUsage = () => {
       </div>
 
       <div className="pagination">
-        {totalPages > 1 && Array.from({ length: totalPages }, (_, index) => (
-          <button
-            key={index + 1}
-            onClick={() => handlePageChange(index + 1)}
-            className={`page-button ${currentPage === index + 1 ? 'active' : ''}`}
-          >
-            {index + 1}
-          </button>
-        ))}
-      </div>
+  {totalPages > 1 && (
+    <>
+      <button
+        className="pagination-button"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        Prev
+      </button>
+      <span>Page {currentPage} of {totalPages}</span>
+      <button
+        className="pagination-button"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        Next
+      </button>
+    </>
+  )}
+</div>
+
     </div>
   );
 };
