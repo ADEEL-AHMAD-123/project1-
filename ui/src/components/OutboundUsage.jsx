@@ -211,7 +211,7 @@ const OutBoundUsage = () => {
               OutBoundUsage.map((data) => (
                 <tr key={data._id}>
                   <td>{data.day}</td>
-                  <td>{data.username}</td>
+                  <td>{data.idUserusername}</td>
                   <td>{data.sessiontime}</td>
                   <td>{data.aloc_all_calls}</td>
                   <td>{data.nbcall}</td>

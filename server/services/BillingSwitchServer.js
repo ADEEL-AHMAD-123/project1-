@@ -44,11 +44,12 @@ class BillingSwitchServer {
       const url = `${this.publicUrl}/index.php/${req.module}/${req.action}`;
 
       const response = await axios.post(url, postData, { headers });
+
       return response.data;
     } catch (error) {
       if (error.response) {
         console.error('Error Status:', error.response.status);
-        console.error('Error Response Data:', error.response.data);
+        console.error('Error in switch-billing server:', error.response.statusText);
       } else if (error.request) {
         console.error('No response received:', error.request);
       } else {

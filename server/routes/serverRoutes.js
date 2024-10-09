@@ -7,7 +7,7 @@ const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 router.post('/create', isAuthenticatedUser, createServer);
 
 // Get all servers (admin only)
-router.get('/', isAuthenticatedUser, isAuthorized('admin','supportive staff'), getAllServersByAdmin);
+router.get('/', isAuthenticatedUser, isAuthorized('admin','client','supportive staff'), getAllServersByAdmin);
 
 // Get all servers for logged-in user
 router.get('/user', isAuthenticatedUser, getAllServersForUser);

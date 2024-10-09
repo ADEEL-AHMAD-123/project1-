@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom"; // Import useLocation
+import { Link, useLocation } from "react-router-dom";
 import { FaBars, FaSearch, FaUserCircle, FaShoppingCart, FaCog, FaTimes, FaFilter } from "react-icons/fa";
 import "../styles/Topbar.scss";
 import { useSelector } from "react-redux";
 
 const Topbar = ({ toggleSidebar }) => {
-    const { Role } = useSelector(state => state.user);
+    // Extract Role and hasBillingAccount from the user state
+    const { Role, hasBillingAccount } = useSelector(state => state.user);
+    // Extract credit from the billing state
+    const { credit } = useSelector(state => state.billing);
+
     const location = useLocation(); // Get the current location
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -24,13 +28,21 @@ const Topbar = ({ toggleSidebar }) => {
         setIsSearchOpen(!isSearchOpen);
     };
 
+    // Ensure credit is a number and provide a fallback
+    const displayedCredit = Number(credit) ? Number(credit).toFixed(2) : "0.00";
+
     return (
         <div className="topbar">
             <div className="topbar-left">
                 <div className="logo">
                     {Role === "client" ? (
                         <>
-                            <h2>$20.03</h2>
+                            {/* Display credit if hasBillingAccount is true */}
+                            {hasBillingAccount ? (
+                                <h2>${displayedCredit}</h2>  
+                            ) : (
+                                <h2>$0.00</h2>  
+                            )}
                             <p>available balance</p>
                         </>
                     ) : (

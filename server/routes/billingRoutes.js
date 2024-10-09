@@ -11,10 +11,12 @@ const {
   getAllMonths,
   fetchDataFromSwitchServer,
   getBillingAccount, 
+  getBillingAccountCredit,
+  updateBillingAccountCredit
 } = require('../controllers/billingController');
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 
-
+ 
 // Route to create a billing account
 router.post('/create-billing-account', isAuthenticatedUser, isAuthorized('admin', 'client', 'supportive staff'), createBillingAccount);
 
@@ -46,5 +48,9 @@ router.get('/summary/month', isAuthenticatedUser, isAuthorized('admin', 'support
 
 // Route to get the logged-in user's billing account
 router.get('/account', isAuthenticatedUser, getBillingAccount);
+
+// Routes for the user billingAccount credit
+router.get('/credit', isAuthenticatedUser, getBillingAccountCredit);
+router.post('/credit', isAuthenticatedUser, updateBillingAccountCredit);
 
 module.exports = router;

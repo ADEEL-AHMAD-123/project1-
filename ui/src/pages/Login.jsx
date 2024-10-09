@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import '../styles/Forms.scss';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { userAsyncActions } from '../redux/slices/userSlice';
+import { billingAsyncActions } from '../redux/slices/billingSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -13,6 +14,8 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { from } = location.state || { from: { pathname: "/" } }; // Get the previous page or default to home
+
+    const { hasBillingAccount } = useSelector(state => state.user); // Access hasBillingAccount state
 
     const initialValues = { 
         email: '',
@@ -26,11 +29,20 @@ const Login = () => {
     });
 
     const handleSubmit = async (values) => {
-        const resultAction = await dispatch(userAsyncActions.loginUser({data: values}));
+        const resultAction = await dispatch(userAsyncActions.loginUser({ data: values }));
         if (userAsyncActions.loginUser.fulfilled.match(resultAction)) {
-            navigate(from); // Redirect to the previous page
+            // User successfully logged in
+            navigate(from);
         }
     };
+
+    // Monitor `hasBillingAccount` and fetch billing details when it becomes true
+    useEffect(() => {
+        if (hasBillingAccount) {
+            // Dispatch billing fetch action when `hasBillingAccount` becomes true
+            dispatch(billingAsyncActions.getBillingAccount({requestData:""}));
+        }
+    }, [hasBillingAccount, dispatch]); 
 
     return (
         <div className="auth-page">
@@ -66,7 +78,7 @@ const Login = () => {
                                 <ErrorMessage name="password" component="div" className="error" />
                             </div>
                            
-                            <button type="submit" className='btn' >
+                            <button type="submit" className='btn' disabled={isSubmitting}>
                                 Log In
                             </button>
                             <div className="form-options">

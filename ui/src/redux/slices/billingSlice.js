@@ -62,10 +62,15 @@ export const billingAsyncActions = {
     method: "GET",
     url: "/billing/summary/days",
   }),
-  getBalance: createApiAsyncThunk({
-    name: "get-balance",
+  getCredit: createApiAsyncThunk({
+    name: "get-credit",
     method: "GET",
-    url: "/billing/balance/days",
+    url: "/billing/credit",
+  }),
+  updateCredit: createApiAsyncThunk({
+    name: "update-credit",
+    method: "POST",
+    url: "/billing/credit",
   }),
   getBillingAccount: createApiAsyncThunk({
     name: "get-billing-account",
@@ -78,7 +83,7 @@ const initialState = {
   BillingAccount: null,
   InBoundUsage: [],
   OutBoundUsage: [],
-  balance: null,
+  credit: null,
   isLoading: false,
   error: null,
   pagination: null,
@@ -113,17 +118,20 @@ const billingSlice = createSlice({
             state.OutBoundUsage = payload.data;
             state.pagination = payload.pagination;
             state.error=payload.error;
-          } else if (actionName === "getBalance") {
-            state.balance = payload.balance;
+          } else if (actionName === "getCredit") {
+            state.BillingAccount = payload.billingAccount;
+            state.credit = payload.credit;
             state.error=payload.error;
           } else if (actionName === "createBillingAccount") {
             state.BillingAccount = payload.data;
+            state.credit = payload.data.credit;
             state.error=payload.error;
           } else if (actionName === "createSIPAccount") {
             state.SIPDetails = payload.data;
             state.error=payload.error;
           } else if (actionName === "getBillingAccount") {
             state.BillingAccount = payload.data;  
+            state.credit = payload.data.credit;
             state.error=payload.error;
           }
         }

@@ -66,7 +66,7 @@ const AllServers = () => {
 
   const applyFilters = (currentFilters) => {
     const queryString = new URLSearchParams(currentFilters).toString();
-    dispatch(serverAsyncActions.getServers({ requestData: `?${queryString}` })); // Adjust the action as per your implementation
+    dispatch(serverAsyncActions.getServers({ requestData: `?${queryString}`,data:"" })); // Adjust the action as per your implementation
   };
 
   const handlePageChange = (newPage) => {
