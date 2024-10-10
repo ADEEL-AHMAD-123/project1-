@@ -84,7 +84,7 @@ function App() {
 
           {/* Cart Page Route */}
           <Route path="/cart" element={<ProtectedRoute element={<CartPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />  
-          {/* <Route path="/checkout" element={<ProtectedRoute element={<CheckOutPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />   */}
+          <Route path="/checkout" element={<ProtectedRoute element={<CheckOutPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />  
 
           {/* Dashboard */}
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />

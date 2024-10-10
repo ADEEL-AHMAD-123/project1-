@@ -1,51 +1,62 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  items: [], // List of items in the cart
-  numberOfDIDs: 0, // Number of DIDs
-  pricePerDID: 0, // Price of each DID
-  totalPrice: 0, // Total price of DIDs
+  items: [],               // Array of items in the cart
+  numberOfDIDs: 0,         // Count of total DIDs in the cart
+  pricePerDID: 0,          // Price per DID (single value)
+  totalPrice: 0,           // Total price of all DIDs in the cart
 };
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
+    // Add item to cart
     addToCart: (state, action) => {
       const { _id, type } = action.payload;
-
-      // Check if the item of the same type and ID already exists in the cart
       const existingItem = state.items.find(item => item._id === _id && item.type === type);
 
       if (!existingItem) {
+        // If the item does not exist in the cart, push it into the items array
         state.items.push(action.payload);
       }
 
-      // Update numberOfDIDs and totalPrice
+      // Update number of DIDs in the cart
       state.numberOfDIDs = state.items.length;
+      
+      // Recalculate the total price based on number of DIDs and price per DID
       state.totalPrice = state.numberOfDIDs * state.pricePerDID;
     },
+
+    // Remove item from cart
     removeFromCart: (state, action) => {
       const { _id, type } = action.payload;
-
-      // Remove the item by ID and type from the cart
       state.items = state.items.filter(item => !(item._id === _id && item.type === type));
 
-      // Update numberOfDIDs and totalPrice
+      // Update number of DIDs in the cart
       state.numberOfDIDs = state.items.length;
+      
+      // Recalculate the total price based on the updated number of DIDs
       state.totalPrice = state.numberOfDIDs * state.pricePerDID;
     },
-    setCartDetails: (state, action) => {
-      const { numberOfDIDs, pricePerDID, totalPrice } = action.payload;
 
-      // Set the number of DIDs and price per DID
-      state.numberOfDIDs = numberOfDIDs;
+    // Set cart details (pricePerDID and totalPrice)
+    setCartDetails: (state, action) => {
+      const { pricePerDID } = action.payload;
+
+      // Set the price per DID
       state.pricePerDID = pricePerDID;
-      state.totalPrice = totalPrice;
+
+      // Recalculate total price based on the number of DIDs and price per DID
+      state.totalPrice = state.numberOfDIDs * state.pricePerDID;
     },
+
+    // Reset cart to initial state
     resetCart: (state) => {
-      state.items = []; // Clear the entire cart
-      state.numberOfDIDs = 0; // Reset number of DIDs
-      state.totalPrice = 0; // Reset total price
+      state.items = [];
+      state.numberOfDIDs = 0;
+      state.pricePerDID = 0;
+      state.totalPrice = 0;
     },
   },
 });
@@ -58,5 +69,3 @@ export const cartAsyncActions = {
 };
 
 export default cartSlice.reducer;
-
-

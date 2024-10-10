@@ -6,16 +6,19 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  billingAccount: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'BillingAccount',
+    required: true,  // This references the user's billing account
+  },
   orderItems: [
-
-      {
-        name: { type: String, required: true },
-        price: { type: Number, required: true },
-        quantity: { type: Number }, 
-        referenceId: { type: mongoose.Schema.ObjectId, required: true }, // Reference to DID or Server
-        referenceType: { type: String, enum: ['DID', 'Server'], required: true }, // Type of the item
-      },
-
+    {
+      name: { type: String, required: true },
+      price: { type: Number, required: true },
+      quantity: { type: Number }, 
+      referenceId: { type: mongoose.Schema.ObjectId, required: true }, // Reference to DID or Server
+      referenceType: { type: String, enum: ['DID', 'Server'], required: true }, // Type of the item
+    },
   ],
   totalPrice: {
     type: Number,
@@ -26,7 +29,6 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'failed'],
     default: 'pending',
   },
-  stripePaymentIntentId: String,
   createdAt: {
     type: Date,
     default: Date.now,

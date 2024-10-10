@@ -204,58 +204,96 @@ exports.deleteDID = catchAsyncErrors(async (req, res, next) => {
 });
 
 
+
 // @desc    Get global DID pricing
 // @route   GET /api/v1/dids/pricing/global
 // @access  Public
 exports.getGlobalPricing = catchAsyncErrors(async (req, res, next) => {
-  const pricing = await Pricing.findOne();
+  try {
+    const pricing = await Pricing.findOne({ userId: null });
 
-  if (!pricing) {
-    return next(createError(404, 'No global pricing data found'));
-  }
+    if (!pricing) {
+      logger.warn('Attempt to access global pricing failed: No global pricing data found');
+      return next(createError(404, 'No global pricing data found'));
+    }
 
-  res.status(200).json({
-    success: true,
-    pricing: {
+    logger.info('Fetched global pricing successfully:', {
       nonBulkPrice: pricing.nonBulkPrice,
       bulkPrice: pricing.bulkPrice,
       bulkThreshold: pricing.bulkThreshold,
       lastModified: pricing.lastModified,
-    },
-  });
+    });
+
+    res.status(200).json({
+      success: true,
+      pricing: {
+        nonBulkPrice: pricing.nonBulkPrice,
+        bulkPrice: pricing.bulkPrice,
+        bulkThreshold: pricing.bulkThreshold,
+        lastModified: pricing.lastModified,
+      },
+    });
+  } catch (error) {
+    logger.error('Error retrieving global pricing: ', error);
+    return next(createError(500, 'Internal server error'));
+  }
 });
 
- 
 // @desc    Set or update global DID pricing
 // @route   POST /api/v1/dids/pricing/global
 // @access  Private (Admin)
 exports.setGlobalPricing = catchAsyncErrors(async (req, res, next) => {
   const { nonBulkPrice, bulkPrice, bulkThreshold } = req.body;
 
-  let pricing = await Pricing.findOne();
-
-  if (pricing) {
-    // Update existing pricing
-    pricing.nonBulkPrice = nonBulkPrice;
-    pricing.bulkPrice = bulkPrice;
-    pricing.bulkThreshold = bulkThreshold;
-    pricing.lastModified = Date.now();
-  } else {
-    // Create new pricing if none exists
-    pricing = new Pricing({
-      nonBulkPrice,
-      bulkPrice,
-      bulkThreshold,
-    });
+  // Check if required fields are present
+  if (!nonBulkPrice || !bulkPrice || !bulkThreshold) {
+    logger.warn('Missing required fields for setting global pricing', { body: req.body });
+    return next(createError(400, 'nonBulkPrice, bulkPrice, and bulkThreshold are required fields'));
   }
 
-  await pricing.save();
+  try {
+    let pricing = await Pricing.findOne({ userId: null }); // Look for global pricing
 
-  res.status(200).json({
-    success: true,
-    message: 'Global pricing updated successfully',
-    pricing,
-  });
+    if (pricing) {
+      // Update existing global pricing
+      pricing.nonBulkPrice = nonBulkPrice;
+      pricing.bulkPrice = bulkPrice;
+      pricing.bulkThreshold = bulkThreshold;
+      pricing.lastModified = Date.now();
+      await pricing.save();
+
+      logger.info('Updated global pricing successfully:', {
+        nonBulkPrice,
+        bulkPrice,
+        bulkThreshold,
+      });
+    } else {
+      // Create new global pricing if none exists
+      pricing = new Pricing({
+        userId: null, // Setting userId to null for global pricing
+        nonBulkPrice,
+        bulkPrice,
+        bulkThreshold,
+        lastModified: Date.now(),
+      });
+      await pricing.save();
+
+      logger.info('Created new global pricing successfully:', {
+        nonBulkPrice,
+        bulkPrice,
+        bulkThreshold,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Global pricing updated successfully',
+      pricing,
+    });
+  } catch (error) {
+    logger.error('Error setting global pricing: ', error);
+    return next(createError(500, 'Internal server error'));
+  }
 });
 
 
@@ -263,33 +301,46 @@ exports.setGlobalPricing = catchAsyncErrors(async (req, res, next) => {
 // @route   GET /api/v1/dids/pricing/user/:userId
 // @access  Private (Admin)
 exports.getUserPricing = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findById(req.params.userId);
+  try {
+    const user = await User.findById(req.params.userId);
 
+    if (!user) {
+      logger.warn(`User not found: ${req.params.userId}`);
+      return next(createError(404, 'User not found'));
+    }
 
-  if (!user) {
-    return next(createError(404, 'User not found'));
+    // Fetch user-specific pricing if available
+    const userPricing = await Pricing.findOne({ userId: user._id });
+    // Fetch global pricing
+    const globalPricing = await Pricing.findOne({ userId: null });
+
+    if (!globalPricing) {
+      logger.warn('No global pricing data found');
+      return next(createError(404, 'No global pricing data found'));
+    }
+
+    // Construct pricing response
+    const pricing = {
+      nonBulkPrice: userPricing ? userPricing.nonBulkPrice : globalPricing.nonBulkPrice,
+      bulkPrice: userPricing ? userPricing.bulkPrice : globalPricing.bulkPrice,
+      bulkThreshold: userPricing ? userPricing.bulkThreshold : globalPricing.bulkThreshold,
+    };
+
+    logger.info('Fetched user pricing successfully for user:', {
+      user: user._id,
+      pricing,
+    });
+
+    res.status(200).json({
+      success: true,
+      user: user._id,
+      pricing,
+    });
+  } catch (error) {
+    logger.error('Error retrieving user pricing: ', error);
+    return next(createError(500, 'Internal server error'));
   }
-
-  const globalPricing = await Pricing.findOne();
-
-  if (!globalPricing) {
-    return next(createError(404, 'No global pricing data found'));
-  }
-
-  // Use user-specific pricing if available, otherwise fallback to global
-  const pricing = {
-    nonBulkPrice: user.pricing?.nonBulkPrice || globalPricing.nonBulkPrice,
-    bulkPrice: user.pricing?.bulkPrice || globalPricing.bulkPrice,
-    bulkThreshold: user.pricing?.bulkThreshold || globalPricing.bulkThreshold,
-  };
-
-  res.status(200).json({
-    success: true,
-    user: user._id,
-    pricing,
-  });
 });
-
 
 // @desc    Set or update DID pricing for a specific user
 // @route   POST /api/v1/dids/pricing/user/:userId
@@ -297,26 +348,68 @@ exports.getUserPricing = catchAsyncErrors(async (req, res, next) => {
 exports.setUserPricing = catchAsyncErrors(async (req, res, next) => {
   const { nonBulkPrice, bulkPrice, bulkThreshold } = req.body;
 
-  let user = await User.findById(req.params.userId);
-
-  if (!user) {
-    return next(createError(404, 'User not found'));
+  // Check if required fields are present
+  if (!nonBulkPrice || !bulkPrice || !bulkThreshold) {
+    logger.warn('Missing required fields for setting user-specific pricing', { body: req.body });
+    return next(createError(400, 'nonBulkPrice, bulkPrice, and bulkThreshold are required fields'));
   }
 
-  // Update user-specific pricing
-  user.pricing = {
-    nonBulkPrice: nonBulkPrice || user.pricing?.nonBulkPrice,
-    bulkPrice: bulkPrice || user.pricing?.bulkPrice,
-    bulkThreshold: bulkThreshold || user.pricing?.bulkThreshold,
-  };
+  try {
+    let user = await User.findById(req.params.userId);
 
-  await user.save();
+    if (!user) {
+      logger.warn(`User not found: ${req.params.userId}`);
+      return next(createError(404, 'User not found'));
+    }
 
-  res.status(200).json({
-    success: true,
-    message: 'User-specific pricing updated successfully',
-    userPricing: user.pricing,
-  });
+    // Check if user-specific pricing already exists
+    let userPricing = await Pricing.findOne({ userId: user._id });
+
+    if (userPricing) {
+      // Update existing user-specific pricing
+      userPricing.nonBulkPrice = nonBulkPrice || userPricing.nonBulkPrice;
+      userPricing.bulkPrice = bulkPrice || userPricing.bulkPrice;
+      userPricing.bulkThreshold = bulkThreshold || userPricing.bulkThreshold;
+      userPricing.lastModified = Date.now(); // Update last modified date
+      await userPricing.save();
+
+      logger.info('Updated user-specific pricing successfully for user:', {
+        user: user._id,
+        pricing: {
+          nonBulkPrice: userPricing.nonBulkPrice,
+          bulkPrice: userPricing.bulkPrice,
+          bulkThreshold: userPricing.bulkThreshold,
+        },
+      });
+    } else {
+      // Create new pricing document for the user
+      userPricing = new Pricing({
+        userId: user._id,
+        nonBulkPrice,
+        bulkPrice,
+        bulkThreshold,
+        lastModified: Date.now(), // Set last modified date
+      });
+      await userPricing.save();
+
+      logger.info('Created new user-specific pricing successfully for user:', {
+        user: user._id,
+        pricing: {
+          nonBulkPrice,
+          bulkPrice,
+          bulkThreshold,
+        },
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'User-specific pricing updated successfully',
+      userPricing,
+    });
+  } catch (error) {
+    logger.error('Error setting user pricing: ', error);
+    return next(createError(500, 'Internal server error'));
+  }
 });
-
 

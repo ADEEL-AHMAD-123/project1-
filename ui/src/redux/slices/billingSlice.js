@@ -97,6 +97,9 @@ const billingSlice = createSlice({
     resetBillingState: (state) => {
       return initialState;
     },
+    setBillingAccount: (state, action) => {
+      state.BillingAccount = action.payload; // Set the billing account
+    },
   },
   extraReducers: (builder) => {
     Object.entries(billingAsyncActions).forEach(([actionName, action]) => {
@@ -146,4 +149,4 @@ const billingSlice = createSlice({
 });
 
 export default billingSlice.reducer;
-export const { resetBillingState } = billingSlice.actions;
+export const { resetBillingState ,setBillingAccount} = billingSlice.actions;

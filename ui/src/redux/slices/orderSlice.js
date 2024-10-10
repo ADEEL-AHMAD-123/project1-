@@ -1,18 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { setBillingAccount } from './billingSlice'; 
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // Helper to create async thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
-  return createAsyncThunk(`order/${name}`, async ({ requestData, data }, { rejectWithValue }) => {
+  return createAsyncThunk(`order/${name}`, async ({ requestData, data }, { dispatch, rejectWithValue }) => {
     try {
       const requestUrl = requestData ? `${BASE_URL}${url}${requestData}` : `${BASE_URL}${url}`;
       
       const requestOptions = {
         method,
-        withCredentials: true, // Include credentials if needed for authentication
+        withCredentials: true,
         url: requestUrl,
         data,
         headers: {
@@ -22,10 +23,16 @@ const createApiAsyncThunk = ({ name, method, url }) => {
 
       const response = await axios(requestOptions);
       toast.success(response.data.message);
-      return response.data; // Return the response data (e.g., order details)
+
+      // Dispatch the billing account action if it's a create order request
+      if (name === "create-order" && response.data.billingAccount) {
+        dispatch(setBillingAccount(response.data.billingAccount));
+      }
+
+      return response.data; // Return the response data
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
-      return rejectWithValue(error.response?.data?.message); // Reject the value for error handling
+      return rejectWithValue(error.response?.data?.message);
     }
   });
 };
@@ -33,7 +40,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
 // Define the async thunks for orders
 export const orderAsyncActions = {
   createOrder: createApiAsyncThunk({
-    name: "create",
+    name: "create-order",
     method: "POST",
     url: "/orders/create",
   }),
@@ -53,7 +60,6 @@ export const orderAsyncActions = {
 const initialState = {
   order: null,
   orders: [],
-  clientSecret: null,
   isLoading: false,
   error: null,
 };
@@ -80,8 +86,7 @@ const orderSlice = createSlice({
 
           // Handle the different actions
           if (actionName === "createOrder") {
-            state.order = payload.order;
-            state.clientSecret = payload.clientSecret; // Use clientSecret for Stripe payments
+            state.order = payload.order;            
           } else if (actionName === "fetchOrderDetails") {
             state.order = payload.order;
           } else if (actionName === "fetchAllOrders") {

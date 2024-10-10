@@ -19,11 +19,11 @@ const assignDIDToUser = async (userId, didId) => {
     }
 
     // Assign the DID to the user
-    did.userId = userId;
+    did.assignedTo = userId;
     did.status = 'purchased';
     await did.save();
 
-    logger.info(`DID ${did.didNumber} assigned to user ${userId}`, { userId, didId });
+    logger.info(`DID ${did.didNumber} assigned to user ${userId}`);
     return did;
   } catch (error) {
     logger.error(`Failed to assign DID ${didId} to user ${userId}: ${error.message}`);

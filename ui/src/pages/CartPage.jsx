@@ -15,11 +15,22 @@ const CartPage = () => {
   // Fetch pricing data from Redux state
   const { userPricing } = useSelector((state) => state.did);
   const { User } = useSelector((state) => state.user);
-  const { items: cartItems } = useSelector((state) => state.cart);
+  const { items: cartItems, totalPrice } = useSelector((state) => state.cart);
   
   useEffect(() => {
-    dispatch(didAsyncActions.fetchUserDIDPricing({ requestData: User._id })); // Fetch user-specific pricing
+    if (User?._id) {
+      dispatch(didAsyncActions.fetchUserDIDPricing({ requestData: User._id })); // Fetch user-specific pricing
+    }
   }, [dispatch, User._id]);
+
+  useEffect(() => {
+    if (userPricing) {
+      // Set the price per DID in the cart when user pricing is available
+      dispatch(cartAsyncActions.setCartDetails({
+        pricePerDID: userPricing.nonBulkPrice,
+      }));
+    }
+  }, [dispatch, userPricing]);
 
   // Check if pricing data is available
   if (!userPricing) {
@@ -37,12 +48,6 @@ const CartPage = () => {
     );
   }
 
-  // Calculate total cost based on the new pricing structure
-  const totalCost = cartItems.reduce((acc, item) => {
-    const itemPrice = item.isBulk ? userPricing.bulkPrice : userPricing.nonBulkPrice;
-    return acc + itemPrice;
-  }, 0);
-
   // Function to handle item removal
   const handleRemove = (_id, type) => {
     dispatch(cartAsyncActions.removeFromCart({ _id, type }));
@@ -56,13 +61,16 @@ const CartPage = () => {
     navigate('/checkout');
   };
 
+  // Ensure totalPrice is a valid number before calling toFixed()
+  const formattedTotalPrice = totalPrice ? totalPrice.toFixed(2) : "0.00";
+
   return (
     <div className="cart-page">
       <div className="cart-header">
         <h1>Your Cart</h1>
         <div className="cart-summary">
           <p>Total Items: {cartItems.length}</p>
-          <p>Total Cost: ${totalCost.toFixed(2)}</p>
+          <p>Total Cost: ${formattedTotalPrice}</p>
         </div>
       </div>
 
@@ -81,13 +89,15 @@ const CartPage = () => {
           </thead>
           <tbody>
             {cartItems.map((item) => {
+              // Provide a fallback price in case the pricing is not available
               const itemPrice = item.isBulk ? userPricing.bulkPrice : userPricing.nonBulkPrice;
+              const displayPrice = itemPrice ? itemPrice.toFixed(2) : "0.00"; // Safeguard against null prices
               return (
                 <tr key={item._id}>
                   <td>{item.didNumber}</td>
                   <td>{item.country}</td>
                   <td>{item.areaCode}</td>
-                  <td>${itemPrice.toFixed(2)}</td> {/* Display Price */}
+                  <td>${displayPrice}</td> {/* Display Price */}
                   <td>
                     <FontAwesomeIcon
                       icon={faTrashAlt}

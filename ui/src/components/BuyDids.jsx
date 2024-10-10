@@ -111,9 +111,7 @@ const BuyDIDs = () => {
     return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
   }
 
-  if (error) {
-    return <div className="container usage-summary"><h1 className="message">{error}</h1></div>;
-  }
+ 
 
   const totalPages = pagination?.totalPages || 1;
   const currentPage = filters.page || 1;

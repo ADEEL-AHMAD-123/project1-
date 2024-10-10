@@ -6,32 +6,10 @@ const User = require("../models/user");
 const SIPDetails = require("../models/SIPDetails");
 const BillingAccount = require("../models/BillingAccount");
 const moment = require("moment");
-const apiKeyInbound = process.env.SWITCH_BILLING_INBOUND_API_KEY;
-const apiSecretInbound = process.env.SWITCH_BILLING_INBOUND_API_SECRET;
-const apiKeyOutbound = process.env.SWITCH_BILLING_OUTBOUND_API_KEY;
-const apiSecretOutbound = process.env.SWITCH_BILLING_OUTBOUND_API_SECRET;
-const { generateRandomPin } = require("../utils/helperFunctions");
-const {
-  fetchAllPages,
-  storeDataInMongoDB,
-  fetchDataFromMongoDB,
-} = require("../utils/helperFunctions");
+const { getBillingServer, fetchAllPages, fetchDataFromMongoDB, storeDataInMongoDB, generateRandomPin } = require('../utils/switchBillingHelpers');
 
-// Initialize servers for inbound and outbound
-const inboundServer = new BillingSwitchServer(apiKeyInbound, apiSecretInbound);
-const outboundServer = new BillingSwitchServer(
-  apiKeyOutbound,
-  apiSecretOutbound
-);
 
-// Function to select the appropriate server based on the query type
-function getBillingServer(type) {
-  if (type === "outbound") {
-    return outboundServer;
-  }
-  // Default to inbound server if type is not specified or is 'inbound'
-  return inboundServer;
-}
+
 
 // @desc    Create a billing account
 // @route   POST /api/v1/billing/create-billing-account
@@ -771,23 +749,29 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
       return next(createError(400, "Invalid response from billing server during credit update."));
     }
 
+    // Extract the new credit from the result's rows
+    const newCredit = parseFloat(result.rows[0].credit);
+
     // Update the BillingAccount credit
-    billingAccount.credit = credit; // Update the credit in BillingAccount
+    billingAccount.credit = newCredit; // Use the credit from the result
+
     await billingAccount.save(); // Save the updated BillingAccount
 
     // Log successful credit update
-    logger.info("Billing credit updated successfully", { id_user });
+    logger.info("Billing credit updated successfully", { id_user, newCredit });
+
 
     // Respond with success message and updated BillingAccount
     res.status(200).json({
       success: true,
       message: "Billing credit updated successfully",
-      billingAccount, // Return updated BillingAccount
+      billingAccount, 
     });
   } catch (err) {
     logger.error("Error updating billing credit on server", { id_user, error: err.message });
     return next(createError(500, "Internal Server Error while updating billing credit."));
   }
 });
+
 
  
