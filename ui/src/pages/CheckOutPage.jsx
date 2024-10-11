@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate
 import { orderAsyncActions } from '../redux/slices/orderSlice';
 import { toast } from 'react-toastify';
 import '../styles/CheckOutPage.scss';
@@ -7,6 +8,7 @@ import { cartAsyncActions } from '../redux/slices/cartSlice';
 
 const CheckoutPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();  // Initialize useNavigate
   const cartItems = useSelector((state) => state.cart.items);
   const totalPrice = useSelector((state) => state.cart.totalPrice);
   const numberOfDIDs = useSelector((state) => state.cart.numberOfDIDs);
@@ -41,7 +43,11 @@ const CheckoutPage = () => {
         throw new Error(response.error.message);
       }
 
+      // Reset the cart after successful order creation
       dispatch(cartAsyncActions.resetCart());
+
+      // Navigate to Order Success page
+      navigate('/order-success');  // Navigate to success page on successful order
 
     } catch (err) {
       console.error(err);

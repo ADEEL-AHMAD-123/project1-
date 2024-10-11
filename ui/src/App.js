@@ -18,7 +18,7 @@ import LogsPage from './pages/LogsPage';
 import ServerDetails from './pages/ServerDetails';
 import CartPage from './pages/CartPage';  
 import CheckOutPage from './pages/CheckOutPage';  
-
+import OrderSuccessPage from './pages/OrderSuccessPage';
 import DIDPage from './pages/DIDsPage';
 import OrderSummaryPage from './pages/OrderSummaryPage';
 import DIDManagementPage from './pages/DIDManagementPage';
@@ -85,6 +85,7 @@ function App() {
           {/* Cart Page Route */}
           <Route path="/cart" element={<ProtectedRoute element={<CartPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />  
           <Route path="/checkout" element={<ProtectedRoute element={<CheckOutPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />  
+          <Route path="/order-success" element={<ProtectedRoute element={<OrderSuccessPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />  
 
           {/* Dashboard */}
           <Route path="/" element={<ProtectedRoute element={<Dashboard />} requiredRoles={['admin', 'supportive staff', 'client']} />} />

@@ -6,11 +6,7 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  billingAccount: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'BillingAccount',
-    required: true,  // This references the user's billing account
-  },
+
   orderItems: [
     {
       name: { type: String, required: true },

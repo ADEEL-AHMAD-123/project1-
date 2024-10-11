@@ -98,7 +98,8 @@ const billingSlice = createSlice({
       return initialState;
     },
     setBillingAccount: (state, action) => {
-      state.BillingAccount = action.payload; // Set the billing account
+      state.BillingAccount = action.payload; 
+      state.credit=action.payload.credit; 
     },
   },
   extraReducers: (builder) => {

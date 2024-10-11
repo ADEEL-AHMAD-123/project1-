@@ -45,7 +45,7 @@ class BillingSwitchServer {
 
       const response = await axios.post(url, postData, { headers });
 
-      return response.data;
+      return response.data; 
     } catch (error) {
       if (error.response) {
         console.error('Error Status:', error.response.status);

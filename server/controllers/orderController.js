@@ -4,8 +4,9 @@ const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const Order = require('../models/Order');
 const DID = require('../models/DID');
 const BillingAccount = require('../models/BillingAccount');
-const { getBillingServer } = require('../utils/switchBillingHelpers');
+const { getBillingServer ,fetchBillingAccount} = require('../utils/switchBillingHelpers');
 const { assignDIDToUser, assignServerToUser } = require('../services/AssignItems');
+
 
 // @desc    Create a new order and deduct credit from billing account
 // @route   POST /api/v1/orders/create
@@ -17,18 +18,17 @@ exports.createOrder = catchAsyncErrors(async (req, res, next) => {
         logger.error('Failed to create order: No order items provided', { userId: req.user._id });
         return next(createError(400, 'Order items are required'));
     }
+
     // Check availability of all DIDs before proceeding
     for (const item of orderItems) {
-      if (item.referenceType === 'DID') {
-          const did = await DID.findById(item.referenceId);
-          if (!did || did.status !== 'available') {
-              logger.error(`DID ${item.referenceId} is not available for assignment`, { userId: req.user._id });
-              return next(createError(400, `DID ${item.referenceId} is not available for assignment`));
-          }
-      }
-  }
-
-  
+        if (item.referenceType === 'DID') {
+            const did = await DID.findById(item.referenceId);
+            if (!did || did.status !== 'available') {
+                logger.error(`DID ${item.referenceId} is not available for assignment`, { userId: req.user._id });
+                return next(createError(400, `DID ${item.referenceId} is not available for assignment`));
+            }
+        }
+    }
 
     // Find the user's BillingAccount
     const billingAccount = await BillingAccount.findOne({ user_id: req.user._id });
@@ -37,11 +37,11 @@ exports.createOrder = catchAsyncErrors(async (req, res, next) => {
         return next(createError(404, 'Billing account not found.'));
     }
 
-    console.log('debugging: ',billingAccount.credit,totalPrice)
+    console.log('debugging: ', billingAccount.credit, totalPrice);
 
     // Check if the user has enough credit
     if (billingAccount.credit < totalPrice) {
-        logger.error('Insufficient credit for order', { userId: req.user._id },billingAccount.credit,totalPrice);
+        logger.error('Insufficient credit for order', { userId: req.user._id }, billingAccount.credit, totalPrice);
         return next(createError(400, 'Insufficient credit to complete this order.'));
     }
 
@@ -62,11 +62,17 @@ exports.createOrder = catchAsyncErrors(async (req, res, next) => {
             return next(createError(400, 'Failed to deduct credit from billing account.'));
         }
 
-        // Extract the new credit from the result's rows
-        const newCredit = parseFloat(result.rows[0].credit);
 
-        // Update the BillingAccount with the new credit from the result
-        billingAccount.credit = newCredit;
+        // Fetch the updated billing account data
+        const updatedBillingAccount = await fetchBillingAccount(billingAccount.id);
+
+        // Check if the billing account data was retrieved successfully
+        if (!updatedBillingAccount) {
+            return next(createError(404, 'Updated billing account not found in fetch response'));
+        }
+
+        // Update the entire BillingAccount document with the new data
+        Object.assign(billingAccount, updatedBillingAccount);
         await billingAccount.save();
 
         // Create and save the order
@@ -75,7 +81,6 @@ exports.createOrder = catchAsyncErrors(async (req, res, next) => {
             orderItems,
             totalPrice,
             paymentStatus: 'completed',
-            billingAccount: billingAccount._id,
         });
 
         await order.save();
@@ -105,7 +110,7 @@ exports.createOrder = catchAsyncErrors(async (req, res, next) => {
             billingAccount,
         });
     } catch (err) {
-        logger.error('Error processing order or updating billing credit', { userId: req.user._id, error: err.message });
+        logger.error('Error processing order or updating billing credit', { error: err.message });
         return next(createError(500, 'Internal Server Error while processing the order.'));
     }
 });

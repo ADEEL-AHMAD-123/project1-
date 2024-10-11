@@ -599,12 +599,16 @@ exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+
 // @desc    Fetch data from switchBilling server directly (no MongoDB)
 // @route   GET /api/v1/billing/switch-data
 // @access  Private
 exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
-  const { module, type, page = 1, limit = 10 } = req.query; // Extract query parameters
+  const { module, type, page = 1, limit = 10, id } = req.query; // Extract query parameters
   const server = getBillingServer(type); // Get the appropriate server (inbound or outbound)
+
+  server.clearFilter(); // Clear any previous filters
+  server.setFilter("id", id, "eq", "numeric"); // Set filter for specific ID
 
   if (!module) {
     return next(createError(400, "Module is required"));
@@ -614,6 +618,7 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
   const queryParams = {
     page,
     limit,
+    id
   };
 
   try {
@@ -622,9 +627,7 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
 
     // Check if the API response is successful
     if (apiResponse) {
-      logger.info("Data fetched from switchBilling server", {
-        module,
-      });
+      logger.info("Data fetched from switchBilling server", { module });
 
       return res.status(200).json({
         success: true,
@@ -639,28 +642,19 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
       const errorMessage = apiResponse.errors
         ? Object.values(apiResponse.errors).flat().join(", ")
         : "Unknown error occurred";
+        
       logger.error("Failed to fetch data from switchBilling server", {
         module,
         result: apiResponse,
         error: errorMessage,
       });
 
-      return next(
-        createError(400, "Failed to fetch data from switchBilling server")
-      );
+      return next(createError(400, "Failed to fetch data from switchBilling server"));
     }
   } catch (err) {
     // Handle any errors during the API call
-    logger.error("Error fetching data from switchBilling server", {
-      module,
-      error: err.message,
-    });
-    return next(
-      createError(
-        500,
-        "Internal Server Error while fetching data from switchBilling server"
-      )
-    );
+    logger.error("Error fetching data from switchBilling server", { module, error: err.message });
+    return next(createError(500, "Internal Server Error while fetching data from switchBilling server"));
   }
 });
 
@@ -751,7 +745,7 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
 
     // Extract the new credit from the result's rows
     const newCredit = parseFloat(result.rows[0].credit);
-
+console.log(result.rows);
     // Update the BillingAccount credit
     billingAccount.credit = newCredit; // Use the credit from the result
 
