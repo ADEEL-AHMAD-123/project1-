@@ -29,7 +29,8 @@ exports.createBillingAccount = catchAsyncErrors(async (req, res, next) => {
     username: username,
     password: "11111111",
     id_group: 3,
-    credit: 0.0,
+    credit: 0.00,
+    active:1,
     callingcard_pin: generateRandomPin(),
   };
 
@@ -720,12 +721,7 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
   const { type } = req.query;
   const { id_user, credit, description } = req.body;
 
-  // Find the BillingAccount by id (mapped to id_user in the query)
-  const billingAccount = await BillingAccount.findOne({ id: id_user });
-  if (!billingAccount) {
-    logger.error("Billing account not found", { id_user });
-    return next(createError(404, "Billing account not found with the provided id."));
-  }
+ 
 
   // Fetch the result from the appropriate billing server
   const billingServer = getBillingServer(type);
