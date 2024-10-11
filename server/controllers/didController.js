@@ -133,7 +133,7 @@ exports.getMyDIDs = catchAsyncErrors(async (req, res, next) => {
   const userId = req.user.id;
 
   // Fetch DIDs associated with the logged-in user
-  const dids = await DID.find({ userId });
+  const dids = await DID.find({ assignedTo:userId });
 
   if (!dids || dids.length === 0) {
     logger.info('No DIDs found for the user', { userId });

@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { didAsyncActions } from "../redux/slices/didSlice"; 
 import ErrorCard from "../components/ErrorCard";
-import "../styles/MyDIDs.scss"
+import "../styles/MyDIDs.scss";
 
 const MyDIDs = () => {
   const dispatch = useDispatch();
@@ -13,7 +13,7 @@ const MyDIDs = () => {
 
   // Fetch the user's DIDs on component mount
   useEffect(() => {
-    dispatch(didAsyncActions.fetchMyDIDs({requestData:""}));
+    dispatch(didAsyncActions.fetchMyDIDs({ requestData: "" }));
   }, [dispatch]);
 
   // Handle loading state
@@ -24,28 +24,33 @@ const MyDIDs = () => {
   // Handle error state
   if (error) {
     return (
-
-        <ErrorCard 
-          message={error}
-          isFullPage={false} 
-        />
-
-      );
+      <ErrorCard 
+        message={error}
+        isFullPage={false} 
+      />
+    );
   }
 
   return (
     <div className="my-dids-container">
       <h2>My DIDs</h2>
       {myDIDs && myDIDs.length > 0 ? (
-        <ul className="did-list">
+        <div className="did-list">
           {myDIDs.map((did, index) => (
-            <li key={index} className="did-item">
-              <span>DID: {did.did}</span> {/* Adjust field name based on your API */}
-              <span>Status: {did.status}</span> {/* Adjust field name based on your API */}
-              {/* Add more fields as needed */}
-            </li>
+            <div key={index} className="did-card">
+              <div className="did-info">
+                <h3>DID: {did.didNumber}</h3>
+                <p><strong>Status:</strong> {did.status}</p>
+                <p><strong>Country:</strong> {did.country}</p>
+                <p><strong>State:</strong> {did.state}</p>
+                <p><strong>Area Code:</strong> {did.areaCode}</p>
+                <p><strong>Destination:</strong> {did.destination}</p>
+                <p><strong>Caller ID Usage:</strong> {did.callerIdUsage ? 'Yes' : 'No'}</p>
+                <p><strong>Created At:</strong> {new Date(did.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : (
         <p>You don't have any DIDs yet.</p>
       )}
