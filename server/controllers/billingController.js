@@ -721,11 +721,20 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
   const { type } = req.query;
   const { id_user, credit, description } = req.body;
 
- 
-
   // Fetch the result from the appropriate billing server
   const billingServer = getBillingServer(type);
+  
   try {
+    // Fetch the BillingAccount from the database using the id_user
+    const billingAccount = await BillingAccount.findOne({ user: id_user });
+    
+    // If no billing account is found, return an error
+    if (!billingAccount) {
+      logger.error("BillingAccount not found", { id_user });
+      return next(createError(404, "BillingAccount not found."));
+    }
+
+    // Prepare data for refill request
     const refillData = {
       id_user,
       credit,
@@ -733,7 +742,10 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
       description,
     };
 
+    // Make request to the billing server
     const result = await billingServer.create("refill", refillData);
+
+    // Handle invalid result from the billing server
     if (!result || result.success !== true) {
       logger.error("Invalid response from billing server during credit update", { id_user, result });
       return next(createError(400, "Invalid response from billing server during credit update."));
@@ -741,27 +753,29 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
 
     // Extract the new credit from the result's rows
     const newCredit = parseFloat(result.rows[0].credit);
-console.log(result.rows);
-    // Update the BillingAccount credit
-    billingAccount.credit = newCredit; // Use the credit from the result
+    console.log(result.rows);
 
-    await billingAccount.save(); // Save the updated BillingAccount
+    // Update the BillingAccount credit with the new credit
+    billingAccount.credit = newCredit;
+
+    // Save the updated BillingAccount
+    await billingAccount.save();
 
     // Log successful credit update
     logger.info("Billing credit updated successfully", { id_user, newCredit });
-
 
     // Respond with success message and updated BillingAccount
     res.status(200).json({
       success: true,
       message: "Billing credit updated successfully",
-      billingAccount, 
+      billingAccount,
     });
   } catch (err) {
     logger.error("Error updating billing credit on server", { id_user, error: err.message });
     return next(createError(500, "Internal Server Error while updating billing credit."));
   }
 });
+ 
 
 
  
