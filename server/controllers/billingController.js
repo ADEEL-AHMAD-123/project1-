@@ -726,7 +726,7 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
   
   try {
     // Fetch the BillingAccount from the database using the id_user
-    const billingAccount = await BillingAccount.findOne({ user: id_user });
+    const billingAccount = await BillingAccount.findOne({ id: id_user });
     
     // If no billing account is found, return an error
     if (!billingAccount) {
