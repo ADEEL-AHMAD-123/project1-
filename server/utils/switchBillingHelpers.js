@@ -76,8 +76,7 @@ const storeDataInMongoDB = async (data) => {
         Object.entries(record).filter(([key, value]) => value !== null && value !== undefined)
       );
 
-      // Log each cleaned record to ensure it's structured correctly
-      console.log('Cleaned Record:', cleanedRecord);
+     
 
       // Check for essential fields (id, day, id_user)
       if (!cleanedRecord.id || !cleanedRecord.day || !cleanedRecord.id_user) {
@@ -87,8 +86,7 @@ const storeDataInMongoDB = async (data) => {
       return cleanedRecord;
     });
 
-    // Log records that are about to be inserted/updated
-    console.log('Processed Records:', records);
+  
 
     // Create bulk operations with update criteria
     const bulkOperations = records.map((record) => {
