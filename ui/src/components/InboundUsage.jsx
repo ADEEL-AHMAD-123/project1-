@@ -11,7 +11,7 @@ const InboundUsage = () => {
   const { Role, hasBillingAccount } = useSelector((state) => state.user);
 
   const initialFilters = {
-    id: Role === 'client' ? BillingAccount?.id || '' : '',
+    id_user: Role === 'client' ? BillingAccount?.id || '' : '',
     period: 'daily',
     page: 1,
     limit: 10,

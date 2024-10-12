@@ -6,7 +6,7 @@ const User = require("../models/user");
 const SIPDetails = require("../models/SIPDetails");
 const BillingAccount = require("../models/BillingAccount");
 const moment = require("moment");
-const { getBillingServer, fetchAllPages, fetchDataFromMongoDB, storeDataInMongoDB, generateRandomPin } = require('../utils/switchBillingHelpers');
+const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPin,storeDataInMongoDB } = require('../utils/switchBillingHelpers');
 
 
 
@@ -17,7 +17,7 @@ const { getBillingServer, fetchAllPages, fetchDataFromMongoDB, storeDataInMongoD
 exports.createBillingAccount = catchAsyncErrors(async (req, res, next) => {
   const { type } = req.query;
 
-  // Fetch current logged-in user
+  // Fetch current logged-in user 
   const user = await User.findById(req.user._id); // Assuming req.user._id is set by authentication middleware
   if (!user) {
     return next(createError(404, "User not found"));
@@ -376,24 +376,34 @@ exports.updateResource = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-// @desc    Get records based on id and date range
+// @desc    Get records based on date range, optionally filtered by id_user
 // @route   GET /api/v1/summary/days
 // @access  Private
 exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
   const {
-    id,
+    id_user,
     startDate: startDateParam,
     endDate: endDateParam,
     page = 1,
     type,
   } = req.query;
+  
   const server = getBillingServer(type); // Get the correct server based on the type
 
+  // Ensure id_user is numeric if provided
+  let numericIdUser = null;
+  if (id_user) {
+    numericIdUser = parseInt(id_user, 10);
+    if (isNaN(numericIdUser)) {
+      return next(createError(400, 'Invalid id_user, must be a number'));
+    }
+  }
+
+  server.clearFilter(); // Clear any previous filters
+
+  // Date handling
   const today = moment().startOf("day").format("YYYY-MM-DD"); // Format as string
-  const yesterday = moment()
-    .subtract(1, "day")
-    .startOf("day")
-    .format("YYYY-MM-DD"); // Yesterday's date
+  const yesterday = moment().subtract(1, "day").startOf("day").format("YYYY-MM-DD"); // Yesterday's date
 
   let startDate, endDate;
 
@@ -405,33 +415,15 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
         endDate = moment(endDateParam).format("YYYY-MM-DD");
 
         if (moment(startDate).isAfter(endDate)) {
-          return next(
-            createError(
-              400,
-              `Start date cannot be after end date: ${startDateParam} to ${endDateParam}`
-            )
-          );
+          return next(createError(400, `Start date cannot be after end date: ${startDateParam} to ${endDateParam}`));
         }
 
         if (moment(startDate).isSame(endDate)) {
-          return next(
-            createError(
-              400,
-              `Start date and end date cannot be the same: ${startDateParam}`
-            )
-          );
+          return next(createError(400, `Start date and end date cannot be the same: ${startDateParam}`));
         }
 
-        if (
-          moment(startDate).isAfter(today) ||
-          moment(endDate).isAfter(today)
-        ) {
-          return next(
-            createError(
-              400,
-              `Date range cannot be in the future: ${startDateParam} to ${endDateParam}`
-            )
-          );
+        if (moment(startDate).isAfter(today) || moment(endDate).isAfter(today)) {
+          return next(createError(400, `Date range cannot be in the future: ${startDateParam} to ${endDateParam}`));
         }
       } else {
         endDate = yesterday; // Default end date to yesterday if not provided
@@ -444,11 +436,7 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     return next(createError(400, `Invalid date format: ${err.message}`));
   }
 
-  const includesToday =
-    startDate &&
-    endDate &&
-    moment(startDate).isBefore(today) &&
-    moment(endDate).isSameOrAfter(today);
+  const includesToday = startDate && endDate && moment(startDate).isBefore(today) && moment(endDate).isSameOrAfter(today);
 
   const limit = 10; // Define limit as needed
   const skip = (page - 1) * limit;
@@ -456,26 +444,28 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
   try {
     let result;
 
+    // If id_user is provided, set the filter; otherwise, fetch without filtering by user
+    if (numericIdUser !== null) {
+      server.setFilter("id_user", numericIdUser, "eq", "numeric"); // Set filter for specific ID
+    }
+
     if (includesToday) {
       result = await server.read("callSummaryDayUser");
-
       await storeDataInMongoDB(result);
       result = await fetchDataFromMongoDB({
         startDate,
         endDate,
-        id,
+        id_user: numericIdUser, // This will be null if not provided
         skip,
         limit,
         page,
       });
-      logger.info(
-        `Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`
-      );
+      logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
     } else {
       result = await fetchDataFromMongoDB({
         startDate,
         endDate,
-        id,
+        id_user: numericIdUser, // This will be null if not provided
         skip,
         limit,
         page,
@@ -500,6 +490,8 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     return next(createError(500, `Internal Server Error: ${err.message}`));
   }
 });
+
+
 
 // @desc    Get all months records
 // @route   GET /api/v1/summary/month
@@ -605,11 +597,20 @@ exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
 // @route   GET /api/v1/billing/switch-data
 // @access  Private
 exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
-  const { module, type, page = 1, limit = 10, id } = req.query; // Extract query parameters
+  const { module, type, page = 1, limit = 10, id_user, id } = req.query; // Extract query parameters
   const server = getBillingServer(type); // Get the appropriate server (inbound or outbound)
 
   server.clearFilter(); // Clear any previous filters
-  server.setFilter("id", id, "eq", "numeric"); // Set filter for specific ID
+
+  // Include id_user in filter if provided
+  if (id_user) {
+    server.setFilter("id_user", id_user, "eq", "numeric");
+  }
+
+  // Include id in filter if provided
+  if (id) {
+    server.setFilter("id", id, "eq", "numeric"); // Adjust the field name as necessary
+  }
 
   if (!module) {
     return next(createError(400, "Module is required"));
@@ -619,6 +620,7 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
   const queryParams = {
     page,
     limit,
+    id_user,
     id
   };
 
@@ -658,6 +660,7 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
     return next(createError(500, "Internal Server Error while fetching data from switchBilling server"));
   }
 });
+
 
 
 // @desc    Get specific user credit
@@ -713,6 +716,7 @@ exports.getBillingAccountCredit = catchAsyncErrors(async (req, res, next) => {
     return next(createError(500, "Internal Server Error while fetching billing credit."));
   }
 });
+
 
 // @desc    Create new credit record
 // @route   POST /api/v1/billing/credit

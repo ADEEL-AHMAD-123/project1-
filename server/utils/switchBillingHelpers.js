@@ -1,5 +1,5 @@
 const moment = require('moment');
-const CallSummary = require('../models/CallSummary');
+const CallSummary = require('../models/BillingSummary');
 const logger = require('./logger');
 const BillingSwitchServer = require('../services/BillingSwitchServer');
 const apiKeyInbound = process.env.SWITCH_BILLING_INBOUND_API_KEY;
@@ -13,11 +13,7 @@ const outboundServer = new BillingSwitchServer(apiKeyOutbound, apiSecretOutbound
 
 // Function to select the appropriate server based on the query type
 const getBillingServer = (type) => {
-  if (type === 'outbound') {
-    return outboundServer;
-  }
-  // Default to inbound server if type is not specified or is 'inbound'
-  return inboundServer;
+  return type === 'outbound' ? outboundServer : inboundServer;
 };
 
 // Helper function to fetch all pages from billing API
@@ -36,14 +32,11 @@ const fetchAllPages = async (module, type = 'inbound', initialPage = 1) => {
 };
 
 // Helper function to fetch data from MongoDB based on the provided parameters
-const fetchDataFromMongoDB = async ({ startDate, endDate, id, skip, limit, page }) => {
+const fetchDataFromMongoDB = async ({ startDate, endDate, id_user, skip, limit, page }) => {
   const filter = {};
 
-  if (id) {
-    const numericId = parseInt(id, 10);
-    if (!isNaN(numericId)) {
-      filter.id = numericId;
-    }
+  if (id_user) {
+    filter.id_user = id_user; // Filter by numeric user ID
   }
 
   if (startDate && endDate) {
@@ -67,52 +60,65 @@ const fetchDataFromMongoDB = async ({ startDate, endDate, id, skip, limit, page 
     }
   };
 };
+
 // Helper function to store data in MongoDB
 const storeDataInMongoDB = async (data) => {
   try {
-    // Validate input data
+    // Validate the incoming data
     if (!data || !Array.isArray(data.rows) || data.rows.length === 0) {
       throw new Error('No data to store');
     }
 
-    // Transform and clean the data
+
+    // Clean and validate records
     const records = data.rows.map((record) => {
-      // Filter out null/undefined values and ensure necessary fields exist
       const cleanedRecord = Object.fromEntries(
         Object.entries(record).filter(([key, value]) => value !== null && value !== undefined)
       );
 
-      // Validate essential fields before proceeding
-      if (!cleanedRecord.id || !cleanedRecord.day) {
+      // Log each cleaned record to ensure it's structured correctly
+      console.log('Cleaned Record:', cleanedRecord);
+
+      // Check for essential fields (id, day, id_user)
+      if (!cleanedRecord.id || !cleanedRecord.day || !cleanedRecord.id_user) {
         throw new Error(`Record missing essential fields: ${JSON.stringify(cleanedRecord)}`);
       }
 
       return cleanedRecord;
     });
 
-    console.log('Transformed records:', records);  // Debugging information
+    // Log records that are about to be inserted/updated
+    console.log('Processed Records:', records);
 
-    // Perform bulk upsert in MongoDB
-    const bulkOperations = records.map((record) => ({
-      updateOne: {
-        filter: { id: record.id, day: record.day },  // Use id and day as unique fields for upsert
-        update: { $set: record },  // Update record data
-        upsert: true,  // Insert if not found
-      },
-    }));
+    // Create bulk operations with update criteria
+    const bulkOperations = records.map((record) => {
+      console.log('Creating Bulk Operation for Record:', record);  // Log the record being processed
+      return {
+        updateOne: {
+          filter: { id: record.id, day: record.day, id_user: record.id_user },
+          update: { $set: record },
+          upsert: true,  // Insert if not found
+        },
+      };
+    });
 
-    // Execute bulkWrite in MongoDB
+    // Perform bulkWrite operation
     const result = await CallSummary.bulkWrite(bulkOperations);
 
-    const nUpserted = result.nUpserted || 0;
-    const nModified = result.nModified || 0;
-    logger.info(`Successfully stored ${nUpserted + nModified} records in MongoDB`);
-    
+    // Log the result from bulkWrite
     console.log('BulkWrite result:', result);
 
-    return result; // Optionally return result if needed
+    // Log the counts of upserts and updates
+    const nUpserted = result.upsertedCount || 0;
+    const nModified = result.modifiedCount || 0;
+    const nMatched = result.matchedCount || 0;
+    
+    logger.info(`Successfully stored ${nUpserted} inserted, ${nModified} modified, and ${nMatched} matched documents in MongoDB`);
+
+    return result;
 
   } catch (err) {
+    // Log the error with detailed context
     logger.error(`Failed to store data in MongoDB: ${err.message}`, {
       error: err,
       data: data,
@@ -120,7 +126,6 @@ const storeDataInMongoDB = async (data) => {
     throw new Error(`Failed to store data in MongoDB: ${err.message}`);
   }
 };
-
 
 
 // Helper function to generate a random pin

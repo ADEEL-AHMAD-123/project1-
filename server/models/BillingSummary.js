@@ -1,4 +1,3 @@
-// models/BillingSummary.js
 const mongoose = require('mongoose');
 
 const billingSummarySchema = new mongoose.Schema({
