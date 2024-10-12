@@ -11,7 +11,7 @@ const UsageSummary = () => {
   const { Role, hasBillingAccount } = useSelector((state) => state.user);
 
   const initialFilters = {
-    id_user: Role === 'client' ? BillingAccount?.id_user || '' : '',
+    id_user: Role === 'client' ? BillingAccount?.id || '' : '',
     period: 'daily',
     page: 1,
     limit: 10,
