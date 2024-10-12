@@ -85,7 +85,7 @@ const InboundUsage = () => {
     if (Role === 'client' && !BillingAccount?.id) return;
 
     const updatedFilters = Role === 'client'
-      ? { ...currentFilters, id: BillingAccount?.id }
+      ? { ...currentFilters, id_user: BillingAccount?.id }
       : currentFilters;
 
     const queryString = new URLSearchParams(updatedFilters).toString();
@@ -105,8 +105,6 @@ const InboundUsage = () => {
   if (loading) {
     return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
   }
-
-  
 
   // Error card for clients without a billing account
   if (Role === 'client' && !hasBillingAccount) {
@@ -152,11 +150,11 @@ const InboundUsage = () => {
         </div>
         {Role !== 'client' && (
           <div className="text-filter">
-            <label htmlFor="id" className="filter-label">User ID</label>
+            <label htmlFor="id_user" className="filter-label">User ID</label>
             <input
               type="text"
-              name="id"
-              value={localFilters.id || ''}
+              name="id_user"
+              value={localFilters.id_user || ''}
               onChange={handleChange}
               className="filter-input"
               placeholder="Enter user ID"
@@ -237,26 +235,26 @@ const InboundUsage = () => {
       </div>
 
       <div className="pagination">
-  {totalPages > 1 && (
-    <>
-      <button
-        className="pagination-button"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        Prev
-      </button>
-      <span>Page {currentPage} of {totalPages}</span>
-      <button
-        className="pagination-button"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        Next
-      </button>
-    </>
-  )}
-</div>
+        {totalPages > 1 && (
+          <>
+            <button
+              className="pagination-button"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            <span>Page {currentPage} of {totalPages}</span>
+            <button
+              className="pagination-button"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </>
+        )}
+      </div>
 
     </div>
   );

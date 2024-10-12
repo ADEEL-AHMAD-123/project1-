@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { billingAsyncActions } from '../redux/slices/billingSlice';
 import ErrorCard from './ErrorCard';
 import '../styles/ListingTable.scss';
-// import '../styles/FilterComponent.scss';
+
 
 const UsageSummary = () => {
   const dispatch = useDispatch();
@@ -11,7 +11,7 @@ const UsageSummary = () => {
   const { Role, hasBillingAccount } = useSelector((state) => state.user);
 
   const initialFilters = {
-    id_user: Role === 'client' ? BillingAccount?.id || '' : '',
+    id_user: Role === 'client' ? BillingAccount?.id_user || '' : '',
     period: 'daily',
     page: 1,
     limit: 10,
@@ -40,18 +40,18 @@ const UsageSummary = () => {
 
   useEffect(() => {
     // Dispatch getBillingAccount if Role is 'client' and they don't have BillingAccount yet
-    if (Role === 'client' && hasBillingAccount && !BillingAccount?.id) {
+    if (Role === 'client' && hasBillingAccount && !BillingAccount?.id_user) {
       dispatch(billingAsyncActions.getBillingAccount({ requestData: '' }));
     }
-  }, [Role, hasBillingAccount, BillingAccount?.id, dispatch]);
+  }, [Role, hasBillingAccount, BillingAccount?.id_user, dispatch]);
 
   useEffect(() => {
     // Apply filters when page loads for all roles
-    // For clients, wait for BillingAccount.id to be available before dispatching
-    if (Role !== 'client' || (Role === 'client' && BillingAccount?.id)) {
+    // For clients, wait for BillingAccount.id_user to be available before dispatching
+    if (Role !== 'client' || (Role === 'client' && BillingAccount?.id_user)) {
       applyFilters(filters); // Apply filters on page load
     }
-  }, [Role, BillingAccount?.id, filters]);
+  }, [Role, BillingAccount?.id_user, filters]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,11 +81,11 @@ const UsageSummary = () => {
   };
 
   const applyFilters = (currentFilters) => {
-    // Prevent dispatching if it's a client and BillingAccount.id isn't available
-    if (Role === 'client' && !BillingAccount?.id) return;
+    // Prevent dispatching if it's a client and BillingAccount.id_user isn't available
+    if (Role === 'client' && !BillingAccount?.id_user) return;
 
     const updatedFilters = Role === 'client'
-      ? { ...currentFilters, id: BillingAccount?.id }
+      ? { ...currentFilters, id_user: BillingAccount?.id_user }
       : currentFilters;
 
     const queryString = new URLSearchParams(updatedFilters).toString();
@@ -106,8 +106,6 @@ const UsageSummary = () => {
     return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
   }
 
-  
-
   // Error card for clients without a billing account
   if (Role === 'client' && !hasBillingAccount) {
     return (
@@ -119,8 +117,6 @@ const UsageSummary = () => {
       />
     );
   }
-
- 
 
   const totalPages = pagination?.totalPages || 1;
   const currentPage = localFilters.page || 1;
@@ -154,11 +150,11 @@ const UsageSummary = () => {
         </div>
         {Role !== 'client' && (
           <div className="text-filter">
-            <label htmlFor="id" className="filter-label">User ID</label>
+            <label htmlFor="id_user" className="filter-label">User ID</label>
             <input
               type="text"
-              name="id"
-              value={localFilters.id || ''}
+              name="id_user"  // Changed name to id_user
+              value={localFilters.id_user || ''} // Changed value to id_user
               onChange={handleChange}
               className="filter-input"
               placeholder="Enter user ID"
@@ -238,28 +234,26 @@ const UsageSummary = () => {
         </table>
       </div>
       <div className="pagination">
-  {totalPages > 1 && (
-    <>
-      <button
-        className="pagination-button"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        Prev
-      </button>
-      <span>Page {currentPage} of {totalPages}</span>
-      <button
-        className="pagination-button"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        Next
-      </button>
-    </>
-  )}
-</div>
-
-
+        {totalPages > 1 && (
+          <>
+            <button
+              className="pagination-button"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            <span>Page {currentPage} of {totalPages}</span>
+            <button
+              className="pagination-button"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 };
