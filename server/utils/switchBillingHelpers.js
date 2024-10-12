@@ -67,38 +67,61 @@ const fetchDataFromMongoDB = async ({ startDate, endDate, id, skip, limit, page 
     }
   };
 };
-
 // Helper function to store data in MongoDB
 const storeDataInMongoDB = async (data) => {
   try {
-    if (!data) {
+    // Validate input data
+    if (!data || !Array.isArray(data.rows) || data.rows.length === 0) {
       throw new Error('No data to store');
     }
 
-    const records = data.rows.map((record) => ({
-      ...record
+    // Transform and clean the data
+    const records = data.rows.map((record) => {
+      // Filter out null/undefined values and ensure necessary fields exist
+      const cleanedRecord = Object.fromEntries(
+        Object.entries(record).filter(([key, value]) => value !== null && value !== undefined)
+      );
+
+      // Validate essential fields before proceeding
+      if (!cleanedRecord.id || !cleanedRecord.day) {
+        throw new Error(`Record missing essential fields: ${JSON.stringify(cleanedRecord)}`);
+      }
+
+      return cleanedRecord;
+    });
+
+    console.log('Transformed records:', records);  // Debugging information
+
+    // Perform bulk upsert in MongoDB
+    const bulkOperations = records.map((record) => ({
+      updateOne: {
+        filter: { id: record.id, day: record.day },  // Use id and day as unique fields for upsert
+        update: { $set: record },  // Update record data
+        upsert: true,  // Insert if not found
+      },
     }));
 
-    await CallSummary.bulkWrite(
-      records.map((record) => ({
-        updateOne: {
-          filter: { id: record.id, day: record.day },
-          update: { $set: record },
-          upsert: true
-        }
-      }))
-    );
+    // Execute bulkWrite in MongoDB
+    const result = await CallSummary.bulkWrite(bulkOperations);
 
-    logger.info(`Successfully stored ${records.length} records in MongoDB`);
+    const nUpserted = result.nUpserted || 0;
+    const nModified = result.nModified || 0;
+    logger.info(`Successfully stored ${nUpserted + nModified} records in MongoDB`);
+    
+    console.log('BulkWrite result:', result);
+
+    return result; // Optionally return result if needed
 
   } catch (err) {
     logger.error(`Failed to store data in MongoDB: ${err.message}`, {
       error: err,
-      data: data
+      data: data,
     });
     throw new Error(`Failed to store data in MongoDB: ${err.message}`);
   }
 };
+
+
 
 // Helper function to generate a random pin
 const generateRandomPin = () => {
