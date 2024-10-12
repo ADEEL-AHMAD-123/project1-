@@ -14,12 +14,12 @@ const UsageSummary = () => {
     id_user: Role === 'client' ? BillingAccount?.id || '' : '',
     period: 'daily',
     page: 1,
-    limit: 10,
+    limit: 10, 
     startDate: '',
     endDate: '',
     type: 'inbound',
   };
-
+console.log(initialFilters.id_user,BillingAccount.id);
   const storageKey = 'usageSummaryFilters';
   const [filters, setFilters] = useState(() => JSON.parse(localStorage.getItem(storageKey)) || initialFilters);
   const [localFilters, setLocalFilters] = useState(filters);
@@ -82,10 +82,10 @@ const UsageSummary = () => {
 
   const applyFilters = (currentFilters) => {
     // Prevent dispatching if it's a client and BillingAccount.id_user isn't available
-    if (Role === 'client' && !BillingAccount?.id_user) return;
+    if (Role === 'client' && !BillingAccount?.id) return;
 
     const updatedFilters = Role === 'client'
-      ? { ...currentFilters, id_user: BillingAccount?.id_user }
+      ? { ...currentFilters, id_user: BillingAccount?.id }
       : currentFilters;
 
     const queryString = new URLSearchParams(updatedFilters).toString();
