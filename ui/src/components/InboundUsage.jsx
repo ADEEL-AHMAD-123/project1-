@@ -84,9 +84,10 @@ const InboundUsage = () => {
     // Prevent dispatching if it's a client and BillingAccount.id isn't available
     if (Role === 'client' && !BillingAccount?.id) return;
 
+    // Include the Role in the request parameters
     const updatedFilters = Role === 'client'
-      ? { ...currentFilters, id_user: BillingAccount?.id }
-      : currentFilters;
+      ? { ...currentFilters, id_user: BillingAccount?.id, role: Role } // Add role here
+      : { ...currentFilters, role: Role }; // Add role here for non-clients
 
     const queryString = new URLSearchParams(updatedFilters).toString();
     dispatch(billingAsyncActions.getInboundUsage({ requestData: `?${queryString}` }));
@@ -202,7 +203,7 @@ const InboundUsage = () => {
               <th>All Calls</th>
               <th>Answered</th>
               <th>Failed</th>
-              <th>Buy Price</th>
+              {Role !== 'client' && <th>Buy Price</th>}
               <th>Sell Price</th>
               <th>Markup</th>
               <th>ASR</th>
@@ -219,7 +220,7 @@ const InboundUsage = () => {
                   <td>{data.nbcall}</td>
                   <td>{data.nbcall - data.nbcall_fail}</td>
                   <td>{data.nbcall_fail}</td>
-                  <td>{data.sumbuycost}</td>
+                  {Role !== 'client' && <td>{data.sumbuycost}</td>}
                   <td>{data.sellPrice}</td>
                   <td>{data.markup}</td>
                   <td>{data.asr}</td>
@@ -227,7 +228,9 @@ const InboundUsage = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="11" className="no-data">No data available</td>
+                <td colSpan={Role === 'client' ? 10 : 11} className="no-data-message">
+                  No data available for the selected filters.
+                </td>
               </tr>
             )}
           </tbody>
@@ -238,15 +241,13 @@ const InboundUsage = () => {
         {totalPages > 1 && (
           <>
             <button
-              className="pagination-button"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
-              Prev
+              Previous
             </button>
             <span>Page {currentPage} of {totalPages}</span>
             <button
-              className="pagination-button"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
@@ -255,7 +256,6 @@ const InboundUsage = () => {
           </>
         )}
       </div>
-
     </div>
   );
 };

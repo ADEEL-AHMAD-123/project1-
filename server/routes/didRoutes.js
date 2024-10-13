@@ -1,25 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  addDID, 
-  getAvailableDIDs, 
-  addDIDsInBulk, 
-  getGlobalPricing, 
-  setGlobalPricing,  
-  getUserPricing, 
-  setUserPricing, 
-  editDIDConfig, 
+const {
+  addDID,
+  getAvailableDIDs,
+  addDIDsInBulk,
+  getGlobalPricing,
+  setGlobalPricing,
+  getUserPricing,
+  setUserPricing,
+  editDIDConfig,
   deleteDID,
-  getMyDIDs 
+  getMyDIDs,
+  uploadDIDsFromCSV,
 } = require('../controllers/didController');
+const multer = require('multer');
+
+const upload = multer({ dest: 'uploads/' });
 
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 
 // Add DID (admin only)
 router.post('/', isAuthenticatedUser, isAuthorized('admin'), addDID);
- 
+
 // Add DIDs in bulk (admin only)
 router.post('/bulk', isAuthenticatedUser, isAuthorized('admin'), addDIDsInBulk);
+
+// Use the upload middleware for the specific route
+router.post('/bulk/upload', upload.single('file'), isAuthenticatedUser, isAuthorized('admin'), uploadDIDsFromCSV); // Ensure admin only
 
 // Get available DIDs for purchase (requires user to be authenticated)
 router.get('/available', isAuthenticatedUser, getAvailableDIDs);

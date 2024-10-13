@@ -3,7 +3,9 @@ const Pricing = require('../models/DIDPricing');
 const logger = require('../utils/logger');
 const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const createError = require('http-errors');
-const User=require('../models/user')
+const User = require('../models/user');
+const csv = require('csv-parser');
+const fs = require('fs');
 
 // @desc    Add a new DID
 // @route   POST /api/v1/dids
@@ -30,7 +32,7 @@ exports.addDID = catchAsyncErrors(async (req, res, next) => {
     country,
     state,
     areaCode,
-    destination
+    destination,
   });
 
   await newDID.save();
@@ -40,10 +42,9 @@ exports.addDID = catchAsyncErrors(async (req, res, next) => {
   res.status(201).json({
     success: true,
     message: 'DID added successfully',
-    did: newDID
+    did: newDID,
   });
 });
-
 
 // @desc    Add multiple DIDs in bulk
 // @route   POST /api/v1/dids/bulk
@@ -57,28 +58,103 @@ exports.addDIDsInBulk = catchAsyncErrors(async (req, res, next) => {
     return next(createError(400, 'Invalid input'));
   }
 
-  // Collect existing DID numbers
-  const didNumbers = dids.map(did => did.didNumber);
-  const existingDIDs = await DID.find({ didNumber: { $in: didNumbers } }).select('didNumber');
-  const existingNumbers = existingDIDs.map(did => did.didNumber);
+  const validDIDs = [];
+  const invalidDIDs = [];
 
-  // If any DID numbers already exist
-  if (existingNumbers.length > 0) {
-    logger.error('DID numbers already exist', { userId: req.user.id, existingNumbers });
-    return next(createError(400, `DID numbers already exist: ${existingNumbers.join(', ')}`));
+  // Validate each DID entry
+  for (const did of dids) {
+    const { didNumber, country, state, areaCode } = did;
+    const errors = [];
+
+    // Check for required fields
+    if (!didNumber) errors.push('Missing required field: didNumber');
+    if (!country) errors.push('Missing required field: country');
+    if (!state) errors.push('Missing required field: state');
+    if (!areaCode) errors.push('Missing required field: areaCode');
+
+    // Validate didNumber format
+    if (didNumber && !/^\d{10}$/.test(didNumber)) {
+      errors.push(`${didNumber} is not a valid 10-digit DID number`);
+    }
+
+    if (errors.length > 0) {
+      invalidDIDs.push({ didNumber, errors });
+      continue;
+    }
+
+    // If valid, add to validDIDs array
+    validDIDs.push(did);
   }
 
-  // Insert new DIDs
-  await DID.insertMany(dids);
+  // Check if validDIDs already exist
+  const existingDIDs = await DID.find({ didNumber: { $in: validDIDs.map((d) => d.didNumber) } }).select('didNumber');
+  const existingNumbers = existingDIDs.map((d) => d.didNumber);
 
-  logger.info('DIDs added in bulk successfully', { userId: req.user.id, count: dids.length });
+  // If any valid DID numbers already exist, push them to invalidDIDs with a specific message
+  for (const did of validDIDs) {
+    if (existingNumbers.includes(did.didNumber)) {
+      invalidDIDs.push({ didNumber: did.didNumber, errors: ['DID number already exists'] });
+    }
+  }
 
+  // Remove already existing DIDs from validDIDs
+  const newDIDs = validDIDs.filter((did) => !existingNumbers.includes(did.didNumber));
+
+  // Insert new DIDs if there are any
+  if (newDIDs.length > 0) {
+    await DID.insertMany(newDIDs);
+    logger.info('DIDs added in bulk successfully', { count: newDIDs.length, userId: req.user.id });
+  }
+
+  // Response construction
   res.status(201).json({
     success: true,
-    message: 'DIDs added in bulk successfully',
-    count: dids.length
+    message: 'DIDs processed.',
+    added: newDIDs.length,
+    errors: invalidDIDs.length > 0 ? invalidDIDs : undefined, // Include detailed errors if any
   });
 });
+
+// @desc    Upload bulk DIDs from a CSV file
+// @route   POST /api/v1/dids/bulk/upload
+// @access  Private
+exports.uploadDIDsFromCSV = catchAsyncErrors(async (req, res, next) => {
+  const results = [];
+
+  // Read the CSV file 
+  fs.createReadStream(req.file.path)
+    .pipe(csv())
+    .on('data', (data) => {
+      console.log('Parsed data:', data); // Log parsed data
+      results.push({
+        didNumber: data.didNumber,
+        country: data.country,
+        state: data.state,
+        areaCode: data.areaCode,
+        destination: data.destination, // Optional
+      });
+    })
+    .on('end', async () => {
+      const mockReq = {
+        user: req.user, // Ensure user info is passed for logging
+        body: results,  // Provide the parsed CSV data
+      };
+
+      // Call the addDIDsInBulk function with the mock request
+      await exports.addDIDsInBulk(mockReq, res, next);
+      
+      fs.unlinkSync(req.file.path); // Clean up file after processing
+    })
+    .on('error', (error) => {
+      logger.error('Error reading CSV file', { error });
+      fs.unlinkSync(req.file.path); // Clean up the file on error as well
+      return next(createError(500, 'Error reading CSV file: ' + error.message));
+    });
+});
+
+
+
+
 
 // @desc    Get available DIDs for purchase with filtering, searching, and pagination
 // @route   GET /api/v1/dids/available

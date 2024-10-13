@@ -7,8 +7,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   const { token } = req.cookies;
 
   if (!token) {
-    const error = createError(404, "Please login to access this resource");
-    return next(error);
+    return next(createError(404, "Please login to access this resource"));
   }
 
   try {
@@ -16,32 +15,25 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
     req.user = await User.findById(decodedData.id);
 
     if (!req.user) {
-      const error = createError(404, "User not found");
-      return next(error);
+      return next(createError(404, "User not found"));
     }
 
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       res.clearCookie("token"); // Clear the expired token from the cookies
-      const tokenExpiredError = createError(401, "Token has expired. Please login again.");
-      return next(tokenExpiredError);
+      return res.status(401).json({ message: "Token has expired. Please login again." });
     } else {
-      const invalidTokenError = createError(500, "Invalid token");
-      return next(invalidTokenError);
+      return next(createError(401, "Invalid token"));
     }
   }
 });
 
 exports.isAuthorized = (...roles) => {
   return (req, res, next) => {
-    try {
-      if (!roles.includes(req.user.role)) {
-        throw createError(403, `Role: ${req.user.role} is not allowed to access this resource`);
-      }
-      next();
-    } catch (error) {
-      next(error);
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(createError(403, `Role: ${req.user?.role} is not allowed to access this resource`));
     }
+    next();
   };
 };

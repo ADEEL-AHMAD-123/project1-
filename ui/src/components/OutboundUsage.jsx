@@ -82,9 +82,11 @@ const OutBoundUsage = () => {
     // Prevent dispatching if it's a client and BillingAccount.id isn't available
     if (Role === 'client' && !BillingAccount?.id) return;
 
-    const updatedFilters = Role === 'client'
-      ? { ...currentFilters, id_user: BillingAccount?.id } // Change id to id_user
-      : currentFilters;
+    const updatedFilters = {
+      ...currentFilters,
+      id_user: Role === 'client' ? BillingAccount?.id : currentFilters.id_user, // Ensure id_user is set for client
+      role: Role, // Include role in the request
+    };
 
     const queryString = new URLSearchParams(updatedFilters).toString();
     dispatch(billingAsyncActions.getOutboundUsage({ requestData: `?${queryString}` }));
@@ -198,7 +200,7 @@ const OutBoundUsage = () => {
               <th>All Calls</th>
               <th>Answered</th>
               <th>Failed</th>
-              <th>Buy Price</th>
+              {Role !== 'client' && <th>Buy Price</th>} {/* Hide Buy Price for client role */}
               <th>Sell Price</th>
               <th>Markup</th>
               <th>ASR</th>
@@ -215,7 +217,7 @@ const OutBoundUsage = () => {
                   <td>{data.nbcall}</td>
                   <td>{data.nbcall - data.nbcall_fail}</td>
                   <td>{data.nbcall_fail}</td>
-                  <td>{data.sumbuycost}</td>
+                  {Role !== 'client' && <td>{data.sumbuycost}</td>} {/* Conditional rendering for Buy Price */}
                   <td>{data.sellPrice}</td>
                   <td>{data.markup}</td>
                   <td>{data.asr}</td>

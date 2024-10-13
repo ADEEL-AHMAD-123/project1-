@@ -4,7 +4,6 @@ import { billingAsyncActions } from '../redux/slices/billingSlice';
 import ErrorCard from './ErrorCard';
 import '../styles/ListingTable.scss';
 
-
 const UsageSummary = () => {
   const dispatch = useDispatch();
   const { loading, error, InBoundUsage, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
@@ -14,12 +13,12 @@ const UsageSummary = () => {
     id_user: Role === 'client' ? BillingAccount?.id || '' : '',
     period: 'daily',
     page: 1,
-    limit: 10, 
+    limit: 10,
     startDate: '',
     endDate: '',
     type: 'inbound',
   };
-console.log(initialFilters.id_user,BillingAccount.id);
+
   const storageKey = 'usageSummaryFilters';
   const [filters, setFilters] = useState(() => JSON.parse(localStorage.getItem(storageKey)) || initialFilters);
   const [localFilters, setLocalFilters] = useState(filters);
@@ -88,7 +87,13 @@ console.log(initialFilters.id_user,BillingAccount.id);
       ? { ...currentFilters, id_user: BillingAccount?.id }
       : currentFilters;
 
-    const queryString = new URLSearchParams(updatedFilters).toString();
+    // Add the role to the request data
+    const requestData = {
+      ...updatedFilters,
+      role: Role, // Include the role in the request
+    };
+
+    const queryString = new URLSearchParams(requestData).toString();
     dispatch(billingAsyncActions.getInboundUsage({ requestData: `?${queryString}` }));
   };
 
@@ -153,8 +158,8 @@ console.log(initialFilters.id_user,BillingAccount.id);
             <label htmlFor="id_user" className="filter-label">User ID</label>
             <input
               type="text"
-              name="id_user"  // Changed name to id_user
-              value={localFilters.id_user || ''} // Changed value to id_user
+              name="id_user"
+              value={localFilters.id_user || ''}
               onChange={handleChange}
               className="filter-input"
               placeholder="Enter user ID"
@@ -202,7 +207,7 @@ console.log(initialFilters.id_user,BillingAccount.id);
               <th>All Calls</th>
               <th>Answered</th>
               <th>Failed</th>
-              <th>Buy Price</th>
+              {Role !== 'client' && <th>Buy Price</th>}
               <th>Sell Price</th>
               <th>Markup</th>
               <th>ASR</th>
@@ -219,7 +224,7 @@ console.log(initialFilters.id_user,BillingAccount.id);
                   <td>{data.nbcall}</td>
                   <td>{data.nbcall - data.nbcall_fail}</td>
                   <td>{data.nbcall_fail}</td>
-                  <td>{data.sumbuycost}</td>
+                  {Role !== 'client' && <td>{data.sumbuycost}</td>}
                   <td>{data.sellPrice}</td>
                   <td>{data.markup}</td>
                   <td>{data.asr}</td>

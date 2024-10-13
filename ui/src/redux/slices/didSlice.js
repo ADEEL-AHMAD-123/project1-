@@ -29,6 +29,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
   });
 };
 
+
 export const didAsyncActions = {
   fetchAvailableDIDs: createApiAsyncThunk({
     name: "fetchAvailableDIDs",
@@ -75,6 +76,16 @@ export const didAsyncActions = {
     method: "GET",
     url: "/dids/mydids",
   }),
+  addDID: createApiAsyncThunk({
+    name: "add-DID",
+    method: "POST",
+    url: "/dids/",
+  }),
+  addDIDsFromFile: createApiAsyncThunk({
+    name: "add-DIDs-From-File",
+    method: "POST",
+    url: "/dids/bulk/upload",
+  }),
 };
 
 const initialState = {
@@ -93,15 +104,21 @@ const initialState = {
   },
   pagination: null,
   isLoading: false,
+  message: null,
   error: null,
+  errors: [],
+  added: null,
 };
 
 const didSlice = createSlice({
   name: "did",
   initialState,
   reducers: {
-    resetDIDState: (state) => {
-      return initialState;
+    resetDIDState: (state) => initialState,
+    clearMessages: (state) => {
+      state.message = null;
+      state.errors = [];
+      state.added = null;
     },
   },
   extraReducers: (builder) => {
@@ -109,44 +126,28 @@ const didSlice = createSlice({
       builder.addCase(action.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.message = null;
       });
       builder.addCase(action.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.error = null;
 
-        // Handle available DIDs data
-        if (payload && actionName === "fetchAvailableDIDs") {
-          state.availableDIDs = payload.dids;
-          state.pagination = payload.pagination;
+        if (actionName === "addDIDsFromFile") {
+          state.message = payload.message;
+          state.added = payload.added;
+          state.errors = payload.errors || [];
         }
 
-        // Handle global DID pricing
-        if (payload && actionName === "fetchGlobalDIDPricing" || actionName === "setGlobalDIDPricing") {
-          state.globalPricing.nonBulkPrice = payload.pricing.nonBulkPrice;
-          state.globalPricing.bulkPrice = payload.pricing.bulkPrice;
-          state.globalPricing.bulkThreshold = payload.pricing.bulkThreshold;
-          state.globalPricing.lastModified = payload.pricing.lastModified;
-        }
-
-        // Handle user DID pricing
-        if (payload && actionName === "fetchUserDIDPricing") {
-          state.userPricing.nonBulkPrice = payload.pricing.nonBulkPrice;
-          state.userPricing.bulkPrice = payload.pricing.bulkPrice;
-          state.userPricing.bulkThreshold = payload.pricing.bulkThreshold;
-        }
-
-        // Handle "myDIDs" response
-        if (payload && actionName === "fetchMyDIDs") {
-          state.myDIDs = payload.dids;
-        }
+        // Handle other cases...
       });
-      builder.addCase(action.rejected, (state, { error }) => {
+      builder.addCase(action.rejected, (state, { payload }) => {
         state.isLoading = false;
-        state.error = error.message;
+        state.error = payload.message;
+        state.errors = payload.errors || [];
       });
     });
   },
 });
 
 export default didSlice.reducer;
-export const { resetDIDState } = didSlice.actions;
+export const { resetDIDState, clearMessages } = didSlice.actions;

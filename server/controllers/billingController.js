@@ -415,7 +415,7 @@ exports.updateResource = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-// @desc    Get records based on date range, optionally filtered by id_user
+// @desc    Get billing summary records based on date range, optionally filtered by id_user
 // @route   GET /api/v1/summary/days
 // @access  Private
 exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
@@ -425,8 +425,9 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     endDate: endDateParam,
     page = 1,
     type,
+    role, 
   } = req.query;
-  
+
   const server = getBillingServer(type); // Get the correct server based on the type
 
   // Ensure id_user is numeric if provided
@@ -511,6 +512,14 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
+    // Check if the role is 'client' and remove the 'sumbuycost' field
+    if (role === 'client') {
+      result.data = result.data.map((item) => {
+        const { sumbuycost, ...rest } = item._doc || item; // Exclude 'sumbuycost'
+        return rest;
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: result.data,
@@ -529,6 +538,7 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     return next(createError(500, `Internal Server Error: ${err.message}`));
   }
 });
+
 
 
 

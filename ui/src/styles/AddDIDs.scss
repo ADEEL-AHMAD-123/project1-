@@ -1,30 +1,152 @@
-// src/styles/components/_AddDIDs.scss
+@import "./variables";
 
-.add-dids {
-    padding: 1rem;
+.dids-page {
+  display: flex; // Use flexbox for horizontal alignment
+  justify-content: space-between; // Space between the two sections
+  background-color: white;
+  padding: 20px;
 
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+  h1 {
+    margin-bottom: 1rem;
+  }
 
-        input {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
+  .form {
+    display: flex;
+    justify-content: space-between; // Align sections side by side
+    width: 100%; // Full width for the form
 
-        button {
-            padding: 0.5rem;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
+    .main-form {
+      flex: 1; // Allow this section to grow
+      padding: 1rem; // Padding for the section
+      margin-right: 1rem; // Space to the right
+      border-radius: 0;
+      box-shadow: none;
+      border: 1px dashed #ccc; 
 
-            &:hover {
-                background-color: #218838;
-            }
-        }
+      h6 {
+        margin-bottom: 1rem; // Space below the heading
+      }
+
+      .form-group {
+        margin-bottom: 1rem; // Space between form fields
+      }
+
+      .error {
+        color: red; // Style for error messages
+        font-size: 0.8rem; // Smaller font for error messages
+      }
     }
+
+    .csv-upload-section {
+      flex: 1; // Allow this section to grow equally
+      padding: 1rem; // Padding for the section
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px dashed #ccc; // Dashed border for visual separation
+      background-color: $white-color; // Light background color
+      margin-left: 1rem; // Space to the left
+      transition: background-color 0.3s; // Smooth transition for hover effect
+
+      h1 {
+        margin: 0; // Space below the heading
+      }
+
+      h6 {
+        margin: 0;
+        padding: 0;
+      }
+
+      .file-upload-container {
+        display: flex;
+        flex-direction: column; // Stack elements vertically
+        align-items: center; // Center elements horizontally
+        width: 100%; // Full width
+
+        .file-input {
+          padding: 15px; // Padding for the file input
+          border: 1px solid #ccc; // Border for the file input
+          border-radius: 4px; // Rounded corners for the input
+          cursor: pointer; // Pointer cursor on hover
+          width: 70%; // Set a fixed width for the input
+          margin: 20px 0;
+        }
+
+        .btn {
+          width: 30%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.9rem; // Decrease font size for buttons
+          padding: 8px; // Reduce padding for smaller buttons
+        }
+      }
+    }
+  }
+
+  .process-summary {
+    width: 100%;
+    margin-top: 20px; // Space above the summary section
+    padding: 1rem; // Padding for summary section
+    border: 1px solid #ccc; // Border for the summary
+    border-radius: 4px; // Rounded corners for the summary
+    background-color: #f9f9f9; // Light gray background for summary
+
+    h1 {
+      margin-bottom: 1rem; // Space below the heading
+    }
+
+    p {
+      margin: 0; // Remove margin for paragraphs
+    }
+
+    .error-list {
+      margin-top: 10px; // Space above the error list
+      margin-bottom: 1rem; // Space below the error list
+
+      h2 {
+        margin-bottom: 0.5rem; // Space below the heading
+      }
+
+      ul {
+        list-style-type: none; // Remove default list styles
+        padding: 0; // Remove padding
+        margin: 0; // Remove margin
+      }
+
+      .error-item {
+        margin-bottom: 0.5rem; // Space between error items
+        display: flex; // Use flexbox for alignment
+        justify-content: space-between; // Space between number and message
+        border: 1px solid red; // Add border for error items
+        padding: 5px; // Padding for error items
+        border-radius: 4px; // Rounded corners for error items
+        background-color: #ffe6e6; // Light red background for errors
+
+        .error-number {
+          font-weight: bold; // Bold font for error number
+        }
+
+        .error-message {
+          color: darkred; // Dark red for error messages
+        }
+      }
+    }
+
+    .button-container {
+      display: flex; // Flexbox for button alignment
+      justify-content: space-between; // Space between buttons
+
+      .btn {
+        width: 15%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem; // Decrease font size for buttons
+        padding: 8px; // Reduce padding for smaller buttons
+
+      }
+    }
+  }
 }
