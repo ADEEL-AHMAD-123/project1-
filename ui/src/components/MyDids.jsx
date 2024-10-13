@@ -30,6 +30,14 @@ const MyDIDs = () => {
       />
     );
   }
+  if (myDIDs.length== 0) {
+    return (
+      <ErrorCard 
+        message={"you dont have any dids yet."}
+        isFullPage={false} 
+      />
+    );
+  }
 
   return (
     <div className="my-dids-container">
