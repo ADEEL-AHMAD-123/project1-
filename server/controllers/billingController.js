@@ -168,31 +168,70 @@ exports.createSIPAccount = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+
+
 // @desc    Get logged-in user's billing account
 // @route   GET /api/v1/billing/account
 // @access  Private
 exports.getBillingAccount = catchAsyncErrors(async (req, res, next) => {
+  const { type } = req.query; // Extract 'type' from query params
   const userId = req.user.id; // Assuming req.user contains the authenticated user's info
 
   try {
-    // Fetch the user's billing account from the BillingAccount collection
-    const billingAccount = await BillingAccount.findOne({ user_id: userId });
+    // Fetch the billing account from MongoDB for the logged-in user
+    const existingBillingAccount = await BillingAccount.findOne({ user_id: userId });
 
-    // If no billing account is found, return an error
-    if (!billingAccount) {
+    // If no billing account is found in MongoDB, return an error
+    if (!existingBillingAccount) {
       return next(createError(404, "Billing account not found for this user"));
     }
 
-    res.status(200).json({
-      success: true,
-      data: billingAccount,
-    });
+    const { id } = existingBillingAccount; // Get the 'id' from the existing billing account
+
+    const server = getBillingServer(type); // Get the appropriate billing server based on 'type'
+    server.clearFilter();
+
+    // Set the filter to fetch the billing account by 'id'
+    server.setFilter("id", id, "eq", "numeric");
+
+    // Fetch the billing account data from the switchBilling server
+    const apiResponse = await server.read("user", 1); // Assuming 1 is for pagination
+
+    // Check if the API response is successful
+    if (apiResponse && apiResponse.rows && apiResponse.rows.length > 0) {
+      const billingAccountData = apiResponse.rows[0]; // Assuming the first row is the desired account
+
+      // Update or create the billing account in MongoDB
+      const updatedBillingAccount = await BillingAccount.findOneAndUpdate(
+        { user_id: userId }, // Find by user_id
+        { ...billingAccountData }, // Update with the fetched data from the switchBilling server
+        { new: true, upsert: true } // Create if it doesn't exist, otherwise update
+      );
+
+      // Return the updated billing account to the client
+      res.status(200).json({
+        success: true,
+        data: updatedBillingAccount,
+      });
+    } else {
+      const errorMessage = apiResponse.errors
+        ? Object.values(apiResponse.errors).flat().join(", ")
+        : "Billing account not found on switchBilling server";
+
+      logger.error("Failed to fetch billing account from switchBilling server", {
+        id,
+        result: apiResponse,
+        error: errorMessage,
+      });
+
+      return next(createError(404, errorMessage));
+    }
   } catch (err) {
-    logger.error("Error fetching billing account", {
+    logger.error("Error fetching billing account from switchBilling server", {
       userId,
       error: err.message,
     });
-    return next(createError(500, "Internal Server Error"));
+    return next(createError(500, "Internal Server Error while fetching billing account"));
   }
 });
 
