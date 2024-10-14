@@ -5,6 +5,7 @@ const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
 const User = require("../models/user");
 const SIPDetails = require("../models/SIPDetails");
 const BillingAccount = require("../models/BillingAccount");
+const BillingSummary = require("../models/BillingSummary");
 const moment = require("moment");
 const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPin,storeDataInMongoDB } = require('../utils/switchBillingHelpers');
 
@@ -256,11 +257,13 @@ exports.getAllResources = catchAsyncErrors(async (req, res, next) => {
     case "billing_accounts":
       collection = BillingAccount;
       break;
-    // Add more cases for other modules/collections if necessary
+    case "billing_summary":
+      collection = BillingSummary;
+      break;
     default:
       return next(createError(400, "Invalid module"));
   }
-
+ 
   try {
     // Get the total count of documents
     const totalCount = await collection.countDocuments();
