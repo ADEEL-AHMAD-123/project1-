@@ -129,8 +129,8 @@ const AddDIDs = () => {
         <div className="process-summary">
           <h1>Process Summary</h1>
           <p>{message}</p>
-          <p>{added } DIDs were added successfully.</p>
-          <p>{errors.length} DIDs were not added due to errors:</p>
+          <p> Number of DIDs added successfully: {added }</p>
+          <p>Number of DIDs that were not added due to errors:{errors.length}</p>
 
           {/* Display errors */}
           {errors.length > 0 && (

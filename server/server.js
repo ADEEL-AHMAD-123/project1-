@@ -1,16 +1,14 @@
 require('dotenv').config({ path: './config/.env' });
-const app = require("./app");
+const server = require("./app"); // Import the server instance
 const connectDatabase = require("./config/db-connection");
 const logger = require("./utils/logger"); 
-
 
 // Connect to the database
 connectDatabase()
   .then(() => {
     // Start the server
-    const server = app.listen(process.env.PORT, () => {
-      logger.info(`Server is running on ${process.env.HOST}:${process.env.PORT}`);
-
+    server.listen(process.env.PORT || 8000, () => {
+      logger.info(`Server is running on ${process.env.HOST}:${process.env.PORT || 8000}`);
     });
 
     // Handling unhandled promise rejections
@@ -37,3 +35,4 @@ connectDatabase()
     logger.error("Database connection error:", { error: err.message });
     process.exit(1); // Exit process on database connection error
   });
+ 

@@ -25,7 +25,7 @@ exports.createBillingAccount = catchAsyncErrors(async (req, res, next) => {
   }
 
   // Prepare data for the API call
-  const username = `${user.firstName}-${user.lastName}22`;
+  const username = `${user.firstName}-${user.lastName}23`;
   const apiData = {
     username: username,
     password: "11111111",
@@ -233,6 +233,48 @@ exports.getBillingAccount = catchAsyncErrors(async (req, res, next) => {
       error: err.message,
     });
     return next(createError(500, "Internal Server Error while fetching billing account"));
+  }
+});
+
+
+// @desc Get logged-in user's billing account credit
+// @route GET /api/v1/billing/account/credit
+// @access Private
+exports.getBillingAccountCredit = catchAsyncErrors(async (req, res, next) => {
+  const userId = req.user.id;
+
+  try {
+    // Fetch the billing account for the user from MongoDB
+    const existingBillingAccount = await BillingAccount.findOne({ user_id: userId });
+
+    if (!existingBillingAccount) {
+      return next(createError(404, "Billing account not found for this user"));
+    }
+
+    const { id } = existingBillingAccount;
+    const server = getBillingServer();
+
+    // Set up server filter to retrieve billing account credit
+    server.clearFilter();
+    server.setFilter("id", id, "eq", "numeric");
+
+    // Fetch data from the billing server
+    const apiResponse = await server.read("user", 1);
+
+    if (apiResponse && apiResponse.rows && apiResponse.rows.length > 0) {
+      const creditData = apiResponse.rows[0].credit;
+
+      // Respond with the credit data
+      res.status(200).json({
+        success: true,
+        credit: creditData,
+      });
+    } else {
+      return next(createError(404, "Credit data not found"));
+    }
+  } catch (err) {
+    logger.error("Error fetching billing account credit", { userId, error: err.message });
+    return next(createError(500, "Internal Server Error while fetching billing account credit"));
   }
 });
 
@@ -715,10 +757,10 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
 
 
 
-// @desc    Get specific user credit
-// @route   GET /api/v1/billing/credit
+// @desc    Get specific user all refill records
+// @route   GET /api/v1/billing/refill
 // @access  Private
-exports.getBillingAccountCredit = catchAsyncErrors(async (req, res, next) => {
+exports.getBillingAccountRefill = catchAsyncErrors(async (req, res, next) => {
   const { id_user, page = 1, type } = req.query;
 
   // Find the BillingAccount by id (mapped to id_user in the query)
@@ -747,27 +789,24 @@ exports.getBillingAccountCredit = catchAsyncErrors(async (req, res, next) => {
     }
 
     // Check if credit exists in the result
-    const credit = result.rows[0]?.credit;
-    if (credit === undefined) {
-      logger.error("Credit information not found in the billing response", { id_user });
-      return next(createError(400, "Credit information not found in the billing response."));
+    const Result = result.rows[0];
+    if (Result === undefined) {
+      logger.error("Refill data not found in the billing server", { id_user });
+      return next(createError(400, "Refill data not found in the billing response."));
     }
 
-    // Update the BillingAccount credit
-    billingAccount.credit = credit; // Update the credit in BillingAccount
-    await billingAccount.save(); // Save the updated BillingAccount
+   
 
     // Respond with the billing credit and updated BillingAccount
     res.status(200).json({
       success: true,
-      credit,
-      billingAccount, // Return updated BillingAccount
+      Result, // Return result in response 
     });
   } catch (err) {
-    logger.error("Error fetching billing credit from server", { id_user, error: err.message });
-    return next(createError(500, "Internal Server Error while fetching billing credit."));
-  }
-});
+    logger.error("Error fetching refill records from server", { id_user, error: err.message });
+    return next(createError(500, "Internal Server Error while fetching refill records"));
+  } 
+}); 
 
 
 // @desc    Create new credit record

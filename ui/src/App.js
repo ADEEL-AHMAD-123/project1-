@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
@@ -22,13 +23,18 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import DIDPage from './pages/DIDsPage';
 import OrderSummaryPage from './pages/OrderSummaryPage';
 import DIDManagementPage from './pages/DIDManagementPage';
-
+import { initializeWebSocket } from './redux/slices/billingSlice'; 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-
+  const dispatch = useDispatch();
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
+
+  useEffect(() => {
+    // Initialize WebSocket when the app loads
+    dispatch(initializeWebSocket());
+  }, [dispatch]);
 
   return (
     <div className="app">

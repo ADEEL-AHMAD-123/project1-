@@ -2,8 +2,10 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { userAsyncActions } from './userSlice'; // Import userAsyncActions
-
+import Cookies from 'js-cookie';
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+let socket; // Declare the WebSocket variable
 
 // Helper function to create async thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
@@ -101,6 +103,9 @@ const billingSlice = createSlice({
       state.BillingAccount = action.payload; 
       state.credit=action.payload.credit; 
     },
+    updateCredit: (state, action) => {
+      state.credit = action.payload;
+    },
   },
   extraReducers: (builder) => {
     Object.entries(billingAsyncActions).forEach(([actionName, action]) => {
@@ -149,5 +154,33 @@ const billingSlice = createSlice({
   },
 });
 
+
+export const { updateCredit } = billingSlice.actions;
 export default billingSlice.reducer;
-export const { resetBillingState ,setBillingAccount} = billingSlice.actions;
+
+// WebSocket initialization
+export const initializeWebSocket = () => (dispatch) => {
+  const token = Cookies.get('token');
+
+  if (!token) {
+    console.error('No token found, unable to connect to WebSocket.');
+    return;
+  }
+
+  socket = new WebSocket(`${process.env.REACT_APP_API_BASE_URL}/?token=${token}`);
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.credit) {
+      dispatch(updateCredit(data.credit)); // Update credit in Redux
+    }
+  };
+
+  socket.onclose = () => {
+    console.log('WebSocket connection closed.');
+  };
+};
+
+
+export const { resetBillingState, setBillingAccount } = billingSlice.actions;
+

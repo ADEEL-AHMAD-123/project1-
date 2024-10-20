@@ -11,8 +11,9 @@ const {
   getAllMonths,
   fetchDataFromSwitchServer,
   getBillingAccount, 
-  getBillingAccountCredit,
-  updateBillingAccountCredit
+  getBillingAccountRefill,
+  updateBillingAccountCredit,
+  getBillingAccountCredit
 } = require('../controllers/billingController');
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 
@@ -49,8 +50,11 @@ router.get('/summary/month', isAuthenticatedUser, isAuthorized('admin', 'support
 // Route to get the logged-in user's billing account
 router.get('/account', isAuthenticatedUser, getBillingAccount);
 
-// Routes for the user billingAccount credit
+// Route to get the logged-in user's billing account credit
 router.get('/credit', isAuthenticatedUser, getBillingAccountCredit);
+
+// Routes for the user billingAccount credit
+router.get('/refill', isAuthenticatedUser, getBillingAccountRefill);
 router.post('/credit', isAuthenticatedUser, updateBillingAccountCredit);
 
 module.exports = router;

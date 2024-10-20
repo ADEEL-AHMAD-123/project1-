@@ -8,13 +8,18 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 const createApiAsyncThunk = ({ name, method, url }) => {
   return createAsyncThunk(`did/${name}`, async ({ requestData, data }) => {
     try {
-      const requestUrl = requestData ? `${BASE_URL}${url}${requestData}` : `${BASE_URL}${url}`;
+      const requestUrl = requestData
+        ? `${BASE_URL}${url}${requestData}`
+        : `${BASE_URL}${url}`;
       const requestOptions = {
         method,
         url: requestUrl,
         data,
         headers: {
-          'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json',
+          "Content-Type":
+            data instanceof FormData
+              ? "multipart/form-data"
+              : "application/json",
         },
         withCredentials: true,
       };
@@ -23,12 +28,11 @@ const createApiAsyncThunk = ({ name, method, url }) => {
       toast.success(response.data.message);
       return response.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred');
-      throw error.response?.data?.message || 'An error occurred';
+      toast.error(error.response?.data?.message || "An error occurred");
+      throw error.response?.data?.message || "An error occurred";
     }
   });
 };
-
 
 export const didAsyncActions = {
   fetchAvailableDIDs: createApiAsyncThunk({
@@ -137,9 +141,41 @@ const didSlice = createSlice({
           state.added = payload.added;
           state.errors = payload.errors || [];
         }
+        if (actionName === "addDID") {
+          state.message = payload.message;
+          state.added = 1;
+          state.error=payload.error
+          state.errors=[]
+        }
+       
+         // Handle available DIDs data
+         if (payload && actionName === "fetchAvailableDIDs") {
+          state.availableDIDs = payload.dids;
+          state.pagination = payload.pagination;
+          state.error = null;
+        }
 
-        // Handle other cases...
+        // Handle global DID pricing
+        if (payload && actionName === "fetchGlobalDIDPricing" || actionName === "setGlobalDIDPricing") {
+          state.globalPricing.nonBulkPrice = payload.pricing.nonBulkPrice;
+          state.globalPricing.bulkPrice = payload.pricing.bulkPrice;
+          state.globalPricing.bulkThreshold = payload.pricing.bulkThreshold;
+          state.globalPricing.lastModified = payload.pricing.lastModified;
+        }
+
+        // Handle user DID pricing
+        if (payload && actionName === "fetchUserDIDPricing") {
+          state.userPricing.nonBulkPrice = payload.pricing.nonBulkPrice;
+          state.userPricing.bulkPrice = payload.pricing.bulkPrice;
+          state.userPricing.bulkThreshold = payload.pricing.bulkThreshold;
+        }
+
+        // Handle "myDIDs" response
+        if (payload && actionName === "fetchMyDIDs") {
+          state.myDIDs = payload.dids;
+        }
       });
+
       builder.addCase(action.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.error = payload.message;

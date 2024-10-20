@@ -9,19 +9,21 @@ import '../styles/FilterComponent.scss';
 
 const BuyDIDs = () => {
   const dispatch = useDispatch();
-  const { availableDIDs, isLoading, error, pagination = {} } = useSelector((state) => state.did);
+  const { availableDIDs, isLoading, pagination = {} } = useSelector((state) => state.did);
   const { items: cartItems } = useSelector((state) => state.cart);
 
   const [filters, setFilters] = useState(() => {
     const storedFilters = localStorage.getItem('didFilters');
-    return storedFilters ? JSON.parse(storedFilters) : {
-      country: '',
-      state: '',
-      areaCode: '',
-      number: '',
-      page: 1,
-      limit: 10,
-    };
+    return storedFilters
+      ? JSON.parse(storedFilters)
+      : {
+          country: '',
+          state: '',
+          areaCode: '',
+          number: '',
+          page: 1,
+          limit: 10,
+        };
   });
 
   const [appliedFilters, setAppliedFilters] = useState(filters);
@@ -31,24 +33,29 @@ const BuyDIDs = () => {
 
   useEffect(() => {
     localStorage.setItem('didFilters', JSON.stringify(filters));
-    // Whenever filters change, reset the page to 1
-    setFilters((prevFilters) => ({ ...prevFilters, page: 1 }));
-  }, [filters]);
 
-  useEffect(() => {
     const isUnchanged = JSON.stringify(filters) === JSON.stringify(appliedFilters);
-    const isDefault = JSON.stringify(filters) === JSON.stringify({
-      country: '',
-      state: '',
-      areaCode: '',
-      number: '',
-      page: 1,
-      limit: 10,
-    });
+    const isDefault =
+      JSON.stringify(filters) ===
+      JSON.stringify({
+        country: '',
+        state: '',
+        areaCode: '',
+        number: '',
+        page: 1,
+        limit: 10,
+      });
 
     setIsApplyButtonDisabled(isUnchanged || isDefault);
     setIsResetButtonDisabled(isDefault);
   }, [filters, appliedFilters]);
+
+  useEffect(() => {
+    if (hasSearched) {
+      const queryString = new URLSearchParams(filters).toString();
+      dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
+    }
+  }, [filters, dispatch, hasSearched]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,23 +66,21 @@ const BuyDIDs = () => {
   };
 
   const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > pagination.totalPages) return;
+    const newPageNumber = parseInt(newPage, 10); // Ensure the new page is a number
+
+    // Ensure the new page is within bounds
+    if (newPageNumber < 1 || newPageNumber > pagination.totalPages) return;
 
     setFilters((prevFilters) => ({
       ...prevFilters,
-      page: newPage,
+      page: newPageNumber,
     }));
-    
-    // Fetch data with updated filters immediately
-    const queryString = new URLSearchParams({ ...filters, page: newPage }).toString();
-    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
   };
 
   const applyFilters = () => {
     setAppliedFilters(filters);
-    const queryString = new URLSearchParams(filters).toString();
-    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
-    setHasSearched(true);
+    setFilters((prevFilters) => ({ ...prevFilters, page: 1 })); // Reset to page 1 when applying filters
+    setHasSearched(true);  // Set this true to trigger the search
   };
 
   const resetFilters = () => {
@@ -89,13 +94,13 @@ const BuyDIDs = () => {
     };
     setFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
-    setHasSearched(false);
+    setHasSearched(true);  // Trigger the search after reset
     dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' }));
   };
 
   const toggleCartItem = (did) => {
-    const isInCart = cartItems.some(item => item._id === did._id);
-    
+    const isInCart = cartItems.some((item) => item._id === did._id);
+
     if (isInCart) {
       dispatch(cartAsyncActions.removeFromCart({ _id: did._id, type: did.type }));
     } else {
@@ -104,17 +109,21 @@ const BuyDIDs = () => {
   };
 
   const isInCart = (did) => {
-    return cartItems.some(item => item._id === did._id);
+    return cartItems.some((item) => item._id === did._id);
   };
 
   if (isLoading) {
-    return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
+    return (
+      <div className="container usage-summary">
+        <h1 className="message">Loading...</h1>
+      </div>
+    );
   }
 
- 
 
-  const totalPages = pagination?.totalPages || 1;
-  const currentPage = filters.page || 1;
+  // Ensure pagination values are treated as numbers
+  const totalPages = parseInt(pagination?.totalPages, 10) || 1;
+  const currentPage = parseInt(pagination?.currentPage, 10) || 1;
 
   return (
     <div className="container component">
@@ -207,7 +216,7 @@ const BuyDIDs = () => {
                       <FontAwesomeIcon
                         icon={isInCart(did) ? faTrashAlt : faCartPlus}
                         className={isInCart(did) ? 'cart-remove-icon' : 'cart-add-icon'}
-                        onClick={() => toggleCartItem(did)} 
+                        onClick={() => toggleCartItem(did)}
                         style={{ cursor: 'pointer', fontSize: '18px' }}
                       />
                     </td>
@@ -226,9 +235,23 @@ const BuyDIDs = () => {
       {/* Pagination */}
       {hasSearched && totalPages > 1 && (
         <div className="pagination">
-          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="pagination-button">Previous</button>
-          <span>Page {currentPage} of {totalPages}</span>
-          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} className="pagination-button">Next</button>
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="pagination-button"
+          >
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+            className="pagination-button"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>
