@@ -7,7 +7,7 @@ const SIPDetails = require("../models/SIPDetails");
 const BillingAccount = require("../models/BillingAccount");
 const BillingSummary = require("../models/BillingSummary");
 const moment = require("moment");
-const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPin,storeDataInMongoDB } = require('../utils/switchBillingHelpers');
+const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPin,storeDataInMongoDB ,fetchBillingAccountCredit} = require('../utils/switchBillingHelpers');
 
 
 
@@ -244,34 +244,14 @@ exports.getBillingAccountCredit = catchAsyncErrors(async (req, res, next) => {
   const userId = req.user.id;
 
   try {
-    // Fetch the billing account for the user from MongoDB
-    const existingBillingAccount = await BillingAccount.findOne({ user_id: userId });
+    // Use the helper to fetch the billing account credit
+    const creditData = await fetchBillingAccountCredit(userId);
 
-    if (!existingBillingAccount) {
-      return next(createError(404, "Billing account not found for this user"));
-    }
-
-    const { id } = existingBillingAccount;
-    const server = getBillingServer();
-
-    // Set up server filter to retrieve billing account credit
-    server.clearFilter();
-    server.setFilter("id", id, "eq", "numeric");
-
-    // Fetch data from the billing server
-    const apiResponse = await server.read("user", 1);
-
-    if (apiResponse && apiResponse.rows && apiResponse.rows.length > 0) {
-      const creditData = apiResponse.rows[0].credit;
-
-      // Respond with the credit data
-      res.status(200).json({
-        success: true,
-        credit: creditData,
-      });
-    } else {
-      return next(createError(404, "Credit data not found"));
-    }
+    // Respond with the credit data
+    res.status(200).json({
+      success: true,
+      credit: creditData,
+    });
   } catch (err) {
     logger.error("Error fetching billing account credit", { userId, error: err.message });
     return next(createError(500, "Internal Server Error while fetching billing account credit"));
@@ -820,6 +800,7 @@ exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => 
   const billingServer = getBillingServer(type);
   
   try {
+    
     // Fetch the BillingAccount from the database using the id_user
     const billingAccount = await BillingAccount.findOne({ id: id_user });
     

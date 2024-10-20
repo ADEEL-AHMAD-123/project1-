@@ -23,7 +23,7 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import DIDPage from './pages/DIDsPage';
 import OrderSummaryPage from './pages/OrderSummaryPage';
 import DIDManagementPage from './pages/DIDManagementPage';
-import { initializeWebSocket } from './redux/slices/billingSlice'; 
+
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const dispatch = useDispatch();
@@ -31,10 +31,6 @@ function App() {
     setSidebarOpen(!isSidebarOpen);
   };
 
-  useEffect(() => {
-    // Initialize WebSocket when the app loads
-    dispatch(initializeWebSocket());
-  }, [dispatch]);
 
   return (
     <div className="app">

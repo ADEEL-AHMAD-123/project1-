@@ -5,8 +5,8 @@ const BillingSwitchServer = require('../services/BillingSwitchServer');
 const apiKeyInbound = process.env.SWITCH_BILLING_INBOUND_API_KEY;
 const apiSecretInbound = process.env.SWITCH_BILLING_INBOUND_API_SECRET;
 const apiKeyOutbound = process.env.SWITCH_BILLING_OUTBOUND_API_KEY;
-const apiSecretOutbound = process.env.SWITCH_BILLING_OUTBOUND_API_SECRET;
- 
+const apiSecretOutbound = process.env.SWITCH_BILLING_OUTBOUND_API_SECRET; 
+const BillingAccount = require("../models/BillingAccount"); 
 // Initialize servers for inbound and outbound
 const inboundServer = new BillingSwitchServer(apiKeyInbound, apiSecretInbound);
 const outboundServer = new BillingSwitchServer(apiKeyOutbound, apiSecretOutbound);
@@ -157,11 +157,48 @@ console.log(apiResponse.rows,apiResponse.rows.data);
   }
 };
 
+
+// Helper function to fetch billing account credit
+const fetchBillingAccountCredit = async (userId, type = 'inbound') => {
+  try {
+    
+    
+    // Fetch the billing account for the user from MongoDB
+    const existingBillingAccount = await BillingAccount.findOne({ user_id: userId });
+
+    if (!existingBillingAccount) {
+      return next(createError(404, "Billing account not found for this user"));
+    }
+
+    const { id } = existingBillingAccount;
+
+    const billingServer = getBillingServer(type);
+    // Set up server filter to retrieve billing account credit
+    billingServer.clearFilter();
+    billingServer.setFilter("id", id, "eq", "numeric");
+
+    // Fetch the user data from the billing server
+    const apiResponse = await billingServer.read('user');
+    
+    if (!apiResponse || !apiResponse.rows || apiResponse.rows.length === 0) {
+      throw new Error('No credit data found for the user');
+    }
+    
+    // Extract the credit information from the response
+    const creditData = apiResponse.rows[0].credit;
+    return creditData;
+  } catch (error) {
+    logger.error(`Error fetching billing account credit for user ${userId}: ${error.message}`);
+    throw new Error(`Could not fetch billing account credit: ${error.message}`);
+  }
+};
+
 module.exports = {
   getBillingServer,
   fetchAllPages,
   fetchDataFromMongoDB,
   storeDataInMongoDB,
   generateRandomPin,
-  fetchBillingAccount, // Export the new helper function
+  fetchBillingAccount,
+  fetchBillingAccountCredit
 };

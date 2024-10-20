@@ -8,7 +8,7 @@ const requestLogger = require("./middlewares/requestLogger");
 const cloudinary = require('cloudinary').v2;
 const Multer = require('multer');
 const http = require('http'); // Import http module
-const initWebSocketServer = require('./websocketServer'); // Import WebSocket server initialization
+const initSSEServer = require('./SSE_Server'); // Change to SSE server initialization
 
 // Config
 if (process.env.NODE_ENV !== "PRODUCTION") {
@@ -69,11 +69,8 @@ app.use('/api/v1/orders', orders);
 // Error handling middleware
 app.use(ErrorHandler);
 
-// Create the HTTP server
-const server = http.createServer(app);
+// Initialize SSE server instead of WebSocket
+initSSEServer(app);
 
-// Initialize the WebSocket server
-initWebSocketServer(server);
-
-// Export the HTTP server
-module.exports = server; // Export the server instance instead of app.
+// Export the app
+module.exports = app;

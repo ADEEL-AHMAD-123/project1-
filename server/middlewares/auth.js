@@ -47,7 +47,7 @@ exports.isAuthorized = (...roles) => {
 };
 
 
-exports.authenticateWebSocket = async (req) => {
+exports.authenticaSSEconnection = async (req) => {
   const token = req.url.split('?token=')[1]; // Extract the token from query parameters
 
   if (!token) {

@@ -1,23 +1,25 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation } from "react-router-dom";
 import { FaBars, FaSearch, FaUserCircle, FaShoppingCart, FaCog, FaTimes, FaFilter } from "react-icons/fa";
-import { initializeWebSocket } from '../redux/slices/billingSlice';
+import { initializeSSE } from '../redux/slices/billingSlice';
 import "../styles/Topbar.scss";
-
 
 const Topbar = ({ toggleSidebar }) => {
     const dispatch = useDispatch();
-
+    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
+    const SSE_URL=process.env.REACT_APP_SSE_URL;
+    
+    console.log(BASE_URL,SSE_URL,'logs')
     // Extract Role and hasBillingAccount from the user state
     const { Role, hasBillingAccount } = useSelector(state => state.user);
     // Extract credit from the billing state
     const { credit } = useSelector(state => state.billing);
 
     useEffect(() => {
-        dispatch(initializeWebSocket()); // Initialize WebSocket when component mounts
-      }, [dispatch]);
-    
+        dispatch(initializeSSE()); // Initialize SSE when component mounts
+    }, [dispatch]);
+
     const location = useLocation(); // Get the current location
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);

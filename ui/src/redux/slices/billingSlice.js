@@ -3,10 +3,11 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { userAsyncActions } from './userSlice'; // Import userAsyncActions
 import Cookies from 'js-cookie';
+
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const SSE_URL=process.env.REACT_APP_SSE_URL
 
-let socket; // Declare the WebSocket variable
-
+console.log(BASE_URL,SSE_URL,'logs')
 // Helper function to create async thunks
 const createApiAsyncThunk = ({ name, method, url }) => {
   return createAsyncThunk(`billing/${name}`, async ({ requestData, data }, { dispatch }) => {
@@ -30,7 +31,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
       
       // Dispatch user profile update on successful billing account creation
       if (name === "create-billing-account") {
-        dispatch(userAsyncActions.getUserProfile({ requestData: "" }))
+        dispatch(userAsyncActions.getUserProfile({ requestData: "" }));
       }
 
       return response.data;
@@ -42,7 +43,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
   });
 };
 
-// Define async action for getting billing account
+// Define async actions
 export const billingAsyncActions = {
   createBillingAccount: createApiAsyncThunk({
     name: "create-billing-account",
@@ -101,7 +102,7 @@ const billingSlice = createSlice({
     },
     setBillingAccount: (state, action) => {
       state.BillingAccount = action.payload; 
-      state.credit=action.payload.credit; 
+      state.credit = action.payload.credit; 
     },
     updateCredit: (state, action) => {
       state.credit = action.payload;
@@ -122,26 +123,26 @@ const billingSlice = createSlice({
           if (actionName === "getInboundUsage") {
             state.InBoundUsage = payload.data;
             state.pagination = payload.pagination;
-            state.error=payload.error;
+            state.error = payload.error;
           } else if (actionName === "getOutboundUsage") {
             state.OutBoundUsage = payload.data;
             state.pagination = payload.pagination;
-            state.error=payload.error;
+            state.error = payload.error;
           } else if (actionName === "getCredit") {
             state.BillingAccount = payload.billingAccount;
             state.credit = payload.credit;
-            state.error=payload.error;
+            state.error = payload.error;
           } else if (actionName === "createBillingAccount") {
             state.BillingAccount = payload.data;
             state.credit = payload.data.credit;
-            state.error=payload.error;
+            state.error = payload.error;
           } else if (actionName === "createSIPAccount") {
             state.SIPDetails = payload.data;
-            state.error=payload.error;
+            state.error = payload.error;
           } else if (actionName === "getBillingAccount") {
             state.BillingAccount = payload.data;  
             state.credit = payload.data.credit;
-            state.error=payload.error;
+            state.error = payload.error;
           }
         }
       });
@@ -154,33 +155,30 @@ const billingSlice = createSlice({
   },
 });
 
-
 export const { updateCredit } = billingSlice.actions;
 export default billingSlice.reducer;
 
-// WebSocket initialization
-export const initializeWebSocket = () => (dispatch) => {
+// SSE Initialization
+export const initializeSSE = () => (dispatch) => {
   const token = Cookies.get('token');
 
   if (!token) {
-    console.error('No token found, unable to connect to WebSocket.');
+    console.error('No token found, unable to connect to SSE.');
     return;
   }
 
-  socket = new WebSocket(`${process.env.REACT_APP_API_BASE_URL}/?token=${token}`);
+  const eventSource = new EventSource(`${SSE_URL}?token=${token}`);
 
-  socket.onmessage = (event) => {
+  eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
     if (data.credit) {
       dispatch(updateCredit(data.credit)); // Update credit in Redux
     }
   };
 
-  socket.onclose = () => {
-    console.log('WebSocket connection closed.');
+  eventSource.onerror = () => {
+    console.log('SSE connection error.');
+    eventSource.close();
   };
 };
-
-
 export const { resetBillingState, setBillingAccount } = billingSlice.actions;
-
