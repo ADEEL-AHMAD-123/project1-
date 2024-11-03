@@ -153,6 +153,7 @@ const didSlice = createSlice({
           state.availableDIDs = payload.dids;
           state.pagination = payload.pagination;
           state.error = null;
+          state.isLoading = false;
         }
 
         // Handle global DID pricing
@@ -173,14 +174,17 @@ const didSlice = createSlice({
         // Handle "myDIDs" response
         if (payload && actionName === "fetchMyDIDs") {
           state.myDIDs = payload.dids;
+          state.error = null;
+          state.isLoading = false;
         }
       });
 
       builder.addCase(action.rejected, (state, { payload }) => {
         state.isLoading = false;
-        state.error = payload.message;
-        state.errors = payload.errors || [];
+        state.error = payload?.message || "An unexpected error occurred";
+        state.errors = payload?.errors || [];
       });
+      
     });
   },
 });

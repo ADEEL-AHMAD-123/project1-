@@ -21,19 +21,11 @@ const MyDIDs = () => {
     return <p>Loading...</p>;
   }
 
-  // Handle error state
-  if (error) {
+  // Handle case when there are no DIDs
+  if (myDIDs.length === 0) {
     return (
       <ErrorCard 
-        message={error}
-        isFullPage={false} 
-      />
-    );
-  }
-  if (myDIDs.length== 0) {
-    return (
-      <ErrorCard 
-        message={"you dont have any dids yet."}
+        message={"You don't have any DIDs yet."}
         isFullPage={false} 
       />
     );
@@ -42,27 +34,23 @@ const MyDIDs = () => {
   return (
     <div className="my-dids-container">
       <h2>My DIDs</h2>
-      {myDIDs && myDIDs.length > 0 ? (
-        <div className="did-list">
-          {myDIDs.map((did, index) => (
-            <div key={index} className="did-card">
-              <div className="did-info">
-                <h3>DID: {did.didNumber}</h3>
-                <p><strong>Status:</strong> {did.status}</p>
-                <p><strong>Country:</strong> {did.country}</p>
-                <p><strong>State:</strong> {did.state}</p>
-                <p><strong>Area Code:</strong> {did.areaCode}</p>
-                <p><strong>Destination:</strong> {did.destination}</p>
-                <p><strong>Caller ID Usage:</strong> {did.callerIdUsage ? 'Yes' : 'No'}</p>
-                <p><strong>Created At:</strong> {new Date(did.createdAt).toLocaleString()}</p>
-              </div>
+      <div className="did-list">
+        {myDIDs.map((did, index) => (
+          <div key={index} className="did-card">
+            <div className="did-info">
+              <h3>DID: {did.didNumber}</h3>
+              <p><strong>Status:</strong> {did.status}</p>
+              <p><strong>Country:</strong> {did.country}</p>
+              <p><strong>State:</strong> {did.state}</p>
+              <p><strong>Area Code:</strong> {did.areaCode}</p>
+              <p><strong>Destination:</strong> {did.destination}</p>
+              <p><strong>Caller ID Usage:</strong> {did.callerIdUsage ? 'Yes' : 'No'}</p>
+              <p><strong>Created At:</strong> {new Date(did.createdAt).toLocaleString()}</p>
             </div>
-          ))}
-        </div>
-      ) : (
-        <p>You don't have any DIDs yet.</p>
-      )}
-    </div>
+          </div>
+        ))}
+      </div>
+    </div> 
   );
 };
 

@@ -9,7 +9,7 @@ const ErrorCard = ({ message, buttonLabel, redirectLink, isFullPage = true }) =>
     if (redirectLink) {
       navigate(redirectLink);
     } else {
-      navigate(-1); // Go back if no redirectLink is provided
+      navigate(-1);
     }
   };
 
@@ -17,9 +17,11 @@ const ErrorCard = ({ message, buttonLabel, redirectLink, isFullPage = true }) =>
     <div className={isFullPage ? "error-section" : "error-card-container"}>
       <div className="error-card">
         <h2>{message}</h2>
-        <button onClick={handleRedirect} className='btn'>
-          {buttonLabel || "Go Back"}
-        </button>
+        {buttonLabel && (
+          <button onClick={handleRedirect} className="btn">
+            {buttonLabel}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCartPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import '../styles/ListingTable.scss';
 import '../styles/FilterComponent.scss';
+import ErrorCard from '../components/ErrorCard';
 
 const BuyDIDs = () => {
   const dispatch = useDispatch();
@@ -32,8 +33,6 @@ const BuyDIDs = () => {
   const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('didFilters', JSON.stringify(filters));
-
     const isUnchanged = JSON.stringify(filters) === JSON.stringify(appliedFilters);
     const isDefault =
       JSON.stringify(filters) ===
@@ -51,11 +50,26 @@ const BuyDIDs = () => {
   }, [filters, appliedFilters]);
 
   useEffect(() => {
-    if (hasSearched) {
-      const queryString = new URLSearchParams(filters).toString();
+    localStorage.setItem('didFilters', JSON.stringify(filters));
+  }, [filters]);
+
+  // Fetch DIDs when filters are applied or on component mount
+  useEffect(() => {
+    if (hasSearched || (filters.country || filters.state || filters.areaCode || filters.number)) {
+      const queryString = new URLSearchParams(appliedFilters).toString();
       dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
     }
-  }, [filters, dispatch, hasSearched]);
+  }, [dispatch, appliedFilters, hasSearched]);
+
+  // Fetch DIDs when component mounts and filters exist in local storage
+  useEffect(() => {
+    const storedFilters = JSON.parse(localStorage.getItem('didFilters'));
+    if (storedFilters && (storedFilters.country || storedFilters.state || storedFilters.areaCode || storedFilters.number)) {
+      setFilters(storedFilters);
+      setAppliedFilters(storedFilters);
+      setHasSearched(true); // Trigger fetching DIDs with the stored filters
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -65,22 +79,10 @@ const BuyDIDs = () => {
     }));
   };
 
-  const handlePageChange = (newPage) => {
-    const newPageNumber = parseInt(newPage, 10); // Ensure the new page is a number
-
-    // Ensure the new page is within bounds
-    if (newPageNumber < 1 || newPageNumber > pagination.totalPages) return;
-
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      page: newPageNumber,
-    }));
-  };
-
   const applyFilters = () => {
     setAppliedFilters(filters);
-    setFilters((prevFilters) => ({ ...prevFilters, page: 1 })); // Reset to page 1 when applying filters
-    setHasSearched(true);  // Set this true to trigger the search
+    setFilters((prevFilters) => ({ ...prevFilters, page: 1 }));
+    setHasSearched(true);
   };
 
   const resetFilters = () => {
@@ -94,13 +96,11 @@ const BuyDIDs = () => {
     };
     setFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
-    setHasSearched(true);  // Trigger the search after reset
-    dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: '' }));
+    setHasSearched(false);
   };
 
   const toggleCartItem = (did) => {
     const isInCart = cartItems.some((item) => item._id === did._id);
-
     if (isInCart) {
       dispatch(cartAsyncActions.removeFromCart({ _id: did._id, type: did.type }));
     } else {
@@ -120,10 +120,18 @@ const BuyDIDs = () => {
     );
   }
 
-
-  // Ensure pagination values are treated as numbers
   const totalPages = parseInt(pagination?.totalPages, 10) || 1;
   const currentPage = parseInt(pagination?.currentPage, 10) || 1;
+
+  const handlePageChange = (newPage) => {
+    const newPageNumber = parseInt(newPage, 10);
+    if (newPageNumber < 1 || newPageNumber > totalPages) return;
+
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      page: newPageNumber,
+    }));
+  };
 
   return (
     <div className="container component">
@@ -133,7 +141,7 @@ const BuyDIDs = () => {
           <input
             type="text"
             name="country"
-            value={filters.country || ''}
+            value={filters.country}
             onChange={handleChange}
             className="filter-input"
             placeholder="Country"
@@ -143,7 +151,7 @@ const BuyDIDs = () => {
           <input
             type="text"
             name="state"
-            value={filters.state || ''}
+            value={filters.state}
             onChange={handleChange}
             className="filter-input"
             placeholder="State"
@@ -153,7 +161,7 @@ const BuyDIDs = () => {
           <input
             type="text"
             name="areaCode"
-            value={filters.areaCode || ''}
+            value={filters.areaCode}
             onChange={handleChange}
             className="filter-input"
             placeholder="Area Code"
@@ -163,7 +171,7 @@ const BuyDIDs = () => {
           <input
             type="text"
             name="number"
-            value={filters.number || ''}
+            value={filters.number}
             onChange={handleChange}
             className="filter-input"
             placeholder="DID Number"
@@ -187,8 +195,13 @@ const BuyDIDs = () => {
         </div>
       </div>
 
+      {/* Error Card */}
+      {hasSearched && availableDIDs.length === 0 && (
+        <ErrorCard message={"No DIDs available based on the applied filters."} isFullPage={false} />
+      )}
+
       {/* Table */}
-      {hasSearched && (
+      {hasSearched && availableDIDs.length > 0 && (
         <div className="table-container">
           <table>
             <thead>
@@ -203,30 +216,24 @@ const BuyDIDs = () => {
               </tr>
             </thead>
             <tbody>
-              {availableDIDs.length ? (
-                availableDIDs.map((did) => (
-                  <tr key={did._id}>
-                    <td>{did.didNumber}</td>
-                    <td>{did.country}</td>
-                    <td>{did.state}</td>
-                    <td>{did.areaCode}</td>
-                    <td>{did.destination || 'N/A'}</td>
-                    <td>{did.callerIdUsage || 'N/A'}</td>
-                    <td>
-                      <FontAwesomeIcon
-                        icon={isInCart(did) ? faTrashAlt : faCartPlus}
-                        className={isInCart(did) ? 'cart-remove-icon' : 'cart-add-icon'}
-                        onClick={() => toggleCartItem(did)}
-                        style={{ cursor: 'pointer', fontSize: '18px' }}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="no-data">No DIDs available</td>
+              {availableDIDs.map((did) => (
+                <tr key={did._id}>
+                  <td>{did.didNumber}</td>
+                  <td>{did.country}</td>
+                  <td>{did.state}</td>
+                  <td>{did.areaCode}</td>
+                  <td>{did.destination || 'N/A'}</td>
+                  <td>{did.callerIdUsage || 'N/A'}</td>
+                  <td>
+                    <FontAwesomeIcon
+                      icon={isInCart(did) ? faTrashAlt : faCartPlus}
+                      className={isInCart(did) ? 'cart-remove-icon' : 'cart-add-icon'}
+                      onClick={() => toggleCartItem(did)}
+                      style={{ cursor: 'pointer', fontSize: '18px' }}
+                    />
+                  </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
