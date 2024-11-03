@@ -29,7 +29,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
       return response.data;
     } catch (error) {
       toast.error(error.response?.data?.message || "An error occurred");
-      throw error.response?.data?.message || "An error occurred";
+      return error.response.data
     }
   });
 };

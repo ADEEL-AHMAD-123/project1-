@@ -7,10 +7,11 @@ import { faCartPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import '../styles/ListingTable.scss';
 import '../styles/FilterComponent.scss';
 import ErrorCard from '../components/ErrorCard';
+import Loader from '../components/Loader';
 
 const BuyDIDs = () => {
   const dispatch = useDispatch();
-  const { availableDIDs, isLoading, pagination = {} } = useSelector((state) => state.did);
+  const { availableDIDs, isLoading, error, pagination = {} } = useSelector((state) => state.did);
   const { items: cartItems } = useSelector((state) => state.cart);
 
   const [filters, setFilters] = useState(() => {
@@ -115,7 +116,7 @@ const BuyDIDs = () => {
   if (isLoading) {
     return (
       <div className="container usage-summary">
-        <h1 className="message">Loading...</h1>
+        <Loader />
       </div>
     );
   }
@@ -135,6 +136,9 @@ const BuyDIDs = () => {
 
   return (
     <div className="container component">
+      {/* Error Card for General Errors */}
+      {error && <ErrorCard message={error} isFullPage={false} />}
+
       {/* Filters */}
       <div className="filters">
         <div className="text-filter">
@@ -195,13 +199,13 @@ const BuyDIDs = () => {
         </div>
       </div>
 
-      {/* Error Card */}
-      {hasSearched && availableDIDs.length === 0 && (
+      {/* Error Card if No Results */}
+      {hasSearched && availableDIDs.length === 0 && !error && (
         <ErrorCard message={"No DIDs available based on the applied filters."} isFullPage={false} />
       )}
 
       {/* Table */}
-      {hasSearched && availableDIDs.length > 0 && (
+      {hasSearched && availableDIDs.length > 0 && !error && (
         <div className="table-container">
           <table>
             <thead>

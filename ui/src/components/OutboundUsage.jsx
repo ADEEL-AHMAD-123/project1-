@@ -5,7 +5,7 @@ import ErrorCard from './ErrorCard';
 import '../styles/ListingTable.scss';
 import '../styles/FilterComponent.scss';
 
-const OutBoundUsage = () => {
+const OutboundUsage = () => {
   const dispatch = useDispatch();
   const { loading, error, OutBoundUsage, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
   const { Role, hasBillingAccount } = useSelector((state) => state.user);
@@ -15,9 +15,9 @@ const OutBoundUsage = () => {
     period: 'daily',
     page: 1,
     limit: 10,
-    startDate: '', // Ensure startDate is included in initial filters
-    endDate: '',   // Ensure endDate is included in initial filters
-    type: 'outbound',
+    startDate: '',
+    endDate: '',
+    type: 'outbound', // Adjusted for outbound
   };
 
   const storageKey = 'outboundUsageFilters';
@@ -25,29 +25,23 @@ const OutBoundUsage = () => {
   const [localFilters, setLocalFilters] = useState(filters);
   const [isModified, setIsModified] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
-  const [isApplyButtonDisabled, setIsApplyButtonDisabled] = useState(true);
-  const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true);
 
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
     setIsModified(isFilterModified);
-    setIsApplyButtonDisabled(!isFilterModified);
-    setIsResetButtonDisabled(!isApplied && JSON.stringify(localFilters) === JSON.stringify(initialFilters));
-  }, [localFilters, filters, isApplied]);
+  }, [localFilters, filters]);
 
   useEffect(() => {
-    // Dispatch getBillingAccount if Role is 'client' and they don't have BillingAccount yet
     if (Role === 'client' && hasBillingAccount && !BillingAccount?.id) {
       dispatch(billingAsyncActions.getBillingAccount({ requestData: '' }));
     }
   }, [Role, hasBillingAccount, BillingAccount?.id, dispatch]);
 
   useEffect(() => {
-    // Apply filters when page loads for all roles
     if (Role !== 'client' || (Role === 'client' && BillingAccount?.id)) {
-      applyFilters(filters); // Apply filters on page load
+      applyFilters(filters);
     }
   }, [Role, BillingAccount?.id, filters]);
 
@@ -63,7 +57,6 @@ const OutBoundUsage = () => {
     setFilters(localFilters);
     localStorage.setItem(storageKey, JSON.stringify(localFilters));
     setIsApplied(true);
-    setIsApplyButtonDisabled(true);
     applyFilters(localFilters);
   };
 
@@ -72,54 +65,48 @@ const OutBoundUsage = () => {
     setFilters(initialFilters);
     localStorage.removeItem(storageKey);
     setIsApplied(false);
-    setIsModified(false);
-    setIsApplyButtonDisabled(true);
-    setIsResetButtonDisabled(true);
     applyFilters(initialFilters);
   };
 
   const applyFilters = (currentFilters) => {
-    // Prevent dispatching if it's a client and BillingAccount.id isn't available
     if (Role === 'client' && !BillingAccount?.id) return;
 
-    const updatedFilters = {
-      ...currentFilters,
-      id_user: Role === 'client' ? BillingAccount?.id : currentFilters.id_user, // Ensure id_user is set for client
-      role: Role, // Include role in the request
-    };
+    const updatedFilters = Role === 'client'
+      ? { ...currentFilters, id_user: BillingAccount?.id, role: Role }
+      : { ...currentFilters, role: Role };
 
     const queryString = new URLSearchParams(updatedFilters).toString();
     dispatch(billingAsyncActions.getOutboundUsage({ requestData: `?${queryString}` }));
   };
 
   const handlePageChange = (newPage) => {
-    const updatedFilters = {
-      ...localFilters,
+    setFilters((prevFilters) => ({
+      ...prevFilters,
       page: newPage,
-    };
-    setLocalFilters(updatedFilters);
-    applyFilters(updatedFilters);
+    }));
   };
 
-  // Check for conditions to render messages
   if (loading) {
-    return <div className="container outbound-usage"><h1 className="message">Loading...</h1></div>;
+    return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
   }
 
-  // Error card for clients without a billing account
   if (Role === 'client' && !hasBillingAccount) {
     return (
       <ErrorCard 
         message="No billing account created yet." 
-        buttonLabel="Create billing account"
+        buttonLabel="Create Billing Account"
         redirectLink="/" 
         isFullPage={false}
       />
     );
   }
 
-  const totalPages = pagination?.totalPages || 1;
-  const currentPage = localFilters.page || 1;
+  let errorMessage = error || '';
+  if (!error && OutBoundUsage?.length === 0) {
+    errorMessage = isApplied ? "No data found for the applied filters." : "No Outbound Usage data available.";
+  }
+
+  const currentPage = filters.page;
 
   return (
     <div className="container component">
@@ -129,10 +116,11 @@ const OutBoundUsage = () => {
           <input
             type="date"
             name="startDate"
-            value={localFilters.startDate || ''} // Controlled value
+            value={localFilters.startDate || ''}
             onChange={handleChange}
             className="filter-input"
-            max={today} // Restrict date to today's date
+            max={today}
+            placeholder="Select start date"
           />
         </div>
         <div className="date-filter">
@@ -140,19 +128,20 @@ const OutBoundUsage = () => {
           <input
             type="date"
             name="endDate"
-            value={localFilters.endDate || ''} // Controlled value
+            value={localFilters.endDate || ''}
             onChange={handleChange}
             className="filter-input"
-            max={today} // Restrict date to today's date
+            max={today}
+            placeholder="Select end date"
           />
         </div>
         {Role !== 'client' && (
           <div className="text-filter">
-            <label htmlFor="id_user" className="filter-label">User ID</label> {/* Change id to id_user */}
+            <label htmlFor="id_user" className="filter-label">User ID</label>
             <input
               type="text"
-              name="id_user" // Change id to id_user
-              value={localFilters.id_user || ''} // Controlled value
+              name="id_user"
+              value={localFilters.id_user || ''}
               onChange={handleChange}
               className="filter-input"
               placeholder="Enter user ID"
@@ -163,7 +152,7 @@ const OutBoundUsage = () => {
           <label htmlFor="period" className="filter-label">Period</label>
           <select
             name="period"
-            value={localFilters.period || 'daily'} // Controlled value
+            value={localFilters.period || 'daily'}
             onChange={handleChange}
             className="select-field"
           >
@@ -175,40 +164,45 @@ const OutBoundUsage = () => {
           <button
             onClick={handleApplyFilters}
             className="apply-filters-button"
-            disabled={isApplyButtonDisabled}
+            disabled={!isModified}
           >
             Apply Filters
           </button>
           <button
             onClick={handleResetFilters}
             className="reset-filters-button"
-            disabled={isResetButtonDisabled}
+            disabled={!isModified && !isApplied}
           >
             Reset Filters
           </button>
         </div>
       </div>
 
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Day</th>
-              <th>Username</th>
-              <th>Duration/Min</th>
-              <th>ALOC</th>
-              <th>All Calls</th>
-              <th>Answered</th>
-              <th>Failed</th>
-              {Role !== 'client' && <th>Buy Price</th>} {/* Hide Buy Price for client role */}
-              <th>Sell Price</th>
-              <th>Markup</th>
-              <th>ASR</th>
-            </tr>
-          </thead>
-          <tbody>
-            {OutBoundUsage.length ? (
-              OutBoundUsage.map((data) => (
+      {errorMessage ? (
+        <ErrorCard 
+          message={errorMessage} 
+          isFullPage={false}
+        />
+      ) : (
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Username</th>
+                <th>Duration/Min</th>
+                <th>ALOC</th>
+                <th>All Calls</th>
+                <th>Answered</th>
+                <th>Failed</th>
+                {Role !== 'client' && <th>Buy Price</th>}
+                <th>Sell Price</th>
+                <th>Markup</th>
+                <th>ASR</th>
+              </tr>
+            </thead>
+            <tbody>
+              {OutBoundUsage.map((data) => (
                 <tr key={data._id}>
                   <td>{data.day}</td>
                   <td>{data.idUserusername}</td>
@@ -217,44 +211,36 @@ const OutBoundUsage = () => {
                   <td>{data.nbcall}</td>
                   <td>{data.nbcall - data.nbcall_fail}</td>
                   <td>{data.nbcall_fail}</td>
-                  {Role !== 'client' && <td>{data.sumbuycost}</td>} {/* Conditional rendering for Buy Price */}
+                  {Role !== 'client' && <td>{data.sumbuycost}</td>}
                   <td>{data.sellPrice}</td>
                   <td>{data.markup}</td>
                   <td>{data.asr}</td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="11" className="no-data">No data available</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <div className="pagination">
-        {totalPages > 1 && (
-          <>
-            <button
-              className="pagination-button"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </button>
-            <span>Page {currentPage} of {totalPages}</span>
-            <button
-              className="pagination-button"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </>
-        )}
-      </div>
+      {pagination?.totalPages > 1 && (
+        <div className="pagination">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <span>Page {currentPage} of {pagination.totalPages}</span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === pagination.totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
-export default OutBoundUsage;
+export default OutboundUsage;
