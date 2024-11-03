@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { billingAsyncActions } from '../redux/slices/billingSlice';
 import ErrorCard from './ErrorCard';
+import Loader from './Loader';
 import '../styles/ListingTable.scss';
 import '../styles/FilterComponent.scss';
 
 const UsageSummary = () => {
   const dispatch = useDispatch();
-  const { loading, error, InBoundUsage, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
+  const { isLoading, error, InBoundUsage, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
   const { Role, hasBillingAccount } = useSelector((state) => state.user);
 
   const initialFilters = {
@@ -86,8 +87,8 @@ const UsageSummary = () => {
     }));
   };
 
-  if (loading) {
-    return <div className="container usage-summary"><h1 className="message">Loading...</h1></div>;
+  if (isLoading) {
+    return <div className="container usage-summary"><Loader/></div>;
   }
 
   if (Role === 'client' && !hasBillingAccount) {
