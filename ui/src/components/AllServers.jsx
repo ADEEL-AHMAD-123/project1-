@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { serverAsyncActions } from '../redux/slices/serverSlice'; // Adjust the import based on your actual async actions file
 import ErrorCard from './ErrorCard';
+import Loader from './Loader';
 import '../styles/ListingTable.scss';
 
 const AllServers = () => {
@@ -66,7 +67,7 @@ const AllServers = () => {
 
   const applyFilters = (currentFilters) => {
     const queryString = new URLSearchParams(currentFilters).toString();
-    dispatch(serverAsyncActions.getServers({ requestData: `?${queryString}`,data:"" })); // Adjust the action as per your implementation
+    dispatch(serverAsyncActions.getServers({ requestData: `?${queryString}`, data: "" })); // Adjust the action as per your implementation
   };
 
   const handlePageChange = (newPage) => {
@@ -89,11 +90,12 @@ const AllServers = () => {
   };
 
   if (isLoading) {
-    return <div className="container all-servers"><h1 className="message">Loading...</h1></div>;
+    return <div className="container component"><Loader/></div>;
   }
 
-  if (error) {
-    return <ErrorCard message={error} />;
+  let errorMessage = error || '';
+  if (!error && Servers?.length === 0) {
+    errorMessage = "No servers found for the applied filters.";
   }
 
   const totalPages = pagination?.totalPages || 1;
@@ -213,8 +215,8 @@ const AllServers = () => {
         </div>
       </div>
 
-      {Servers && Servers.length === 0 ? (
-        <h1 className="message">No servers available.</h1>
+      {errorMessage ? (
+        <ErrorCard message={errorMessage} isFullPage={false} />
       ) : (
         <div className="table-container">
           <table>

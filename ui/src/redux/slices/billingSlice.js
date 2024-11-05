@@ -86,6 +86,7 @@ const initialState = {
   BillingAccount: null,
   InBoundUsage: [],
   OutBoundUsage: [],
+  period: null,
   credit: null,
   isLoading: false,
   error: null,
@@ -124,10 +125,12 @@ const billingSlice = createSlice({
             state.InBoundUsage = payload.data;
             state.pagination = payload.pagination;
             state.error = payload.error;
+            state.period = payload.period;
           } else if (actionName === "getOutboundUsage") {
             state.OutBoundUsage = payload.data;
             state.pagination = payload.pagination;
             state.error = payload.error;
+            state.period = payload.period;
           } else if (actionName === "getCredit") {
             state.BillingAccount = payload.billingAccount;
             state.credit = payload.credit;

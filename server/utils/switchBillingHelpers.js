@@ -31,7 +31,7 @@ const fetchAllPages = async (module, type = 'inbound', initialPage = 1) => {
   return allResults;
 };
 
-// Helper function to fetch data from MongoDB based on the provided parameters
+// Helper function to fetch data from MongoDB based on the provided parameters for each specific day
 const fetchDataFromMongoDB = async ({ startDate, endDate, id_user, skip, limit, page }) => {
   const filter = {};
 
@@ -60,6 +60,93 @@ const fetchDataFromMongoDB = async ({ startDate, endDate, id_user, skip, limit, 
     }
   };
 };
+
+// Helper function to fetch data from MongoDB in a monthly aggregated format
+const fetchMonthlyDataFromMongoDB = async ({ startDate, endDate, id_user, skip, limit, page }) => {
+  const match = {};
+
+  if (id_user) {
+    match.id_user = id_user;
+  }
+
+  if (startDate && endDate) {
+    match.day = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  } else if (startDate) {
+    match.day = { $gte: new Date(startDate) };
+  } else if (endDate) {
+    match.day = { $lte: new Date(endDate) };
+  }
+
+  const pipeline = [
+    { $match: match },
+    {
+      $addFields: {
+        day: { $toDate: "$day" }  // Ensure 'day' is converted to a date type
+      }
+    },
+    {
+      $group: {
+        _id: {
+          id_user: "$id_user", // Group by id_user as well
+          year: { $year: "$day" },
+          month: { $month: "$day" },
+        },
+        totalAgentBill: { $sum: "$agent_bill" },
+        totalAlocAllCalls: { $sum: "$aloc_all_calls" },
+        totalBuyCost: { $sum: "$buycost" },
+        totalLucro: { $sum: "$lucro" },
+        totalNbCall: { $sum: "$nbcall" },
+        totalNbCallFail: { $sum: "$nbcall_fail" },
+        totalSessionBill: { $sum: "$sessionbill" },
+        totalSessionTime: { $sum: "$sessiontime" },
+        averageAsr: { $avg: "$asr" },
+        totalCreatedAt: { $first: { $dateToString: { format: "%Y-%m-%d", date: "$day" } } }, // or any field you want
+        totalRecords: { $sum: 1 } // Count of daily entries per month per user
+      }
+    },
+    {
+      $sort: { "_id.year": -1, "_id.month": -1, "_id.id_user": 1 } // Sort by year, month, and id_user
+    },
+    { $skip: skip },
+    { $limit: limit },
+  ];
+
+  const mongodbResults = await CallSummary.aggregate(pipeline);
+  
+  // Calculate the total unique months and user combinations found
+  const uniqueCount = mongodbResults.length;
+  const totalCount = await CallSummary.countDocuments(match); // Total for pagination
+
+  // Format the results for the frontend
+  const formattedData = mongodbResults.map(item => ({
+    id_user: item._id.id_user,
+    year: item._id.year,
+    month: item._id.month,
+    totalAgentBill: item.totalAgentBill,
+    totalAlocAllCalls: item.totalAlocAllCalls,
+    totalBuyCost: item.totalBuyCost,
+    totalLucro: item.totalLucro,
+    totalNbCall: item.totalNbCall,
+    totalNbCallFail: item.totalNbCallFail,
+    totalSessionBill: item.totalSessionBill,
+    totalSessionTime: item.totalSessionTime,
+    averageAsr: item.averageAsr,
+    totalRecords: item.totalRecords
+  }));
+
+  return {
+    data: formattedData,
+    pagination: {
+      total: uniqueCount, // Adjust total to reflect unique combinations of months and users
+      page: parseInt(page),
+      limit: limit,
+      totalPages: Math.ceil(uniqueCount / limit) // Total pages based on unique user-month combinations
+    }
+  };
+};
+
+
+
 
 // Helper function to store data in MongoDB
 const storeDataInMongoDB = async (data) => {
@@ -200,5 +287,6 @@ module.exports = {
   storeDataInMongoDB,
   generateRandomPin,
   fetchBillingAccount,
-  fetchBillingAccountCredit
+  fetchBillingAccountCredit,
+  fetchMonthlyDataFromMongoDB
 };

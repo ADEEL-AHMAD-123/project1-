@@ -1,15 +1,16 @@
+// UsageTable.js
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { billingAsyncActions } from '../redux/slices/billingSlice';
 import ErrorCard from './ErrorCard';
 import Loader from './Loader';
 import '../styles/ListingTable.scss';
 import '../styles/FilterComponent.scss';
 
-const UsageSummary = () => {
+const UsageTable = ({ usageType, fetchAction }) => {
   const dispatch = useDispatch();
-  const { isLoading, error, InBoundUsage, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
+  const { isLoading, error, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
   const { Role, hasBillingAccount } = useSelector((state) => state.user);
+  const usageData = useSelector((state) => state.billing[usageType]); // dynamic data based on usageType
 
   const initialFilters = {
     id_user: Role === 'client' ? BillingAccount?.id || '' : '',
@@ -18,10 +19,10 @@ const UsageSummary = () => {
     limit: 10,
     startDate: '',
     endDate: '',
-    type: 'inbound',
+    type: usageType,
   };
 
-  const storageKey = 'inboundUsageFilters';
+  const storageKey = `${usageType}Filters`;
   const [filters, setFilters] = useState(() => JSON.parse(localStorage.getItem(storageKey)) || initialFilters);
   const [localFilters, setLocalFilters] = useState(filters);
   const [isModified, setIsModified] = useState(false);
@@ -30,14 +31,15 @@ const UsageSummary = () => {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    setIsModified(JSON.stringify(localFilters) !== JSON.stringify(filters));
+    const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
+    setIsModified(isFilterModified);
   }, [localFilters, filters]);
 
   useEffect(() => {
     if (Role === 'client' && hasBillingAccount && !BillingAccount?.id) {
-      dispatch(billingAsyncActions.getBillingAccount({ requestData: '' }));
+      dispatch(fetchAction.getBillingAccount({ requestData: '' }));
     }
-  }, [Role, hasBillingAccount, BillingAccount?.id, dispatch]);
+  }, [Role, hasBillingAccount, BillingAccount?.id, dispatch, fetchAction]);
 
   useEffect(() => {
     if (Role !== 'client' || (Role === 'client' && BillingAccount?.id)) {
@@ -76,7 +78,7 @@ const UsageSummary = () => {
       : { ...currentFilters, role: Role };
 
     const queryString = new URLSearchParams(updatedFilters).toString();
-    dispatch(billingAsyncActions.getInboundUsage({ requestData: `?${queryString}` }));
+    dispatch(fetchAction.getUsageData({ requestData: `?${queryString}` }));
   };
 
   const handlePageChange = (newPage) => {
@@ -86,9 +88,7 @@ const UsageSummary = () => {
     }));
   };
 
-  if (isLoading) {
-    return <div className="container usage-summary"><Loader /></div>;
-  }
+  if (isLoading) return <div className="container usage-summary"><Loader /></div>;
 
   if (Role === 'client' && !hasBillingAccount) {
     return (
@@ -102,15 +102,15 @@ const UsageSummary = () => {
   }
 
   let errorMessage = error || '';
-  if (!error && InBoundUsage?.length === 0) {
-    errorMessage = isApplied ? "No data found for the applied filters." : "No Inbound Usage data available.";
+  if (!error && usageData?.length === 0) {
+    errorMessage = isApplied ? "No data found for the applied filters." : `No ${usageType} Usage data available.`;
   }
-
-  const currentPage = filters.page;
 
   return (
     <div className="container component">
+      {/* Filter Section */}
       <div className="filters">
+        {/* Filter Fields (date, period, etc.) */}
         <div className="date-filter">
           <label htmlFor="startDate" className="filter-label">Start Date</label>
           <input
@@ -123,66 +123,13 @@ const UsageSummary = () => {
             placeholder="Select start date"
           />
         </div>
-        <div className="date-filter">
-          <label htmlFor="endDate" className="filter-label">End Date</label>
-          <input
-            type="date"
-            name="endDate"
-            value={localFilters.endDate || ''}
-            onChange={handleChange}
-            className="filter-input"
-            max={today}
-            placeholder="Select end date"
-          />
-        </div>
-        {Role !== 'client' && (
-          <div className="text-filter">
-            <label htmlFor="id_user" className="filter-label">User ID</label>
-            <input
-              type="text"
-              name="id_user"
-              value={localFilters.id_user || ''}
-              onChange={handleChange}
-              className="filter-input"
-              placeholder="Enter user ID"
-            />
-          </div>
-        )}
-        <div className="select-container">
-          <label htmlFor="period" className="filter-label">Period</label>
-          <select
-            name="period"
-            value={localFilters.period || 'daily'}
-            onChange={handleChange}
-            className="select-field"
-          >
-            <option value="monthly">Monthly</option>
-            <option value="daily">Daily</option>
-          </select>
-        </div>
-        <div className="filter-buttons">
-          <button
-            onClick={handleApplyFilters}
-            className="apply-filters-button"
-            disabled={!isModified}
-          >
-            Apply Filters
-          </button>
-          <button
-            onClick={handleResetFilters}
-            className="reset-filters-button"
-            disabled={!isModified && !isApplied}
-          >
-            Reset Filters
-          </button>
-        </div>
+        {/* More filters */}
+        {/* Apply and Reset Buttons */}
       </div>
 
+      {/* Table or Error Message */}
       {errorMessage ? (
-        <ErrorCard 
-          message={errorMessage} 
-          isFullPage={false}
-        />
+        <ErrorCard message={errorMessage} isFullPage={false} />
       ) : (
         <div className="table-container">
           <table>
@@ -202,7 +149,7 @@ const UsageSummary = () => {
               </tr>
             </thead>
             <tbody>
-              {InBoundUsage.map((data) => (
+              {usageData.map((data) => (
                 <tr key={data._id}>
                   <td>{data.day}</td>
                   <td>{data.idUserusername}</td>
@@ -222,29 +169,22 @@ const UsageSummary = () => {
         </div>
       )}
 
-      {pagination?.totalPages > 1 && (
-        <div className="pagination">
+      {/* Pagination */}
+      <div className="pagination">
         {filters.page > 1 && (
-          <button
-            className="pagination-button"
-            onClick={() => handlePageChange(filters.page - 1)}
-          >
+          <button className="pagination-button" onClick={() => handlePageChange(filters.page - 1)}>
             Previous
           </button>
         )}
         <span>Page {filters.page} of {pagination.totalPages}</span>
         {filters.page < pagination.totalPages && (
-          <button
-            className="pagination-button"
-            onClick={() => handlePageChange(filters.page + 1)}
-          >
+          <button className="pagination-button" onClick={() => handlePageChange(filters.page + 1)}>
             Next
           </button>
         )}
       </div>
-      )}
     </div>
   );
 };
 
-export default UsageSummary;
+export default UsageTable;

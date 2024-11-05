@@ -223,23 +223,25 @@ const OutboundUsage = () => {
         </div>
       )}
 
-      {pagination?.totalPages > 1 && (
-        <div className="pagination">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          <span>Page {currentPage} of {pagination.totalPages}</span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === pagination.totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
+<div className="pagination">
+            {filters.page > 1 && (
+              <button
+                className="pagination-button"
+                onClick={() => handlePageChange(filters.page - 1)}
+              >
+                Previous
+              </button>
+            )}
+            <span>Page {filters.page} of {pagination.totalPages}</span>
+            {filters.page < pagination.totalPages && (
+              <button
+                className="pagination-button"
+                onClick={() => handlePageChange(filters.page + 1)}
+              >
+                Next
+              </button>
+            )}
+          </div>
     </div>
   );
 };

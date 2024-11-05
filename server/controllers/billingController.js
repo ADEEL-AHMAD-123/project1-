@@ -7,7 +7,7 @@ const SIPDetails = require("../models/SIPDetails");
 const BillingAccount = require("../models/BillingAccount");
 const BillingSummary = require("../models/BillingSummary");
 const moment = require("moment");
-const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPin,storeDataInMongoDB ,fetchBillingAccountCredit} = require('../utils/switchBillingHelpers');
+const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPin,storeDataInMongoDB ,fetchBillingAccountCredit,fetchMonthlyDataFromMongoDB} = require('../utils/switchBillingHelpers');
 
 
 
@@ -450,10 +450,11 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     endDate: endDateParam,
     page = 1,
     type,
-    role, 
+    role,
+    period
   } = req.query;
 
-  const server = getBillingServer(type); // Get the correct server based on the type
+  const server = getBillingServer(type);
 
   // Ensure id_user is numeric if provided
   let numericIdUser = null;
@@ -464,83 +465,49 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     }
   }
 
-  server.clearFilter(); // Clear any previous filters
+  server.clearFilter();
 
   // Date handling
-  const today = moment().startOf("day").format("YYYY-MM-DD"); // Format as string
-  const yesterday = moment().subtract(1, "day").startOf("day").format("YYYY-MM-DD"); // Yesterday's date
-
   let startDate, endDate;
 
   try {
     if (startDateParam) {
-      startDate = moment(startDateParam).format("YYYY-MM-DD");
-
-      if (endDateParam) {
-        endDate = moment(endDateParam).format("YYYY-MM-DD");
-
-        if (moment(startDate).isAfter(endDate)) {
-          return next(createError(400, `Start date cannot be after end date: ${startDateParam} to ${endDateParam}`));
-        }
-
-        if (moment(startDate).isSame(endDate)) {
-          return next(createError(400, `Start date and end date cannot be the same: ${startDateParam}`));
-        }
-
-        if (moment(startDate).isAfter(today) || moment(endDate).isAfter(today)) {
-          return next(createError(400, `Date range cannot be in the future: ${startDateParam} to ${endDateParam}`));
-        }
-      } else {
-        endDate = yesterday; // Default end date to yesterday if not provided
-      }
-    } else {
-      startDate = null;
-      endDate = null; // No date range filter
+      startDate = moment(startDateParam, "YYYY-MM-DD", true).isValid()
+        ? new Date(startDateParam)
+        : null;
     }
+    if (endDateParam) {
+      endDate = moment(endDateParam, "YYYY-MM-DD", true).isValid()
+        ? new Date(endDateParam)
+        : null;
+    }
+
+    // Validate date range
+    if (startDate && endDate && moment(startDate).isAfter(endDate)) {
+      return next(createError(400, `Start date cannot be after end date: ${startDateParam} to ${endDateParam}`));
+    }
+
   } catch (err) {
     return next(createError(400, `Invalid date format: ${err.message}`));
   }
 
-  const includesToday = startDate && endDate && moment(startDate).isBefore(today) && moment(endDate).isSameOrAfter(today);
-
-  const limit = 10; // Define limit as needed
+  const limit = 10;
   const skip = (page - 1) * limit;
 
   try {
     let result;
 
-    // If id_user is provided, set the filter; otherwise, fetch without filtering by user
-    if (numericIdUser !== null) {
-      server.setFilter("id_user", numericIdUser, "eq", "numeric"); // Set filter for specific ID
-    }
-
-    if (includesToday) {
-      result = await server.read("callSummaryDayUser");
-      await storeDataInMongoDB(result);
-      result = await fetchDataFromMongoDB({
-        startDate,
-        endDate,
-        id_user: numericIdUser, // This will be null if not provided
-        skip,
-        limit,
-        page,
-      });
-      logger.info(`Data fetched from third-party server for date range ${startDateParam} to ${endDateParam}`);
+    // Set monthly or daily aggregation based on period
+    if (period === 'monthly') {
+      result = await fetchMonthlyDataFromMongoDB({ startDate, endDate, id_user: numericIdUser, skip, limit, page });
     } else {
-      result = await fetchDataFromMongoDB({
-        startDate,
-        endDate,
-        id_user: numericIdUser, // This will be null if not provided
-        skip,
-        limit,
-        page,
-      });
+      result = await fetchDataFromMongoDB({ startDate, endDate, id_user: numericIdUser, skip, limit, page });
     }
 
-    // Check if the role is 'client' and remove the 'sumbuycost' field
+    // Remove sensitive data if role is 'client'
     if (role === 'client') {
-      result.data = result.data.map((item) => {
-        const { sumbuycost, ...rest } = item._doc || item; // Exclude 'sumbuycost'
+      result.data = result.data.map(item => {
+        const { sumbuycost, ...rest } = item._doc || item;
         return rest;
       });
     }
@@ -549,7 +516,9 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
       success: true,
       data: result.data,
       pagination: result.pagination,
+      period
     });
+
   } catch (err) {
     logger.error(`Internal Server Error: ${err.message}`, {
       error: err,
@@ -563,7 +532,6 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     return next(createError(500, `Internal Server Error: ${err.message}`));
   }
 });
-
 
 
 
