@@ -5,12 +5,20 @@ const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
 const User = require("../models/user");
 const SIPDetails = require("../models/SIPDetails");
 const BillingAccount = require("../models/BillingAccount");
-const BillingSummary = require("../models/BillingSummary");
+const InboundUsage = require("../models/BillingAccount");
 const moment = require("moment");
-const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPin,storeDataInMongoDB ,fetchBillingAccountCredit,fetchMonthlyDataFromMongoDB} = require('../utils/switchBillingHelpers');
-
-
-
+const {
+  getBillingServer,
+  fetchAllPages,
+  fetchDataFromMongoDB,
+  generateRandomPin,
+  storeDataInMongoDB,
+  fetchBillingAccountCredit,
+  fetchMonthlyDataFromMongoDB,
+  calculateUsageSummary,
+  fetchDataFromServer,
+  calculateMonthlyUsageSummary
+} = require("../utils/switchBillingHelpers");
 
 // @desc    Create a billing account
 // @route   POST /api/v1/billing/create-billing-account
@@ -18,7 +26,7 @@ const { getBillingServer, fetchAllPages, fetchDataFromMongoDB,  generateRandomPi
 exports.createBillingAccount = catchAsyncErrors(async (req, res, next) => {
   const { type } = req.query;
 
-  // Fetch current logged-in user 
+  // Fetch current logged-in user
   const user = await User.findById(req.user._id); // Assuming req.user._id is set by authentication middleware
   if (!user) {
     return next(createError(404, "User not found"));
@@ -30,8 +38,8 @@ exports.createBillingAccount = catchAsyncErrors(async (req, res, next) => {
     username: username,
     password: "11111111",
     id_group: 3,
-    credit: 0.00,
-    active:1,
+    credit: 0.0,
+    active: 1,
     callingcard_pin: generateRandomPin(),
   };
 
@@ -169,8 +177,6 @@ exports.createSIPAccount = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-
-
 // @desc    Get logged-in user's billing account
 // @route   GET /api/v1/billing/account
 // @access  Private
@@ -180,7 +186,9 @@ exports.getBillingAccount = catchAsyncErrors(async (req, res, next) => {
 
   try {
     // Fetch the billing account from MongoDB for the logged-in user
-    const existingBillingAccount = await BillingAccount.findOne({ user_id: userId });
+    const existingBillingAccount = await BillingAccount.findOne({
+      user_id: userId,
+    });
 
     // If no billing account is found in MongoDB, return an error
     if (!existingBillingAccount) {
@@ -219,11 +227,14 @@ exports.getBillingAccount = catchAsyncErrors(async (req, res, next) => {
         ? Object.values(apiResponse.errors).flat().join(", ")
         : "Billing account not found on switchBilling server";
 
-      logger.error("Failed to fetch billing account from switchBilling server", {
-        id,
-        result: apiResponse,
-        error: errorMessage,
-      });
+      logger.error(
+        "Failed to fetch billing account from switchBilling server",
+        {
+          id,
+          result: apiResponse,
+          error: errorMessage,
+        }
+      );
 
       return next(createError(404, errorMessage));
     }
@@ -232,10 +243,11 @@ exports.getBillingAccount = catchAsyncErrors(async (req, res, next) => {
       userId,
       error: err.message,
     });
-    return next(createError(500, "Internal Server Error while fetching billing account"));
+    return next(
+      createError(500, "Internal Server Error while fetching billing account")
+    );
   }
 });
-
 
 // @desc Get logged-in user's billing account credit
 // @route GET /api/v1/billing/account/credit
@@ -253,8 +265,16 @@ exports.getBillingAccountCredit = catchAsyncErrors(async (req, res, next) => {
       credit: creditData,
     });
   } catch (err) {
-    logger.error("Error fetching billing account credit", { userId, error: err.message });
-    return next(createError(500, "Internal Server Error while fetching billing account credit"));
+    logger.error("Error fetching billing account credit", {
+      userId,
+      error: err.message,
+    });
+    return next(
+      createError(
+        500,
+        "Internal Server Error while fetching billing account credit"
+      )
+    );
   }
 });
 
@@ -279,13 +299,13 @@ exports.getAllResources = catchAsyncErrors(async (req, res, next) => {
     case "billing_accounts":
       collection = BillingAccount;
       break;
-    case "billing_summary":
-      collection = BillingSummary;
+    case "inbound_usage":
+      collection = InboundUsage;
       break;
     default:
       return next(createError(400, "Invalid module"));
   }
- 
+
   try {
     // Get the total count of documents
     const totalCount = await collection.countDocuments();
@@ -440,10 +460,10 @@ exports.updateResource = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-// @desc    Get billing summary records based on date range, optionally filtered by id_user
-// @route   GET /api/v1/summary/days
+// @desc    Get inbound and outbound billing usage records based on date range, optionally filtered by id_user
+// @route   GET /api/v1/billing/usage
 // @access  Private
-exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
+exports.getBillingUsage = catchAsyncErrors(async (req, res, next) => {
   const {
     id_user,
     startDate: startDateParam,
@@ -451,23 +471,19 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
     page = 1,
     type,
     role,
-    period
+    period,
   } = req.query;
-
-  const server = getBillingServer(type);
 
   // Ensure id_user is numeric if provided
   let numericIdUser = null;
   if (id_user) {
     numericIdUser = parseInt(id_user, 10);
     if (isNaN(numericIdUser)) {
-      return next(createError(400, 'Invalid id_user, must be a number'));
+      return next(createError(400, "Invalid id_user, must be a number"));
     }
   }
 
-  server.clearFilter();
-
-  // Date handling
+  // Date handling with stricter validation
   let startDate, endDate;
 
   try {
@@ -482,33 +498,93 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
         : null;
     }
 
+    if (!startDate && startDateParam) {
+      return next(createError(400, "Invalid start date format, must be YYYY-MM-DD"));
+    }
+    if (!endDate && endDateParam) {
+      return next(createError(400, "Invalid end date format, must be YYYY-MM-DD"));
+    }
+
     // Validate date range
     if (startDate && endDate && moment(startDate).isAfter(endDate)) {
       return next(createError(400, `Start date cannot be after end date: ${startDateParam} to ${endDateParam}`));
     }
-
   } catch (err) {
     return next(createError(400, `Invalid date format: ${err.message}`));
   }
 
+  const today = moment().startOf("day").toDate();
+  const includesToday =
+    (startDate && moment(startDate).isSame(today, "day")) ||
+    (endDate && moment(endDate).isSame(today, "day"));
   const limit = 10;
   const skip = (page - 1) * limit;
+  let result;
 
   try {
-    let result;
+    if (includesToday) {
+      // Step 1: Fetch data from the third-party server using the helper function
+      const apiResult = await fetchDataFromServer("callSummaryDayUser", type);
 
-    // Set monthly or daily aggregation based on period
-    if (period === 'monthly') {
-      result = await fetchMonthlyDataFromMongoDB({ startDate, endDate, id_user: numericIdUser, skip, limit, page });
+      // Step 2: Store the fetched data in MongoDB
+      await storeDataInMongoDB(apiResult, type);
+
+      // Step 3: Fetch the stored data from MongoDB
+      if (period === "monthly") {
+        result = await fetchMonthlyDataFromMongoDB({
+          startDate,
+          endDate,
+          id_user: numericIdUser,
+          skip,
+          limit,
+          page,
+          type,
+        });
+      } else {
+        result = await fetchDataFromMongoDB({
+          startDate,
+          endDate,
+          id_user: numericIdUser,
+          skip,
+          limit,
+          page,
+          type,
+        });
+      }
+
+      logger.info(
+        `Successfully fetched and stored data for date range ${startDateParam} to ${endDateParam} from third-party server`
+      );
     } else {
-      result = await fetchDataFromMongoDB({ startDate, endDate, id_user: numericIdUser, skip, limit, page });
+      // Directly fetch data from MongoDB if today is not included
+      if (period === "monthly") {
+        result = await fetchMonthlyDataFromMongoDB({
+          startDate,
+          endDate,
+          id_user: numericIdUser,
+          skip,
+          limit,
+          page,
+          type,
+        });
+      } else {
+        result = await fetchDataFromMongoDB({
+          startDate,
+          endDate,
+          id_user: numericIdUser,
+          skip,
+          limit,
+          page,
+          type,
+        });
+      }
     }
 
-    // Remove sensitive data if role is 'client'
-    if (role === 'client') {
-      result.data = result.data.map(item => {
-        const { sumbuycost, ...rest } = item._doc || item;
-        return rest;
+    // Remove sensitive data fields if role is 'client'
+    if (role === "client") {
+      result.data = result.data.map((item) => {
+        const { sumbuycost, ...safeData } = item._doc || item;
+        return safeData;
       });
     }
 
@@ -516,121 +592,85 @@ exports.getAllDays = catchAsyncErrors(async (req, res, next) => {
       success: true,
       data: result.data,
       pagination: result.pagination,
+      period,
+    });
+  } catch (err) {
+    logger.error(`Internal Server Error: ${err.message}`, {
+      error: err,
+      request: {
+        ip: req.ip,
+        method: req.method,
+        path: req.path,
+        query: req.query,
+      },
+    });
+    return next(createError(500, `Internal Server Error: ${err.message}`));
+  }
+});
+
+
+// @desc    Get usage-summary by calculating it from inbound and outbound usage
+// @route   GET /api/v1/usage/summary
+// @access  Private
+exports.getUsageSummary = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { startDate, endDate, id_user, period, page = 1, limit = 10 } = req.query;
+    const today = moment().format('YYYY-MM-DD');
+
+
+ // Ensure id_user is numeric if provided
+ let numericIdUser = null;
+ if (id_user) {
+   numericIdUser = parseInt(id_user, 10);
+   if (isNaN(numericIdUser)) {
+     return next(createError(400, "Invalid id_user, must be a number"));
+   }
+ }
+
+    // Validate period (either 'monthly' or 'daily')
+    if (!['monthly', 'daily'].includes(period)) {
+      return res.status(400).json({ success: false, message: "Invalid period. It should be 'monthly' or 'daily'." });
+    }
+
+    // Convert page and limit to integers
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+
+    // Calculate the number of items to skip based on the page
+    const skip = (pageNum - 1) * limitNum;
+
+    // Fetch and calculate the usage summary
+    let usageSummary;
+    if (period === 'daily') {
+      usageSummary = await calculateUsageSummary({
+        startDate,
+        endDate,
+        id_user: numericIdUser,
+        period,
+        skip,
+        limit: limitNum,
+        page:pageNum
+      });
+    } else if (period === 'monthly') {
+      usageSummary = await calculateMonthlyUsageSummary({
+        startDate,
+        endDate,
+        id_user: numericIdUser,
+        skip,
+        limit: limitNum,
+        page:pageNum
+      });
+    }
+
+    // Return the response with pagination details
+    res.status(200).json({
+      success: true,
+      data: usageSummary.data, // The actual data
+      pagination: usageSummary.pagination, // Directly return pagination from calculateUsageSummary
       period
     });
-
-  } catch (err) {
-    logger.error(`Internal Server Error: ${err.message}`, {
-      error: err,
-      request: {
-        ip: req.ip,
-        method: req.method,
-        path: req.path,
-        query: req.query,
-      },
-    });
-    return next(createError(500, `Internal Server Error: ${err.message}`));
-  }
-});
-
-
-
-// @desc    Get all months records
-// @route   GET /api/v1/summary/month
-// @access  Private
-exports.getAllMonths = catchAsyncErrors(async (req, res, next) => {
-  const { page = 1, id_user, month, type } = req.query;
-  const billingSwitchServer = getBillingServer(type); // Get the correct server based on the type
-
-  if (id_user) {
-    billingSwitchServer.setFilter("id_user", id_user, "eq", "numeric");
-  }
-
-  if (month) {
-    billingSwitchServer.setFilter("month", month, "eq", "date");
-  }
-
-  let result;
-  try {
-    if (page === "all") {
-      result = await fetchAllPages("callSummaryMonthUser", billingSwitchServer);
-    } else {
-      result = await billingSwitchServer.read("callSummaryMonthUser", page);
-    }
-
-    billingSwitchServer.clearFilter();
-
-    res.status(200).json({
-      success: true,
-      result,
-    });
-  } catch (err) {
-    logger.error(`Internal Server Error: ${err.message}`, {
-      error: err,
-      request: {
-        ip: req.ip,
-        method: req.method,
-        path: req.path,
-        query: req.query,
-      },
-    });
-    return next(createError(500, `Internal Server Error: ${err.message}`));
-  }
-});
-
-// @desc    Delete a resource by ID
-// @route   DELETE /api/v1/billing/resources/:id
-// @access  Private
-exports.deleteResource = catchAsyncErrors(async (req, res, next) => {
-  const { module, type } = req.query;
-  if (!module) {
-    return next(createError(400, "Module is required"));
-  }
-
-  const billingSwitchServer = getBillingServer(type); // Get the correct server based on the type
-
-  try {
-    const result = await billingSwitchServer.destroy(module, req.params.id);
-
-    if (!result) {
-      return next(
-        createError(404, `Resource not found with id of ${req.params.id}`)
-      );
-    }
-
-    if (result.success !== true) {
-      logger.error("Resource deletion failed", {
-        module,
-        result,
-      });
-      return res.status(500).json({
-        success: false,
-        message: "Resource deletion failed",
-        result,
-      });
-    }
-
-    logger.info("Resource deleted", {
-      module,
-      result,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Resource deleted successfully",
-      result,
-    });
-  } catch (err) {
-    logger.error(`Internal Server Error: ${err.message}`, {
-      error: err,
-      request: {
-        ip: req.ip,
-        method: req.method,
-        path: req.path,
-        query: req.query,
-      },
-    });
-    return next(createError(500, `Internal Server Error: ${err.message}`));
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -663,7 +703,7 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
     page,
     limit,
     id_user,
-    id
+    id,
   };
 
   try {
@@ -687,23 +727,31 @@ exports.fetchDataFromSwitchServer = catchAsyncErrors(async (req, res, next) => {
       const errorMessage = apiResponse.errors
         ? Object.values(apiResponse.errors).flat().join(", ")
         : "Unknown error occurred";
-        
+
       logger.error("Failed to fetch data from switchBilling server", {
         module,
         result: apiResponse,
         error: errorMessage,
       });
 
-      return next(createError(400, "Failed to fetch data from switchBilling server"));
+      return next(
+        createError(400, "Failed to fetch data from switchBilling server")
+      );
     }
   } catch (err) {
     // Handle any errors during the API call
-    logger.error("Error fetching data from switchBilling server", { module, error: err.message });
-    return next(createError(500, "Internal Server Error while fetching data from switchBilling server"));
+    logger.error("Error fetching data from switchBilling server", {
+      module,
+      error: err.message,
+    });
+    return next(
+      createError(
+        500,
+        "Internal Server Error while fetching data from switchBilling server"
+      )
+    );
   }
 });
-
-
 
 // @desc    Get specific user all refill records
 // @route   GET /api/v1/billing/refill
@@ -715,7 +763,9 @@ exports.getBillingAccountRefill = catchAsyncErrors(async (req, res, next) => {
   const billingAccount = await BillingAccount.findOne({ id: id_user });
   if (!billingAccount) {
     logger.error("Billing account not found", { id_user });
-    return next(createError(404, "Billing account not found with the provided id."));
+    return next(
+      createError(404, "Billing account not found with the provided id.")
+    );
   }
 
   // Fetch the result from the appropriate billing server
@@ -726,100 +776,119 @@ exports.getBillingAccountRefill = catchAsyncErrors(async (req, res, next) => {
     billingServer.clearFilter();
 
     // Check for different errors based on the response
-    if (!result ||  !result.rows) {
+    if (!result || !result.rows) {
       logger.error("Invalid response from billing server", { id_user, result });
       return next(createError(400, "Invalid response from billing server."));
     }
 
     if (result.response && result.response.status === 500) {
       logger.error("Internal server error from billing server", { id_user });
-      return next(createError(500, "Internal server error from billing server."));
+      return next(
+        createError(500, "Internal server error from billing server.")
+      );
     }
 
     // Check if credit exists in the result
     const Result = result.rows[0];
     if (Result === undefined) {
       logger.error("Refill data not found in the billing server", { id_user });
-      return next(createError(400, "Refill data not found in the billing response."));
+      return next(
+        createError(400, "Refill data not found in the billing response.")
+      );
     }
-
-   
 
     // Respond with the billing credit and updated BillingAccount
     res.status(200).json({
       success: true,
-      Result, // Return result in response 
+      Result, // Return result in response
     });
   } catch (err) {
-    logger.error("Error fetching refill records from server", { id_user, error: err.message });
-    return next(createError(500, "Internal Server Error while fetching refill records"));
-  } 
-}); 
-
+    logger.error("Error fetching refill records from server", {
+      id_user,
+      error: err.message,
+    });
+    return next(
+      createError(500, "Internal Server Error while fetching refill records")
+    );
+  }
+});
 
 // @desc    Create new credit record
 // @route   POST /api/v1/billing/credit
 // @access  Private
-exports.updateBillingAccountCredit = catchAsyncErrors(async (req, res, next) => {
-  const { type } = req.query;
-  const { id_user, credit, description } = req.body;
+exports.updateBillingAccountCredit = catchAsyncErrors(
+  async (req, res, next) => {
+    const { type } = req.query;
+    const { id_user, credit, description } = req.body;
 
-  // Fetch the result from the appropriate billing server
-  const billingServer = getBillingServer(type);
-  
-  try {
-    
-    // Fetch the BillingAccount from the database using the id_user
-    const billingAccount = await BillingAccount.findOne({ id: id_user });
-    
-    // If no billing account is found, return an error
-    if (!billingAccount) {
-      logger.error("BillingAccount not found", { id_user });
-      return next(createError(404, "BillingAccount not found."));
+    // Fetch the result from the appropriate billing server
+    const billingServer = getBillingServer(type);
+
+    try {
+      // Fetch the BillingAccount from the database using the id_user
+      const billingAccount = await BillingAccount.findOne({ id: id_user });
+
+      // If no billing account is found, return an error
+      if (!billingAccount) {
+        logger.error("BillingAccount not found", { id_user });
+        return next(createError(404, "BillingAccount not found."));
+      }
+
+      // Prepare data for refill request
+      const refillData = {
+        id_user,
+        credit,
+        payment: 1,
+        description,
+      };
+
+      // Make request to the billing server
+      const result = await billingServer.create("refill", refillData);
+
+      // Handle invalid result from the billing server
+      if (!result || result.success !== true) {
+        logger.error(
+          "Invalid response from billing server during credit update",
+          { id_user, result }
+        );
+        return next(
+          createError(
+            400,
+            "Invalid response from billing server during credit update."
+          )
+        );
+      }
+
+      // Extract the new credit from the result's rows
+      const newCredit = parseFloat(result.rows[0].credit);
+      console.log(result.rows);
+
+      // Update the BillingAccount credit with the new credit
+      billingAccount.credit = newCredit;
+
+      // Save the updated BillingAccount
+      await billingAccount.save();
+
+      // Log successful credit update
+      logger.info("Billing credit updated successfully", {
+        id_user,
+        newCredit,
+      });
+
+      // Respond with success message and updated BillingAccount
+      res.status(200).json({
+        success: true,
+        message: "Billing credit updated successfully",
+        billingAccount,
+      });
+    } catch (err) {
+      logger.error("Error updating billing credit on server", {
+        id_user,
+        error: err.message,
+      });
+      return next(
+        createError(500, "Internal Server Error while updating billing credit.")
+      );
     }
-
-    // Prepare data for refill request
-    const refillData = {
-      id_user,
-      credit,
-      payment: 1,
-      description,
-    };
-
-    // Make request to the billing server
-    const result = await billingServer.create("refill", refillData);
-
-    // Handle invalid result from the billing server
-    if (!result || result.success !== true) {
-      logger.error("Invalid response from billing server during credit update", { id_user, result });
-      return next(createError(400, "Invalid response from billing server during credit update."));
-    }
-
-    // Extract the new credit from the result's rows
-    const newCredit = parseFloat(result.rows[0].credit);
-    console.log(result.rows);
-
-    // Update the BillingAccount credit with the new credit
-    billingAccount.credit = newCredit;
-
-    // Save the updated BillingAccount
-    await billingAccount.save();
-
-    // Log successful credit update
-    logger.info("Billing credit updated successfully", { id_user, newCredit });
-
-    // Respond with success message and updated BillingAccount
-    res.status(200).json({
-      success: true,
-      message: "Billing credit updated successfully",
-      billingAccount,
-    });
-  } catch (err) {
-    logger.error("Error updating billing credit on server", { id_user, error: err.message });
-    return next(createError(500, "Internal Server Error while updating billing credit."));
   }
-});
- 
-
-
- 
+);

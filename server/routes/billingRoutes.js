@@ -6,14 +6,13 @@ const {
   getAllResources,
   getResourceById,
   updateResource,
-  deleteResource,
-  getAllDays,
-  getAllMonths,
+  getBillingUsage,
   fetchDataFromSwitchServer,
   getBillingAccount, 
   getBillingAccountRefill,
   updateBillingAccountCredit,
-  getBillingAccountCredit
+  getBillingAccountCredit,
+  getUsageSummary
 } = require('../controllers/billingController');
 const { isAuthenticatedUser, isAuthorized } = require('../middlewares/auth');
 
@@ -34,17 +33,16 @@ router.get('/resources', isAuthenticatedUser, isAuthorized('admin', 'supportive 
 // Route to update a resource by ID
 router.put('/resources/:id', isAuthenticatedUser, isAuthorized('admin'), updateResource);
 
-// Route to delete a resource by ID
-router.delete('/resources/:id', isAuthenticatedUser, isAuthorized('admin'), deleteResource);
 
-// Route to get record of a user for a day
-router.get('/summary/days', isAuthenticatedUser, isAuthorized('admin', 'supportive staff', 'client'), getAllDays);
+
+// Route to get inbound and outbound usage record  on daily/monthly basis
+router.get('/usage', isAuthenticatedUser, isAuthorized('admin', 'supportive staff', 'client'), getBillingUsage);
+
+// Route to get usage-summmary on daily/monthly basis
+router.get('/usage/summary', isAuthenticatedUser, isAuthorized('admin', 'supportive staff', 'client'), getUsageSummary);
 
 // Route to fetch data from the switch server
 router.get('/records', isAuthenticatedUser, isAuthorized('admin', 'supportive staff', 'client'), fetchDataFromSwitchServer);
-
-// Route to get monthly summary
-router.get('/summary/month', isAuthenticatedUser, isAuthorized('admin', 'supportive staff'), getAllMonths);
 
 
 // Route to get the logged-in user's billing account

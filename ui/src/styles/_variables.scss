@@ -1,17 +1,26 @@
-// _variables.scss
-
 // Define primary and secondary colors
-$primary-color: #673AB7;   // Example primary color
-$secondary-color: #EDE7F6; // Example secondary color
+$primary-color: #673AB7;   // Primary color for buttons
+$secondary-color: #EDE7F6; // Example secondary color for backgrounds
 
-
-$text-color: #989A9B;         // Example text color
-$secondary-text-color: #666; // Example secondary text color
+// Text colors
+$text-color: #989A9B;         // General text color
+$secondary-text-color: #666;  // Secondary text color
 
 $light-text-color: #7f8c8d;
 
-$black-color:rgba(0, 0, 0, 0.81);
-$white-color: white; // Example background color
-$red-color:rgb(225, 47, 47);
-$primary-background-color:#eef2f6;
-$secondry-background-color:#F8FAFC;
+$black-color: rgba(0, 0, 0, 0.81);
+$white-color: white;          // Background color for light theme
+$red-color: rgb(225, 47, 47); // Error or alert color
+
+// Background colors
+$primary-background-color: #eef2f6;
+$secondry-background-color: #F8FAFC;
+
+// Button Colors
+$button-color: $primary-color;              // Primary color for button
+$disabled-button-color: #D1C4E9;            // Light grey color for disabled button 
+
+$button-hover-color: darken($primary-color, 10%);  // Slightly darker shade on hover for the button
+$button-active-color: darken($primary-color, 20%); // Even darker shade when active (clicked)
+
+

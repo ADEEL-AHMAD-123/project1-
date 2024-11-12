@@ -54,21 +54,24 @@ const BuyDIDs = () => {
     localStorage.setItem('didFilters', JSON.stringify(filters));
   }, [filters]);
 
-  // Fetch DIDs when filters are applied or on component mount
   useEffect(() => {
-    if (hasSearched || (filters.country || filters.state || filters.areaCode || filters.number)) {
-      const queryString = new URLSearchParams(appliedFilters).toString();
-      dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: `?${queryString}` }));
+    if (hasSearched || Object.values(appliedFilters).some(filter => filter)) {
+      const queryParams = Object.entries(appliedFilters)
+        .filter(([key, value]) => value && String(value).trim() !== '') // Ensure value is a string and not empty
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&');
+
+      const queryString = queryParams ? `?${queryParams}` : '';
+      dispatch(didAsyncActions.fetchAvailableDIDs({ requestData: queryString }));
     }
   }, [dispatch, appliedFilters, hasSearched]);
 
-  // Fetch DIDs when component mounts and filters exist in local storage
   useEffect(() => {
     const storedFilters = JSON.parse(localStorage.getItem('didFilters'));
     if (storedFilters && (storedFilters.country || storedFilters.state || storedFilters.areaCode || storedFilters.number)) {
       setFilters(storedFilters);
       setAppliedFilters(storedFilters);
-      setHasSearched(true); // Trigger fetching DIDs with the stored filters
+      setHasSearched(true);
     }
   }, []);
 
@@ -81,8 +84,16 @@ const BuyDIDs = () => {
   };
 
   const applyFilters = () => {
-    setAppliedFilters(filters);
-    setFilters((prevFilters) => ({ ...prevFilters, page: 1 }));
+    // Reset the page to 1 before applying filters
+    const updatedFilters = { ...filters, page: 1 }; // Explicitly set page to 1
+
+    // Set the filters to state
+    setFilters(updatedFilters);
+
+    // Set the applied filters
+    setAppliedFilters(updatedFilters);
+    
+    // Indicate that the user has searched
     setHasSearched(true);
   };
 
@@ -128,18 +139,18 @@ const BuyDIDs = () => {
     const newPageNumber = parseInt(newPage, 10);
     if (newPageNumber < 1 || newPageNumber > totalPages) return;
 
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      page: newPageNumber,
-    }));
+    // Update filters to reflect the new page
+    setFilters((prevFilters) => {
+      const updatedFilters = { ...prevFilters, page: newPageNumber };
+      setAppliedFilters(updatedFilters); 
+      return updatedFilters;
+    });
   };
 
   return (
     <div className="container component">
-      {/* Error Card for General Errors */}
       {error && <ErrorCard message={error} isFullPage={false} />}
 
-      {/* Filters */}
       <div className="filters">
         <div className="text-filter">
           <input
@@ -199,12 +210,10 @@ const BuyDIDs = () => {
         </div>
       </div>
 
-      {/* Error Card if No Results */}
       {hasSearched && availableDIDs.length === 0 && !error && (
         <ErrorCard message={"No DIDs available based on the applied filters."} isFullPage={false} />
       )}
 
-      {/* Table */}
       {hasSearched && availableDIDs.length > 0 && !error && (
         <div className="table-container">
           <table>
@@ -228,7 +237,7 @@ const BuyDIDs = () => {
                   <td>{did.areaCode}</td>
                   <td>{did.destination || 'N/A'}</td>
                   <td>{did.callerIdUsage || 'N/A'}</td>
-                  <td>
+                   <td>
                     <FontAwesomeIcon
                       icon={isInCart(did) ? faTrashAlt : faCartPlus}
                       className={isInCart(did) ? 'cart-remove-icon' : 'cart-add-icon'}
@@ -240,29 +249,28 @@ const BuyDIDs = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {hasSearched && totalPages > 1 && (
+         {/* Pagination logic */}
+      {!error && pagination.totalPages > 1 && (
         <div className="pagination">
           <button
-            onClick={() => handlePageChange(currentPage - 1)}
+            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage <= 1}
             className="pagination-button"
           >
             Previous
           </button>
-          <span>
-            Page {currentPage} of {totalPages}
+          <span className="pagination-info">
+            Page {currentPage} of {pagination.totalPages}
           </span>
           <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
+            onClick={() => handlePageChange(Math.min(pagination.totalPages, currentPage + 1))}
+            disabled={currentPage >= pagination.totalPages}
             className="pagination-button"
           >
             Next
           </button>
+        </div>
+      )}
         </div>
       )}
     </div>

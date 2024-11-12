@@ -30,7 +30,13 @@ const InboundUsage = () => {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
+    const isFilterModified = JSON.stringify({
+      ...localFilters,
+      page: undefined, // Ignore changes to pagination
+    }) !== JSON.stringify({
+      ...filters,
+      page: undefined, // Ignore changes to pagination
+    });
     setIsModified(isFilterModified);
   }, [localFilters, filters]);
 
@@ -253,9 +259,9 @@ const InboundUsage = () => {
                     <td>{data.nbcall}</td>
                     <td>{data.nbcall - data.nbcall_fail}</td>
                     <td>{data.nbcall_fail}</td>
-                    {Role !== 'client' && <td>{data.sumbuycost}</td>}
-                    <td>{data.sellsessionbill}</td>
-                    <td>{data.lucro}</td>
+                    {Role !== 'client' && <td>{data.buycost}</td>}
+                    <td>{data.sell_price}</td>
+                    <td>{data.sell_price - data.buy_price}</td>
                     <td>{data.asr}</td>
                   </tr>
                 ))}

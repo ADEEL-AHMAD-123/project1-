@@ -8,7 +8,8 @@ import '../styles/FilterComponent.scss';
 
 const OutboundUsage = () => {
   const dispatch = useDispatch();
-  const { isLoading, error, OutBoundUsage, BillingAccount, pagination = {} } = useSelector((state) => state.billing);
+  const { isLoading, error, OutBoundUsage, BillingAccount, period, pagination = {} } = useSelector((state) => state.billing);
+  
   const { Role, hasBillingAccount } = useSelector((state) => state.user);
 
   const initialFilters = {
@@ -18,7 +19,7 @@ const OutboundUsage = () => {
     limit: 10,
     startDate: '',
     endDate: '',
-    type: 'outbound', // Adjusted for outbound
+    type: 'outbound',
   };
 
   const storageKey = 'outboundUsageFilters';
@@ -30,7 +31,13 @@ const OutboundUsage = () => {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
+    const isFilterModified = JSON.stringify({
+      ...localFilters,
+      page: undefined, // Ignore changes to pagination
+    }) !== JSON.stringify({
+      ...filters,
+      page: undefined, // Ignore changes to pagination
+    });
     setIsModified(isFilterModified);
   }, [localFilters, filters]);
 
@@ -112,6 +119,7 @@ const OutboundUsage = () => {
   return (
     <div className="container component">
       <div className="filters">
+        {/* Filter UI */}
         <div className="date-filter">
           <label htmlFor="startDate" className="filter-label">Start Date</label>
           <input
@@ -186,62 +194,106 @@ const OutboundUsage = () => {
         />
       ) : (
         <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Day</th>
-                <th>Username</th>
-                <th>Duration/Min</th>
-                <th>ALOC</th>
-                <th>All Calls</th>
-                <th>Answered</th>
-                <th>Failed</th>
-                {Role !== 'client' && <th>Buy Price</th>}
-                <th>Sell Price</th>
-                <th>Markup</th>
-                <th>ASR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {OutBoundUsage.map((data) => (
-                <tr key={data._id}>
-                  <td>{data.day}</td>
-                  <td>{data.idUserusername}</td>
-                  <td>{data.sessiontime}</td>
-                  <td>{data.aloc_all_calls}</td>
-                  <td>{data.nbcall}</td>
-                  <td>{data.nbcall - data.nbcall_fail}</td>
-                  <td>{data.nbcall_fail}</td>
-                  {Role !== 'client' && <td>{data.sumbuycost}</td>}
-                  <td>{data.sellPrice}</td>
-                  <td>{data.markup}</td>
-                  <td>{data.asr}</td>
+          {period === 'monthly' ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th>Month</th>
+                  <th>User ID</th>
+                  <th>Total Agent Bill</th>
+                  <th>Total ALOC All Calls</th>
+                  <th>Total Buy Cost</th>
+                  <th>Total Lucro</th>
+                  <th>Total Number of Calls</th>
+                  <th>Total Failed Calls</th>
+                  <th>Total Session Bill</th>
+                  <th>Total Session Time</th>
+                  <th>Average ASR</th>
+                  <th>Total Records</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {OutBoundUsage?.map((data) => (
+                  <tr key={data._id}>
+                    <td>{data.year}</td>
+                    <td>{data.month}</td>
+                    <td>{data.id_user}</td>
+                    <td>{data.totalAgentBill}</td>
+                    <td>{data.totalAlocAllCalls}</td>
+                    <td>{data.totalBuyCost}</td>
+                    <td>{data.totalLucro}</td>
+                    <td>{data.totalNbCall}</td>
+                    <td>{data.totalNbCallFail}</td>
+                    <td>{data.totalSessionBill}</td>
+                    <td>{data.totalSessionTime}</td>
+                    <td>{data.averageAsr}</td>
+                    <td>{data.totalRecords}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>User ID</th>
+                  <th>Duration/Min</th>
+                  <th>ALOC</th>
+                  <th>All Calls</th>
+                  <th>Answered</th>
+                  <th>Failed</th>
+                  {Role !== 'client' && <th>Buy Price</th>}
+                  <th>Sell Price</th>
+                  <th>Markup</th>
+                  <th>ASR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {OutBoundUsage?.map((data) => (
+                  <tr key={data._id}>
+                    <td>{data.day}</td>
+                    <td>{data.id_user}</td>
+                    <td>{data.sessiontime}</td>
+                    <td>{data.aloc_all_calls}</td>
+                    <td>{data.nbcall}</td>
+                    <td>{data.nbcall - data.nbcall_fail}</td>
+                    <td>{data.nbcall_fail}</td>
+                    {Role !== 'client' && <td>{data.buycost}</td>}
+                    <td>{data.sell_price}</td>
+                    <td>{data.sell_price - data.buy_price}</td>
+                    <td>{data.asr}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
-<div className="pagination">
-            {filters.page > 1 && (
-              <button
-                className="pagination-button"
-                onClick={() => handlePageChange(filters.page - 1)}
-              >
-                Previous
-              </button>
-            )}
-            <span>Page {filters.page} of {pagination.totalPages}</span>
-            {filters.page < pagination.totalPages && (
-              <button
-                className="pagination-button"
-                onClick={() => handlePageChange(filters.page + 1)}
-              >
-                Next
-              </button>
-            )}
-          </div>
+      {/* Pagination logic */}
+      {!errorMessage && pagination.totalPages > 1 && (
+        <div className="pagination">
+          <button
+            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            className="pagination-button"
+          >
+            Previous
+          </button>
+          <span className="pagination-info">
+            Page {currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            onClick={() => handlePageChange(Math.min(pagination.totalPages, currentPage + 1))}
+            disabled={currentPage >= pagination.totalPages}
+            className="pagination-button"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

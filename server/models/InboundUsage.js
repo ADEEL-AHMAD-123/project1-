@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const billingSummarySchema = new mongoose.Schema({
+const inBoundUsageSchema = new mongoose.Schema({
   id: { type: Number, required: true },
   id_user: { type: Number, required: true },
   day: { type: String, required: true },
@@ -24,4 +24,5 @@ const billingSummarySchema = new mongoose.Schema({
   idUserusername: { type: String, required: true }
 }, { timestamps: true });
 
-module.exports = mongoose.model('BillingSummary', billingSummarySchema);
+module.exports = mongoose.model('InBoundUsage', inBoundUsageSchema);
+  

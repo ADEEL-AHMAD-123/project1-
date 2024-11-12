@@ -153,9 +153,6 @@ exports.uploadDIDsFromCSV = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-
-
-
 // @desc    Get available DIDs for purchase with filtering, searching, and pagination
 // @route   GET /api/v1/dids/available
 // @access  Private
@@ -172,7 +169,7 @@ exports.getAvailableDIDs = catchAsyncErrors(async (req, res, next) => {
   const totalDIDs = await DID.countDocuments(query);
   const dids = await DID.find(query)
                         .skip((page - 1) * limit)
-                        .limit(limit);
+                        .limit(Number(limit));
 
   // Mask last four digits of didNumber
   const maskedDIDs = dids.map(did => {
@@ -193,13 +190,16 @@ exports.getAvailableDIDs = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     count: maskedDIDs.length,
-    pagination:{
+    pagination: {
+      totalItems: totalDIDs,
+      limit: Number(limit),
+      currentPage: Number(page),
       totalPages: Math.ceil(totalDIDs / limit),
-      currentPage: page
     },
     dids: maskedDIDs
   });
 });
+
 
 
 // @desc    Get all DIDs of the logged-in user

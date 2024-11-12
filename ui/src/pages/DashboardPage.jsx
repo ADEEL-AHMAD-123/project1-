@@ -31,6 +31,8 @@ const Dashboard = () => {
       // Dispatch the logout action
       await dispatch(userAsyncActions.logoutUser({ requestData: "" }));
       
+       // Clear the localStorage (clear all stored data in localStorage)
+    localStorage.clear();
       // Purge the persisted state (clear localStorage/sessionStorage)
       persistor.purge();
       

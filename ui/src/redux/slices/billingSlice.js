@@ -27,7 +27,7 @@ const createApiAsyncThunk = ({ name, method, url }) => {
       };
 
       const response = await axios(requestOptions);
-      toast.success(response.data.message);
+
       
       // Dispatch user profile update on successful billing account creation
       if (name === "create-billing-account") {
@@ -36,7 +36,6 @@ const createApiAsyncThunk = ({ name, method, url }) => {
 
       return response.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred');
       console.log(error);
       throw error.response?.data?.message || 'An error occurred';
     }
@@ -58,12 +57,17 @@ export const billingAsyncActions = {
   getInboundUsage: createApiAsyncThunk({
     name: "get-inbound-usage",
     method: "GET",
-    url: "/billing/summary/days",
+    url: "/billing/usage",
   }),
   getOutboundUsage: createApiAsyncThunk({
     name: "get-outbound-usage",
     method: "GET",
-    url: "/billing/summary/days",
+    url: "/billing/usage",
+  }),
+  getUsageSummary: createApiAsyncThunk({
+    name: "get-usage-summary",
+    method: "GET",
+    url: "/billing/usage/summary",
   }),
   getCredit: createApiAsyncThunk({
     name: "get-credit",
@@ -86,6 +90,7 @@ const initialState = {
   BillingAccount: null,
   InBoundUsage: [],
   OutBoundUsage: [],
+ UsageSummary: [],
   period: null,
   credit: null,
   isLoading: false,
@@ -128,6 +133,11 @@ const billingSlice = createSlice({
             state.period = payload.period;
           } else if (actionName === "getOutboundUsage") {
             state.OutBoundUsage = payload.data;
+            state.pagination = payload.pagination;
+            state.error = payload.error;
+            state.period = payload.period;
+          } else if (actionName === "getUsageSummary") {
+            state.UsageSummary = payload.data;
             state.pagination = payload.pagination;
             state.error = payload.error;
             state.period = payload.period;
