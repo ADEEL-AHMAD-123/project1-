@@ -220,17 +220,65 @@ exports.getServerById = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// @desc    Get all servers for logged-in user
+// @desc    Get all servers for logged-in user with filtering and pagination
 // @route   GET /api/v1/servers/user
 // @access  Private
 exports.getAllServersForUser = catchAsyncErrors(async (req, res, next) => {
+  const userId = req.user.id;
+  const { page = 1, limit = 10, serverName, status, ipAddress, location, createdAt } = req.query;
 
-  const userId = req.user.id; 
+  const query = { 'companyUser._id': userId }; // Initialize query with user filter
 
+  // Add server name filter (case-insensitive regex)
+  if (serverName) {
+    query.serverName = { $regex: new RegExp(serverName, 'i') };
+  }
 
-  const servers = await Server.find({ 'companyUser._id': userId });
+  // Add status filter
+  if (status) {
+    query.status = status;
+  }
 
-  if (!servers) {
+  // Add IP address filter (exact match on sipIpAddress in agentCredentials)
+  if (ipAddress) {
+    query['agentCredentials.sipIpAddress'] = { $regex: new RegExp(ipAddress, 'i') };
+  }
+
+  // Add location filter (city and/or country in dialerLocation)
+  if (location) {
+    const [city, country] = location.split(',').map(loc => loc.trim());
+    query.$and = [];
+
+    if (city) {
+      query.$and.push({ 'dialerLocation.city': { $regex: new RegExp(city, 'i') } });
+    }
+    if (country) {
+      query.$and.push({ 'dialerLocation.country': { $regex: new RegExp(country, 'i') } });
+    }
+  }
+
+  // Optionally filter by creation date
+  if (createdAt) {
+    const date = new Date(createdAt);
+    query.createdAt = {
+      $gte: date.setHours(0, 0, 0, 0),
+      $lte: date.setHours(23, 59, 59, 999),
+    };
+  }
+
+  const skip = (page - 1) * limit;
+
+  // Fetch servers with applied filters, pagination, and sorting
+  const servers = await Server.find(query)
+    .populate('companyUser', 'firstName lastName') // Populate company user info
+    .skip(skip)
+    .limit(parseInt(limit))
+    .sort({ createdAt: -1 });
+
+  const totalItems = await Server.countDocuments(query);
+  const totalPages = Math.ceil(totalItems / limit);
+
+  if (!servers.length) {
     logger.error('No servers found for user', {
       ip: req.ip,
       userId: req.user.id,
@@ -246,10 +294,16 @@ exports.getAllServersForUser = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    count: servers.length,
     servers,
+    pagination: {
+      totalItems,
+      totalPages,
+      limit: parseInt(limit),
+      currentPage: parseInt(page),
+    },
   });
 });
+
 
 
  

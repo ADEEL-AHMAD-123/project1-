@@ -68,7 +68,10 @@ const AllServers = () => {
 
   const applyFilters = (currentFilters) => {
     const queryString = new URLSearchParams(currentFilters).toString();
-    dispatch(serverAsyncActions.getServers({ requestData: `?${queryString}`, data: "" }));
+    const action = Role === 'client' 
+      ? serverAsyncActions.getUserServers 
+      : serverAsyncActions.getAllServers;
+    dispatch(action({ requestData: `?${queryString}`, data: "" }));
   };
 
   const handlePageChange = (newPage) => {

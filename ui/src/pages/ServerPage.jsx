@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import Tabs from '../components/Tabs';
 import AllServers from '../components/AllServers';
 import CreateServer from '../components/CreateServer';
-import CreateServerClient from '../components/CreareServerClient';
+import CreateServerClient from '../components/CreateServerClient';
 
 const ServersPage = () => {
     const userRole = useSelector(state => state.user.Role); // Assuming you have 'role' in your user state

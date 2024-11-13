@@ -2,17 +2,16 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import "../styles/Forms.scss";
-import "../styles/AddDIDs.scss"; // Import specific styles for AddDIDs
+import "../styles/AddDIDs.scss";
 import { useDispatch, useSelector } from "react-redux";
-import { didAsyncActions, clearMessages } from "../redux/slices/didSlice"; // Adjust import based on your directory structure
+import { didAsyncActions, clearMessages } from "../redux/slices/didSlice";
 
 const AddDIDs = () => {
   const dispatch = useDispatch();
   const [csvFile, setCsvFile] = useState(null);
-  const { added, message, errors } = useSelector((state) => state.did); // Get added count, message, and errors from state
-  const [isAddingDIDs, setIsAddingDIDs] = useState(false); // To toggle between form and summary
+  const { added, message, errors } = useSelector((state) => state.did);
+  const [isAddingDIDs, setIsAddingDIDs] = useState(false);
 
-  // Initial values for the form
   const initialValues = {
     didNumber: "",
     country: "",
@@ -20,7 +19,6 @@ const AddDIDs = () => {
     areaCode: "",
   };
 
-  // Validation schema for form fields
   const validationSchema = Yup.object({
     didNumber: Yup.string().required("Required"),
     country: Yup.string().required("Required"),
@@ -28,11 +26,14 @@ const AddDIDs = () => {
     areaCode: Yup.string().required("Required"),
   });
 
-  // Handle form submission for adding a single DID
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      await dispatch(didAsyncActions.addDID({ data: values })); // Dispatch the action to add a DID
-      setIsAddingDIDs(true); // Show summary after single DID is added
+      const result = await dispatch(didAsyncActions.addDID({ data: values }));
+      
+      // Check if the DID was added successfully
+      if (result.meta.requestStatus === "fulfilled") {
+        resetForm(); // Reset the form only if the DID is added successfully
+      }
     } catch (error) {
       console.error("Failed to add DID:", error);
     } finally {
@@ -40,15 +41,13 @@ const AddDIDs = () => {
     }
   };
 
-  // Handle file upload and dispatch the action to add DIDs from CSV
   const handleFileUpload = async () => {
     if (csvFile) {
       try {
         const formData = new FormData();
-        formData.append("file", csvFile); // Append the file with the correct field name
-
-        await dispatch(didAsyncActions.addDIDsFromFile({ data: formData })); // Dispatch action to add DIDs from CSV
-        setIsAddingDIDs(true); // Show summary after DIDs from file are added
+        formData.append("file", csvFile);
+        await dispatch(didAsyncActions.addDIDsFromFile({ data: formData }));
+        setIsAddingDIDs(true);
       } catch (error) {
         console.error("Failed to add DIDs from file:", error);
       }
@@ -57,7 +56,6 @@ const AddDIDs = () => {
     }
   };
 
-  // Reset state and go back to form
   const handleAddMoreDIDs = () => {
     dispatch(clearMessages());
     setCsvFile(null);
@@ -106,7 +104,6 @@ const AddDIDs = () => {
                 </button>
               </div>
 
-              {/* Section for uploading CSV file */}
               <div className="csv-upload-section">
                 <h1>Add DIDs in Bulk</h1>
                 <h6>Please upload a CSV file with the necessary data.</h6>
@@ -129,10 +126,9 @@ const AddDIDs = () => {
         <div className="process-summary">
           <h1>Process Summary</h1>
           <p>{message}</p>
-          <p> Number of DIDs added successfully: {added }</p>
-          <p>Number of DIDs that were not added due to errors:{errors.length}</p>
+          <p> Number of DIDs added successfully: {added}</p>
+          <p>Number of DIDs that were not added due to errors: {errors.length}</p>
 
-          {/* Display errors */}
           {errors.length > 0 && (
             <div className="error-list">
               <h2>Errors</h2>

@@ -8,7 +8,7 @@ import { useDispatch } from "react-redux";
 const CreateServerClient = () => {
   const dispatch = useDispatch();
   const [isSubmitDisabled, setSubmitDisabled] = useState(false);
-
+ 
   const initialValues = {
     numberOfAgents: "",
     locationOfAgents: "",
@@ -40,7 +40,7 @@ const CreateServerClient = () => {
   };
 
   return (
-    <div className="auth-page">
+    <div className="main-section">
       <div className="main-form">
         <h1>Create a new server</h1>
         <h6>Enter Agents Details to create new server</h6>

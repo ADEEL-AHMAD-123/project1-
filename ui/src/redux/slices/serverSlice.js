@@ -40,10 +40,15 @@ export const serverAsyncActions = {
     method: "POST",
     url: "/servers/create",
   }),
-  getServers: createApiAsyncThunk({
-    name: "get-all-servers",
+  getAllServers: createApiAsyncThunk({
+    name: "get-all-servers-admin",
     method: "GET",
     url: "/servers",
+  }),
+  getUserServers: createApiAsyncThunk({
+    name: "get-all-servers-user",
+    method: "GET",
+    url: "/servers/user",
   }),
   updateServer: createApiAsyncThunk({
     name: "update-server",
@@ -89,7 +94,11 @@ const initialState = {
           state.isLoading = false;
           state.error = false;
           if (payload && payload.servers) {
-            if (actionName === "getServers") {
+            if (actionName === "getAllServers") {
+              state.Servers = payload.servers;
+              state.pagination = payload.pagination;
+            }
+            if (actionName === "getUserServers") {
               state.Servers = payload.servers;
               state.pagination = payload.pagination;
             }
