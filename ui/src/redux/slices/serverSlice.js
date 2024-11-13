@@ -66,7 +66,8 @@ const initialState = {
     Servers: [],
     isLoading: false,
     error: null,
-    ServerDetails:null
+    ServerDetails:null,
+    pagination: null,
   };
 
   const serverSlice = createSlice({
@@ -90,10 +91,11 @@ const initialState = {
           if (payload && payload.servers) {
             if (actionName === "getServers") {
               state.Servers = payload.servers;
+              state.pagination = payload.pagination;
             }
           } else if (actionName === "getServerDetails" ) {
             state.ServerDetails = payload.server
-
+            
           } 
         });
   

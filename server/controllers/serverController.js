@@ -125,7 +125,7 @@ exports.createServer = catchAsyncErrors(async (req, res, next) => {
 // @route   GET /api/v1/servers
 // @access  Private (admin)
 exports.getAllServersByAdmin = catchAsyncErrors(async (req, res, next) => {
-  // Destructure query parameters
+  // Destructure query parameters with default values for pagination
   const { page = 1, limit = 10, serverName, status, username, ipAddress, location, createdAt } = req.query;
 
   const query = {}; // Initialize the query object
@@ -156,10 +156,8 @@ exports.getAllServersByAdmin = catchAsyncErrors(async (req, res, next) => {
 
   // Add location filter (city and/or country in dialerLocation)
   if (location) {
-    // Split location string if it contains a comma (assuming "city, country" format)
     const [city, country] = location.split(',').map(loc => loc.trim());
 
-    // Initialize $and array for city and country filters
     query.$and = [];
 
     if (city) {
@@ -188,18 +186,21 @@ exports.getAllServersByAdmin = catchAsyncErrors(async (req, res, next) => {
     .limit(parseInt(limit)) // Limit the number of documents returned
     .sort({ createdAt: -1 }); // Sort by creation date, newest first
 
-  const totalServers = await Server.countDocuments(query); // Count total servers matching the query
-  const totalPages = Math.ceil(totalServers / limit); // Calculate total pages
+  const totalItems = await Server.countDocuments(query); // Count total servers matching the query
+  const totalPages = Math.ceil(totalItems / limit); // Calculate total pages
 
   res.status(200).json({
     success: true,
-    count: servers.length,
-    totalServers,
-    totalPages,
-    currentPage: parseInt(page),
     servers,
+    pagination: {
+      totalItems,
+      totalPages,
+      limit: parseInt(limit),
+      currentPage: parseInt(page),
+    },
   });
 });
+
 
 
 

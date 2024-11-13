@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { serverAsyncActions } from '../redux/slices/serverSlice'; // Adjust the import based on your actual async actions file
+import { serverAsyncActions } from '../redux/slices/serverSlice';
 import ErrorCard from './ErrorCard';
 import Loader from './Loader';
 import '../styles/ListingTable.scss';
@@ -28,7 +28,7 @@ const AllServers = () => {
   const [isResetButtonDisabled, setIsResetButtonDisabled] = useState(true);
 
   useEffect(() => {
-    const isFilterModified = JSON.stringify(localFilters) !== JSON.stringify(filters);
+    const isFilterModified = JSON.stringify({ ...localFilters, page: filters.page }) !== JSON.stringify(filters);
     setIsModified(isFilterModified);
     setIsApplyButtonDisabled(!isFilterModified);
     setIsResetButtonDisabled(!isApplied && JSON.stringify(localFilters) === JSON.stringify(initialFilters));
@@ -47,11 +47,12 @@ const AllServers = () => {
   };
 
   const handleApplyFilters = () => {
-    setFilters(localFilters);
-    localStorage.setItem(storageKey, JSON.stringify(localFilters));
+    const filtersWithPageReset = { ...localFilters, page: 1 }; // Reset page to 1 on filter apply
+    setFilters(filtersWithPageReset);
+    localStorage.setItem(storageKey, JSON.stringify(filtersWithPageReset));
     setIsApplied(true);
     setIsApplyButtonDisabled(true);
-    applyFilters(localFilters);
+    applyFilters(filtersWithPageReset);
   };
 
   const handleResetFilters = () => {
@@ -67,20 +68,19 @@ const AllServers = () => {
 
   const applyFilters = (currentFilters) => {
     const queryString = new URLSearchParams(currentFilters).toString();
-    dispatch(serverAsyncActions.getServers({ requestData: `?${queryString}`, data: "" })); // Adjust the action as per your implementation
+    dispatch(serverAsyncActions.getServers({ requestData: `?${queryString}`, data: "" }));
   };
 
   const handlePageChange = (newPage) => {
     const updatedFilters = {
-      ...localFilters,
+      ...filters,
       page: newPage,
     };
-    setLocalFilters(updatedFilters);
+    setFilters(updatedFilters);
     applyFilters(updatedFilters);
   };
 
   const handleRowClick = (id) => {
-    // Implement row click logic here
     console.log("Row clicked:", id);
   };
 
@@ -99,9 +99,8 @@ const AllServers = () => {
   }
 
   const totalPages = pagination?.totalPages || 1;
-  const currentPage = localFilters.page || 1;
+  const currentPage = filters.page || 1;
 
-  // Function to get the class name based on status
   const getStatusClass = (status) => {
     switch (status) {
       case 'active':
