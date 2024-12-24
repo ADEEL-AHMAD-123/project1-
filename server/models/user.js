@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -25,6 +26,26 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+
+  emailSentTimestamps: {
+    verification: { type: Date },
+    passwordReset: { type: Date },
+    // other email types will be added here when needed
+  },
+  phone: {
+    type: String,
+    default: null,
+  },
+  whatsapp: {
+    type: String,
+    default: null,
   },
   zipcode: {
     type: String,
@@ -58,6 +79,15 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+
+// Generate an email verification token
+userSchema.methods.getEmailVerificationToken = function () {
+  const token = crypto.randomBytes(32).toString('hex');
+  this.emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex');
+  this.emailVerificationExpires = Date.now() + 30 * 60 * 1000; // Token valid for 30 mins
+  return token;
+};
+
 // Encrypt password using bcrypt
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
@@ -79,5 +109,7 @@ userSchema.methods.getJwtToken = function() {
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+
 
 module.exports = mongoose.model('User', userSchema);

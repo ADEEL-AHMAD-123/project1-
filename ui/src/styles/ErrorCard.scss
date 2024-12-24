@@ -1,4 +1,3 @@
-// When ErrorCard is full-page (error-section class), it covers the whole viewport
 .error-section {
   position: fixed;
   top: 0;
@@ -11,24 +10,14 @@
   background: white;
   z-index: 1000;
   padding: 0px 20px;
-
-  button {
-    padding: 10px;
-    width: 40%;
-    @media (max-width: 768px) {
-      width: 60%;
-    }
-  }
 }
 
-// When ErrorCard is not full-page, center it in the parent container
 .error-card-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 70vh;
   width: 100%;
-
 }
 
 .error-card {
@@ -38,29 +27,70 @@
   justify-content: center;
   padding: 1rem;
   border-radius: 4px;
-  background: none;
-
   max-width: 30rem;
   height: 15rem;
   width: 90%;
   text-align: center;
+  background: none;
+
+  &.card-style {
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+  }
 
   h2 {
     font-size: 28px;
     margin-bottom: 20px;
+
     @media (max-width: 768px) {
       font-size: 18px;
     }
   }
- 
 
-  // Adjust the button size when it's not full-page
+  .buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 50%;
+    margin-top: 20px;
+
+    &.single {
+      justify-content: center;
+    }
+
+    &.two {
+      justify-content: center;
+    }
+
+    &.multiple {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  }
+
   button {
     padding: 8px 16px;
-    width: auto;
     font-size: 16px;
+    min-width: 120px;
+    max-width: 200px;
+    width: fit-content; // Adjust width based on content
+    text-align: center;
+    overflow-wrap: break-word; // Break text to the next line if it exceeds max width
+    white-space: normal; // Allow text to wrap to the next line
+    display: inline-block; // Ensures proper size adjustment
+    line-height: 1.5; // Center text vertically
+
+    @media (min-width: 1024px) {
+      padding: 8px 20px;
+    }
+
     @media (max-width: 768px) {
       font-size: 14px;
+      padding: 8px 12px;
     }
   }
 }

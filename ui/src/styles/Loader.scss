@@ -1,19 +1,27 @@
 @import "./variables";
 
+.loader-overlay {
+    position: fixed;  // Position the loader on top of everything else
+    top: 0;
+    left: 0;
+    width: 100vw;  // Full width
+    height: 100vh;  // Full height
+    background: white;  // Semi-transparent black background
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;  // Ensure the loader stays on top of all other elements
+}
+
 .loader {
-    position: absolute; // Center within the parent container
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); // Centering with transform
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
 
     .loader-spinner {
-        border: 8px solid #f3f3f3; // Light grey
-        border-top: 8px solid $primary-color; // Blue
+        border: 8px solid #f3f3f3;  // Light grey
+        border-top: 8px solid $primary-color;  // Blue
         border-radius: 50%;
         width: 60px;
         height: 60px;
@@ -25,7 +33,7 @@
         font-size: 1.2rem;
         color: $primary-color;
         font-weight: bold;
-        text-align: center; // Center text
+        text-align: center;  // Center text
     }
 }
 

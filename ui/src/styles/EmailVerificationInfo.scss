@@ -1,0 +1,116 @@
+@import "./_variables.scss";  // Import shared variables for colors and fonts
+
+.email-info-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: $white-color;
+  padding: 2rem;
+  overflow: hidden;
+
+  .content-wrapper {
+    background: $white-color;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 450px;
+    width: 100%;
+    
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: $primary-color;
+    }
+
+    p {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: $secondary-text-color;
+      line-height: 1.6;
+
+      strong {
+        font-weight: 600;
+        color: $text-color;
+      }
+    }
+
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+
+      .email-input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        color: $black-color;
+
+        &:focus {
+          border-color: $primary-color;
+        }
+
+        
+      }
+
+      .btn {
+        background-color: $primary-color;
+        color: $white-color;
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        
+        &:hover {
+          background-color: $button-hover-color;
+        }
+
+        &.disabled {
+          background-color: $disabled-button-color;
+          color: $primary-color;
+          cursor: not-allowed;
+        }
+
+       
+      }
+    }
+
+    .info {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: $text-color;
+
+      span {
+        display: block;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+
+    .content-wrapper {
+      padding: 1.5rem;
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

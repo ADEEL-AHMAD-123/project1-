@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Routes, Route } from 'react-router-dom';
+import './styles/Main.scss';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import EmailVerificationInfo from './pages/EmailVerificationInfo';
+import VerifyEmail from './pages/VerifyEmail';
 import Dashboard from './pages/DashboardPage';
 import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
-import './styles/main.scss';
 import AccountSettings from './pages/AccountSettingPage';
 import TeamPage from './pages/TeamPage';
 import ServerPage from './pages/ServerPage';
@@ -61,6 +63,9 @@ function App() {
           {/* Authentication routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
+          <Route path="/email-verification-info" element={<EmailVerificationInfo />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
+
 
           {/* DID Selection, Order, and Payment routes */}
           <Route path="/dids" element={<ProtectedRoute element={<DIDPage />} requiredRoles={['admin', 'supportive staff', 'client']} />} />
