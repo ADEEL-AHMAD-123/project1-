@@ -6,6 +6,7 @@ const sendEmail = require("../utils/sendEMail");
 const crypto = require("crypto");
 const generateEmailTemplate = require("../utils/generateEmailTemplate");
 
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -15,26 +16,27 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const userExist = await User.findOne({ email });
 
   if (userExist) {
+    throw createError(409, "User with this email already exists. Please login to continue.");
     // If the email is verified, throw an error for user already existing
-    if (userExist.isEmailVerified) {
-      throw createError(409, "User with this email already exists. Please login to continue.");
-    }
+    // if (userExist.isEmailVerified) {
+    //   throw createError(409, "User with this email already exists. Please login to continue.");
+    // }
 
     // If the email is unverified, check if the grace period has expired
-    const gracePeriod = 24 * 60 * 60 * 1000; // 24 hours
-    const isExpired =
-      Date.now() - new Date(userExist.createdAt).getTime() > gracePeriod;
+    // const gracePeriod = 24 * 60 * 60 * 1000; // 24 hours
+    // const isExpired =
+    //   Date.now() - new Date(userExist.createdAt).getTime() > gracePeriod;
 
     // If the email is unverified and grace period has not expired, throw error
-    if (!isExpired) {
-      throw createError(409, "User with this email already exists. Please login to continue.");
-    }
+    // if (!isExpired) {
+    //   throw createError(409, "User with this email already exists. Please login to continue.");
+    // }
 
     // If the grace period has expired, remove the unverified user and allow new registration
-    await userExist.remove();  // Remove the expired unverified user
+    // await userExist.remove();  // Remove the expired unverified user
   }
 
-  // Proceed with creating a new user if there is no existing user or the expired user was removed
+  // Proceed with creating a new user
   const user = new User({
     firstName,
     lastName,
@@ -43,32 +45,32 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
     phone,
     whatsapp,
   });
-  const emailVerificationToken = user.getEmailVerificationToken();
+  // const emailVerificationToken = user.getEmailVerificationToken();
   await user.save();
 
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}?fromVerificationLink=true`;
-  const emailTemplate = generateEmailTemplate("emailVerification", {
-    verificationUrl,
-    firstName,
-  });
+  // const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}?fromVerificationLink=true`;
+  // const emailTemplate = generateEmailTemplate("emailVerification", {
+  //   verificationUrl,
+  //   firstName,
+  // });
 
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: emailTemplate.subject,
-      message: emailTemplate.message,
-    });
+  // try {
+  //   await sendEmail({
+  //     email: user.email,
+  //     subject: emailTemplate.subject,
+  //     message: emailTemplate.message,
+  //   });
 
     res.status(201).json({
       success: true,
-      message: "Registration successful. Please verify your email.",
+      message: "Registration successful.",
     });
-  } catch (error) {
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-    await user.save();
-    throw createError(500, "Email could not be sent");
-  }
+  // } catch (error) {
+  //   user.emailVerificationToken = undefined;
+  //   user.emailVerificationExpires = undefined;
+  //   await user.save();
+  //   throw createError(500, "Email could not be sent");
+  // }
 });
 
 
@@ -128,47 +130,48 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   }
 
   // Check email verification
-  if (!user.isEmailVerified) {
+  
+//   if (!user.isEmailVerified) {
 
 
-// Check rate limit for sending verification email
-const rateLimitDuration = 1 * 60 * 1000; // 1 minute
-const lastVerificationSentAt = user.emailSentTimestamps.verification || 0;
-if (Date.now() - lastVerificationSentAt < rateLimitDuration) {
-  throw createError(429, 'Your email is not verified. You have recently requested a verification email. Please wait a while before trying again.');
+// // Check rate limit for sending verification email
+// const rateLimitDuration = 1 * 60 * 1000; // 1 minute
+// const lastVerificationSentAt = user.emailSentTimestamps.verification || 0;
+// if (Date.now() - lastVerificationSentAt < rateLimitDuration) {
+//   throw createError(429, 'Your email is not verified. You have recently requested a verification email. Please wait a while before trying again.');
 
-}
+// }
 
-    const emailVerificationToken = user.getEmailVerificationToken();
-    user.emailSentTimestamps = { verification: Date.now() };
-    await user.save();
+//     const emailVerificationToken = user.getEmailVerificationToken();
+//     user.emailSentTimestamps = { verification: Date.now() };
+//     await user.save();
 
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}?fromVerificationLink=true`;
+//     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}?fromVerificationLink=true`;
 
-    const emailTemplate = generateEmailTemplate("emailVerification", {
-      firstName: user.firstName,
-      verificationUrl,
-    });
+//     const emailTemplate = generateEmailTemplate("emailVerification", {
+//       firstName: user.firstName,
+//       verificationUrl,
+//     });
 
 
-    try {
-      // Try sending the verification email
-      await sendEmail({
-        email: user.email,
-        subject: "Email Verification",
-        message: emailTemplate.message,
-      });
-    } catch (error) {
-      // If sending email fails, handle the error and log it
-      console.error("Error sending email:", error.message, error.stack);
-      user.emailVerificationToken = undefined;
-      user.emailVerificationExpires = undefined;
-      await user.save();
-    }
+//     try {
+//       // Try sending the verification email
+//       await sendEmail({
+//         email: user.email,
+//         subject: "Email Verification",
+//         message: emailTemplate.message,
+//       });
+//     } catch (error) {
+//       // If sending email fails, handle the error and log it
+//       console.error("Error sending email:", error.message, error.stack);
+//       user.emailVerificationToken = undefined;
+//       user.emailVerificationExpires = undefined;
+//       await user.save();
+//     }
 
-    // After email is sent, throw the error that the email is not verified
-    throw createError(403, "Email not verified");
-  }
+//     // After email is sent, throw the error that the email is not verified
+//     throw createError(403, "Email not verified");
+//   }
 
   // Capture IP
   let ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;

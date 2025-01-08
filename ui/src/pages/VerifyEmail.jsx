@@ -19,7 +19,7 @@ const VerifyEmail = () => {
   const [isStateLoaded, setIsStateLoaded] = useState(false);
   const [fromEmailVerificationFlow, setFromEmailVerificationFlow] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => { 
     // Extract query parameters
     const params = new URLSearchParams(location.search);
     const isFromVerificationLink = params.get("fromVerificationLink") === "true";
