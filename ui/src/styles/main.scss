@@ -10,9 +10,10 @@ body {
 
 .app {
   display: grid;
-  grid-template-rows: 90px 1fr;
+  grid-template-rows: 80px 1fr;
   grid-template-columns: 20% 80%;
   height: 100vh;
+
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -25,7 +26,6 @@ body {
   grid-row: 2 / 3;
   padding: 10px;
   background-color: $primary-background-color;
-  border-radius: 10px 0px 0px 0px;
   overflow-y: auto;
 
  

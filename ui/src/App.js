@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Routes, Route } from 'react-router-dom';
-import './styles/Main.scss';
+import './styles/main.scss';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Login from './pages/Login';
@@ -27,11 +27,14 @@ import OrderSummaryPage from './pages/OrderSummaryPage';
 import DIDManagementPage from './pages/DIDManagementPage';
 
 function App() {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const dispatch = useDispatch();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
+      setIsSidebarOpen((prev) => !prev);
   };
+
+  const dispatch = useDispatch();
+ 
 
 
   return (

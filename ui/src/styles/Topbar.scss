@@ -1,57 +1,45 @@
 @import './variables';
 
 .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 90px;
+    position: relative;
+    width: calc(100% - 20%);
+    margin-left: 20%;
+    height: 80px;
     background-color: $white-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     position: fixed;
     top: 0;
-    width: 100%;
     z-index: 10;
 
-    .topbar-left, .topbar-right {
+    .topbar-left,
+    .topbar-right {
         display: flex;
         align-items: center;
 
-        .icon {
-            font-size: 30px;
-            margin-right: 15px;
-            cursor: pointer;
-            color: $primary-color;
-            background-color: $secondary-color;
-            border-radius: 10%;
-            padding: 5px;
+        .icon-div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
 
-            &:hover {
-                background-color: $primary-color;
-                color: $white-color;
-            }
-
-            &.active {
-                background-color: $primary-color;
-                color: $white-color;
-            }
-        }
-
-        .logo {
-            margin: 0px 15px;
-            h2{
-                color: $primary-color;
+            .icon {
                 font-size: 30px;
-            }
-            p{
-                font-size: 12px;
-            }
+                cursor: pointer;
+                color: $primary-color;
+                background-color: $secondary-color;
+                border-radius: 10%;
+                padding: 5px;
 
-            @media (max-width: 768px) {
-                h2{
-                    // margin-top: 5px;
-                    font-size: 22px;
+                &:hover {
+                    background-color: $primary-color;
+                    color: $white-color;
                 }
-                p{
-display: none;
+
+                &.active {
+                    background-color: $primary-color;
+                    color: $white-color;
                 }
             }
         }
@@ -59,7 +47,6 @@ display: none;
         .hamburger-icon {
             display: none;
         }
-
     }
 
     .search-container {
@@ -89,8 +76,7 @@ display: none;
                 flex-grow: 1;
                 border: none;
                 outline: none;
-                padding: 20px 10px 20px 35px; 
-                border-radius: 4px; // Rounded corners
+                padding: 20px 10px 20px 35px;
                 background-color: $secondry-background-color;
             }
 
@@ -99,9 +85,8 @@ display: none;
                 margin-right: 10px;
                 font-size: 18px;
                 cursor: pointer;
-               
             }
-             
+
             .close-icon {
                 color: $primary-color;
                 margin-right: 10px;
@@ -131,8 +116,38 @@ display: none;
         }
     }
 
+    .credit {
+        position: relative;
+        margin: 0px 15px;
+        padding: 0px 15px;
+        margin-left: 25px !important;
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 1px;
+            background-color: #ccc; // Thin line color
+        }
+
+        h2 {
+            color: $primary-color;
+            font-size: 30px;
+        }
+
+        p {
+            color: $black-color;
+            font-size: 12px;
+        }
+    }
+
+    // Tablet devices
     @media (max-width: 768px) {
-        height: 70px;
+        height: 10%;
+        width: 100%;
+        margin-left: 0;
 
         .topbar-left {
             .icon {
@@ -142,6 +157,7 @@ display: none;
 
             .hamburger-icon {
                 display: block;
+                margin-top: -4px;
             }
 
             .mobile-search {
@@ -169,10 +185,9 @@ display: none;
                     height: 100%;
                     width: 100%;
                     padding: 0 10px;
-                    border-radius: 0;
 
                     .search-icon {
-                        font-size: 16px; // Decreased size for search icon on smaller devices
+                        font-size: 16px;
                         left: 10px;
                     }
 
@@ -180,17 +195,115 @@ display: none;
                         padding-left: 30px;
                     }
 
-                    .filter-icon, .close-icon {
-                        font-size: 16px; // Decreased size for filter and close icons on smaller devices
+                    .filter-icon,
+                    .close-icon {
+                        font-size: 16px;
                     }
                 }
             }
         }
+
+        .credit {
+            margin: 0 !important;
+            h2 {
+                font-size: 22px;
+            }
+
+            p {
+font-size: 10px;
+
+            }
+        }
     }
 
+    // Mobile devices
     @media (min-width: 769px) {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+
+        .credit {
+            order: 3;
+
+        }
+
+        .search-container {
+            order: 1;
+        }
+
+        .topbar-right {
+            order: 2;
+            margin-right: auto;
+        }
+
         .mobile-search {
             display: none;
+        }
+    }
+}
+// Mobile devices only
+@media (max-width: 480px) {
+    .topbar {
+        height: 10% !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+
+        .topbar-left {
+            .icon {
+                font-size: 20px !important;
+                padding: 2px !important;
+            }
+
+        }
+
+        .topbar-right {
+            .icon {
+                font-size: 20px !important;
+                padding: 2px !important;
+            }
+        }
+
+        .search-container {
+            display: none;
+
+            &.open {
+                display: flex;
+                height: 60px;
+
+                .search-box {
+                    height: 100% !important;
+                    width: 100% !important;
+                    padding: 0 5px !important;
+margin: 5px 5px 0 5px;
+
+                    .search-icon {
+                        font-size: 14px !important;
+                        left: 8px;
+                    }
+
+                    .search-input {
+                        padding-left: 25px !important;
+                    }
+
+                    .filter-icon,
+                    .close-icon {
+                        font-size: 12px ;
+                    }
+                }
+            }
+        }
+
+        .credit {
+            margin: 0 !important;
+padding: 0 10px;
+            h2 {
+                font-size: 22px ;
+                
+            }
+
+            p {
+                font-size: 8px;
+            }
         }
     }
 }
